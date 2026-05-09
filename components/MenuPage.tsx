@@ -383,16 +383,10 @@ export default function MenuPage({ menu }: Props) {
                       {localDescription(d, lang, autoMap)}
                     </p>
                     {flags.length > 0 && (
-                      <div className="mt-2 flex flex-wrap gap-1.5">
-                        {flags.map((f) => (
-                          <span
-                            key={f}
-                            className="text-[11px] uppercase tracking-wider text-amber-700"
-                          >
-                            {t("headsUp")} {t(f).toLowerCase()}
-                          </span>
-                        ))}
-                      </div>
+                      <p className="mt-2 text-[11px] uppercase tracking-wider text-amber-700">
+                        {t("headsUp")}{" "}
+                        {flags.map((f) => t(f).toLowerCase()).join(", ")}
+                      </p>
                     )}
                   </div>
                 </button>
