@@ -138,7 +138,8 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
           const next = Math.min(1, top / 80);
           setFadeOpacity(next);
         }}
-        className="relative w-full max-w-[480px] h-[100dvh] overflow-y-auto bg-cream shadow-xl sm:h-auto sm:max-h-[92vh] sm:rounded-3xl"
+        className="relative w-full max-w-[480px] h-[100dvh] overflow-y-auto overscroll-contain bg-cream shadow-xl sm:h-auto sm:max-h-[92vh] sm:rounded-3xl"
+        style={{ WebkitOverflowScrolling: "auto" }}
       >
         {/* Soft fade strip at top: image scrolls into this instead of being cut sharply */}
         <div

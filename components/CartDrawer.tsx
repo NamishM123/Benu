@@ -92,7 +92,7 @@ export default function CartDrawer({
           transform: `translateY(${dragOffset}px)`,
           transition: draggingRef.current ? "none" : "transform 200ms ease-out",
         }}
-        className="relative w-full max-w-[480px] max-h-[88vh] overflow-y-auto rounded-t-3xl bg-cream shadow-xl sm:rounded-3xl"
+        className="relative w-full max-w-[480px] max-h-[88vh] overflow-y-auto overscroll-contain rounded-t-3xl bg-cream shadow-xl sm:rounded-3xl"
       >
         {/* Drag handle — touch this region to swipe down */}
         <div
