@@ -152,29 +152,38 @@ export default function CartDrawer({
           <>
             <ul className="divide-y divide-neutral-200 px-6">
               {cart.map((line) => (
-                <li key={line.id} className="py-4">
-                  <div className="flex items-baseline justify-between gap-3">
-                    <p className="font-medium text-neutral-900">
-                      {line.itemName}
-                    </p>
-                    <p className="text-sm text-neutral-700">
-                      {formatPrice(line.unitPrice * line.quantity)}
-                    </p>
-                  </div>
-                  {line.selections.length > 0 && (
-                    <ul className="mt-1 space-y-0.5 text-xs text-neutral-500">
-                      {line.selections.map((s) => (
-                        <li key={s.groupLabel}>
-                          {s.groupLabel}: {s.choiceLabels.join(", ")}
-                        </li>
-                      ))}
-                    </ul>
+                <li key={line.id} className="flex gap-3 py-4">
+                  {line.image && (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src={line.image}
+                      alt=""
+                      className="h-16 w-16 flex-none rounded-lg object-cover"
+                    />
                   )}
-                  {line.specialRequest && (
-                    <p className="mt-1 text-xs italic text-neutral-500">
-                      Note: {line.specialRequest}
-                    </p>
-                  )}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-baseline justify-between gap-3">
+                      <p className="font-medium text-neutral-900">
+                        {line.itemName}
+                      </p>
+                      <p className="text-sm text-neutral-700">
+                        {formatPrice(line.unitPrice * line.quantity)}
+                      </p>
+                    </div>
+                    {line.selections.length > 0 && (
+                      <ul className="mt-1 space-y-0.5 text-xs text-neutral-500">
+                        {line.selections.map((s) => (
+                          <li key={s.groupLabel}>
+                            {s.groupLabel}: {s.choiceLabels.join(", ")}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    {line.specialRequest && (
+                      <p className="mt-1 text-xs italic text-neutral-500">
+                        Note: {line.specialRequest}
+                      </p>
+                    )}
                   <div className="mt-3 flex items-center justify-between gap-3">
                     <div className="inline-flex items-center gap-2 rounded-full border border-neutral-300 bg-white px-2 py-1 select-none">
                       <button
@@ -225,6 +234,7 @@ export default function CartDrawer({
                       {t("remove")}
                     </button>
                   </div>
+                  </div>
                 </li>
               ))}
             </ul>
@@ -262,6 +272,7 @@ export default function CartDrawer({
                           quantity: 1,
                           unitPrice: p.price,
                           selections: [],
+                          image: p.image,
                         })
                       }
                       className="mt-3 inline-flex items-center gap-1 rounded-full border border-neutral-900 px-4 py-1.5 text-xs font-medium text-neutral-900 transition-colors hover:bg-neutral-900 hover:text-cream"

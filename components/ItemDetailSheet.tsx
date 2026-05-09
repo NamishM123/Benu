@@ -143,6 +143,7 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
       quantity,
       unitPrice,
       selections: lineSelections,
+      image: item!.image,
     });
     setJustAdded(true);
     setTimeout(() => {
