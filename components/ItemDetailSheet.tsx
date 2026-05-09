@@ -217,7 +217,7 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
           >
             ×
           </button>
-          <div className="px-6 pt-14 pb-6">
+          <div className="relative z-10 px-6 pt-14 pb-6">
             <div className="relative aspect-square w-full overflow-hidden rounded-3xl bg-white shadow-md">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -232,7 +232,7 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
                   }
                 }}
                 style={{ filter: "blur(8px)" }}
-                className="h-full w-full object-cover opacity-0 transition-[opacity,filter] duration-500 ease-out"
+                className={`h-full w-full ${item.category === "Beverages" ? "object-contain p-6" : "object-cover"} opacity-0 transition-[opacity,filter] duration-500 ease-out`}
                 onLoad={(e) => {
                   e.currentTarget.style.opacity = "1";
                   e.currentTarget.style.filter = "blur(0px)";

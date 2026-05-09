@@ -37,6 +37,34 @@ type ChatWidgetProps = {
   hidden?: boolean;
 };
 
+/**
+ * Lightweight slur / profanity guard. Normalises the input (lowercased,
+ * non-letters stripped) so common obfuscations like "n!gga" or "n.i.g.g.a"
+ * still match. This isn't comprehensive — it's just a first line of
+ * defence against the most blatant offensive language in a customer-facing
+ * chat. The list intentionally stays short and explicit.
+ */
+const OFFENSIVE_TERMS = [
+  "nigga",
+  "nigger",
+  "faggot",
+  "fag",
+  "tranny",
+  "retard",
+  "kike",
+  "spic",
+  "chink",
+  "gook",
+  "dyke",
+  "wetback",
+  "cunt",
+];
+
+function containsOffensiveLanguage(input: string): boolean {
+  const normalised = input.toLowerCase().replace(/[^a-z]/g, "");
+  return OFFENSIVE_TERMS.some((term) => normalised.includes(term));
+}
+
 export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
   const [open, setOpen] = useState(false);
   const [preferences, setPreferences] = useState<string[]>([]);
@@ -44,7 +72,7 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
     {
       id: 0,
       role: "bot",
-      text: "Hi! I'm your menu assistant. Ask me about flavors, spice levels, ingredients, or what to order.",
+      text: "Hi, I'm Benu. Tell me what you are craving, what you avoid, or how hungry you are. I'll help you find the right dish.",
     },
   ]);
   const [input, setInput] = useState("");
@@ -77,6 +105,22 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
   async function handleSend() {
     const text = input.trim();
     if (!text || isSending) return;
+
+    // Basic profanity / slur guard. Doesn't aim to catch everything —
+    // just stops the most common offensive terms from being sent or
+    // showing up in the chat history.
+    if (containsOffensiveLanguage(text)) {
+      setInput("");
+      setMessages((m) => [
+        ...m,
+        {
+          id: Date.now() + 1,
+          role: "bot",
+          text: "Let's keep things respectful. Please rephrase your question without slurs or offensive language.",
+        },
+      ]);
+      return;
+    }
 
     const userMsg: ChatMessage = { id: Date.now(), role: "user", text };
     setMessages((m) => [...m, userMsg]);
@@ -170,13 +214,13 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
           <div className="flex items-center justify-between border-b border-neutral-200 px-4 pt-4 pb-3">
             <div>
               <h2 className="font-serif text-lg tracking-tight text-neutral-900">
-                Ask About the Menu
+                Ask Benu
               </h2>
-              <p className="mt-0.5 text-xs text-neutral-500">
-                {preferences.length > 0
-                  ? `Avoiding: ${preferences.join(", ")}`
-                  : "Tell me what you're craving, what you avoid, or how hungry you are. Ask in any language, and I'll help you understand the menu and find the right dish."}
-              </p>
+              {preferences.length > 0 && (
+                <p className="mt-0.5 text-xs text-neutral-500">
+                  Avoiding: {preferences.join(", ")}
+                </p>
+              )}
             </div>
           </div>
 
@@ -300,7 +344,7 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder={isSending ? "Thinking…" : "Ask anything…"}
+              placeholder={isSending ? "Thinking…" : "Ask Benu in any language…"}
               disabled={isSending}
               className="flex-1 rounded-full border border-neutral-300 bg-white px-4 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-700/30 disabled:opacity-60"
             />
