@@ -33,19 +33,17 @@ export default function DietaryPreferences({
     if (stored.length > 0) setSelected(new Set(stored));
   }, [initialSelected]);
 
-  const isDisabled = selected.size === 0;
-
-  function togglePreference(pref: string) {
+  function togglePreference(pref: string, event: React.MouseEvent<HTMLButtonElement>) {
     setSelected((prev) => {
       const next = new Set(prev);
       if (next.has(pref)) next.delete(pref);
       else next.add(pref);
       return next;
     });
+    event.currentTarget.blur();
   }
 
   function handleConfirm() {
-    if (isDisabled) return;
     const arr = Array.from(selected);
     setStoredPreferences(arr);
     onConfirm?.(arr);
@@ -83,11 +81,11 @@ export default function DietaryPreferences({
                   key={opt}
                   type="button"
                   aria-pressed={isSelected}
-                  onClick={() => togglePreference(opt)}
+                  onClick={(e) => togglePreference(opt, e)}
                   className={[
                     "rounded-2xl py-5 text-lg text-neutral-900",
                     "transition-all duration-150 ease-out",
-                    "focus:outline-none focus:ring-2 focus:ring-neutral-700/30",
+                    "focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30",
                     "hover:ring-2 hover:ring-neutral-900/40 hover:shadow-md",
                     isSelected
                       ? "bg-sage-dark shadow-inner ring-1 ring-inset ring-neutral-900/15"
@@ -117,16 +115,12 @@ export default function DietaryPreferences({
             <button
               type="button"
               onClick={handleConfirm}
-              disabled={isDisabled}
-              aria-disabled={isDisabled}
               className={[
                 "w-full rounded-full border border-neutral-400 bg-transparent",
                 "py-3 text-sm text-neutral-900",
                 "transition-colors duration-150 ease-out",
-                "focus:outline-none focus:ring-2 focus:ring-neutral-700/30",
-                isDisabled
-                  ? "cursor-not-allowed opacity-50"
-                  : "hover:bg-neutral-900/5",
+                "focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30",
+                "hover:bg-neutral-900/5",
               ].join(" ")}
             >
               Confirm preferences
