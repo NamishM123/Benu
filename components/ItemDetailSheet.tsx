@@ -132,6 +132,12 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
         onClick={(e) => e.stopPropagation()}
         className="relative w-full max-w-[480px] h-[100dvh] overflow-y-auto bg-cream shadow-xl sm:h-auto sm:max-h-[92vh] sm:rounded-3xl"
       >
+        {/* Soft fade strip at top: image scrolls into this instead of being cut sharply */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none sticky top-0 z-10 -mb-12 h-12 bg-gradient-to-b from-cream via-cream/80 to-transparent sm:rounded-t-3xl"
+        />
+
         <div className="px-6 pt-6">
           <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-neutral-100">
             <button
