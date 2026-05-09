@@ -91,7 +91,7 @@ export default function FilterSheet({ open, preferences, onClose }: Props) {
           transform: `translateY(${dragOffset}px)`,
           transition: draggingRef.current ? "none" : "transform 200ms ease-out",
         }}
-        className="relative w-full max-w-[480px] max-h-[88vh] overflow-y-auto overscroll-contain rounded-t-3xl bg-cream shadow-xl sm:rounded-3xl"
+        className="relative w-full max-w-[480px] max-h-[88vh] overflow-y-auto overscroll-none rounded-t-3xl bg-cream shadow-xl sm:rounded-3xl"
       >
         <div
           onTouchStart={handleTouchStart}
