@@ -1,23 +1,35 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { formatPrice } from "@/lib/menu";
 import {
+  addToCart,
   cartTotal,
   clearCart,
   removeFromCart,
   type CartLine,
 } from "@/lib/cart-store";
+import {
+  getTasteFact,
+  pairingReason,
+  pickPairing,
+} from "@/lib/cart-insights";
 
 type Props = {
   open: boolean;
   cart: CartLine[];
+  preferences?: string[];
   onClose: () => void;
 };
 
 const SWIPE_DISMISS_THRESHOLD = 110; // px to drag before close fires
 
-export default function CartDrawer({ open, cart, onClose }: Props) {
+export default function CartDrawer({
+  open,
+  cart,
+  preferences = [],
+  onClose,
+}: Props) {
   const [dragOffset, setDragOffset] = useState(0);
   const startYRef = useRef<number | null>(null);
   const draggingRef = useRef(false);
@@ -35,6 +47,16 @@ export default function CartDrawer({ open, cart, onClose }: Props) {
   useEffect(() => {
     if (open) setDragOffset(0);
   }, [open]);
+
+  const pairing = useMemo(() => pickPairing(cart, preferences), [
+    cart,
+    preferences,
+  ]);
+  const tasteFact = useMemo(() => getTasteFact(cart), [cart]);
+  const pairReason = useMemo(
+    () => (pairing ? pairingReason(pairing, cart) : null),
+    [pairing, cart],
+  );
 
   if (!open) return null;
 
@@ -144,6 +166,53 @@ export default function CartDrawer({ open, cart, onClose }: Props) {
                 </li>
               ))}
             </ul>
+
+            <div className="space-y-3 px-6 pb-2 pt-4">
+              {tasteFact && (
+                <div className="rounded-2xl bg-sage/60 px-4 py-3 text-sm leading-relaxed text-neutral-800">
+                  {tasteFact}
+                </div>
+              )}
+
+              {pairing && (
+                <div className="rounded-2xl border border-neutral-200 bg-white p-4">
+                  <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
+                    Pairs well with your order
+                  </p>
+                  <div className="mt-2 flex items-baseline justify-between gap-3">
+                    <h3 className="font-medium text-neutral-900">
+                      {pairing.name}
+                    </h3>
+                    <p className="flex-none text-sm text-neutral-700">
+                      {formatPrice(pairing.price)}
+                    </p>
+                  </div>
+                  {pairReason && (
+                    <p className="mt-1 text-xs text-neutral-500">
+                      {pairReason}
+                    </p>
+                  )}
+                  <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-neutral-500">
+                    {pairing.description}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      addToCart({
+                        itemName: pairing.name,
+                        basePrice: pairing.price,
+                        quantity: 1,
+                        unitPrice: pairing.price,
+                        selections: [],
+                      })
+                    }
+                    className="mt-3 inline-flex items-center gap-1 rounded-full border border-neutral-900 px-4 py-1.5 text-xs font-medium text-neutral-900 transition-colors hover:bg-neutral-900 hover:text-cream"
+                  >
+                    + Add to cart
+                  </button>
+                </div>
+              )}
+            </div>
 
             <div className="sticky bottom-0 mt-2 border-t border-neutral-200 bg-cream/95 px-6 py-5 backdrop-blur">
               <div className="mb-3 flex items-baseline justify-between">
