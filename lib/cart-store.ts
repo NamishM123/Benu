@@ -4,6 +4,7 @@ const EVENT = "benu:cart-changed";
 export type CartLine = {
   id: string;
   itemName: string;
+  itemNameZh?: string;
   basePrice: number;
   quantity: number;
   unitPrice: number;
