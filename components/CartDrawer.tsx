@@ -10,6 +10,7 @@ import {
   updateLineQuantity,
   type CartLine,
 } from "@/lib/cart-store";
+import { placeOrder } from "@/lib/order-store";
 import { pairingReason, pickPairings } from "@/lib/cart-insights";
 import { useTranslation } from "@/lib/i18n";
 import { localName } from "@/lib/menu";
@@ -33,6 +34,7 @@ export default function CartDrawer({
   const [dragOffset, setDragOffset] = useState(0);
   const [confirmRemoveId, setConfirmRemoveId] = useState<string | null>(null);
   const [confirmClear, setConfirmClear] = useState(false);
+  const [sentFlash, setSentFlash] = useState(false);
   const startYRef = useRef<number | null>(null);
   const draggingRef = useRef(false);
 
@@ -308,12 +310,20 @@ export default function CartDrawer({
                 </button>
                 <button
                   type="button"
-                  className="flex-1 rounded-full bg-neutral-900 px-6 py-3 text-sm font-medium text-cream hover:bg-neutral-800"
+                  disabled={sentFlash}
+                  className="flex-1 rounded-full bg-neutral-900 px-6 py-3 text-sm font-medium text-cream hover:bg-neutral-800 disabled:opacity-70"
                   onClick={() => {
-                    alert(t("checkoutComingSoon"));
+                    if (cart.length === 0) return;
+                    placeOrder(cart, preferences);
+                    clearCart();
+                    setSentFlash(true);
+                    setTimeout(() => {
+                      setSentFlash(false);
+                      onClose();
+                    }, 1100);
                   }}
                 >
-                  {t("checkout")}
+                  {sentFlash ? t("orderSent") : t("sendToKitchen")}
                 </button>
               </div>
             </div>
