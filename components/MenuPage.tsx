@@ -266,6 +266,12 @@ export default function MenuPage({ menu }: Props) {
                         alt={d.name}
                         loading="lazy"
                         decoding="async"
+                        ref={(img) => {
+                          // Image may have already finished loading before React attached onLoad
+                          if (img && img.complete && img.naturalWidth > 0) {
+                            img.style.opacity = "1";
+                          }
+                        }}
                         className="menu-img h-full w-full object-cover opacity-0 transition-opacity duration-200"
                         onLoad={(e) => {
                           e.currentTarget.style.opacity = "1";
