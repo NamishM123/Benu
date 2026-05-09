@@ -63,7 +63,7 @@ export const MENU: MenuItem[] = [
       "凉拌腐竹与西芹,调以酱油、麻油及少许盐。",
     spiceLevel: 0,
     tags: ["vegetarian", "vegan", "soy", "dairy-free"],
-    image: "https://source.unsplash.com/featured/?tofu-salad",
+    image: "/menu/yuba-celery-salad.png",
   },
   {
     name: "Chili Oil Wontons (8 pc)",
@@ -142,7 +142,7 @@ export const MENU: MenuItem[] = [
       "手工宽面拌红油、酱油、蒜末、葱花与花椒。可加番茄鸡蛋 +$2、肉末 +$3、卤牛肉 +$4。",
     spiceLevel: 2,
     tags: ["vegetarian", "gluten", "soy", "spicy"],
-    image: "https://source.unsplash.com/featured/?flat-noodle",
+    image: "/menu/regular-chili-oil-flat-noodle.png",
   },
   {
     name: "Numbing Spicy Minced Pork Noodle",
@@ -181,7 +181,7 @@ export const MENU: MenuItem[] = [
       "炒面配羊肉片、洋葱、孜然、辣椒、蒜末与葱花。",
     spiceLevel: 2,
     tags: ["lamb", "meat", "gluten", "soy", "spicy"],
-    image: "https://source.unsplash.com/featured/?lamb-noodles",
+    image: "/menu/cumin-onion-lamb-noodle.png",
   },
   {
     name: "Diced Mushroom and Chicken Tossed Noodle",
@@ -286,7 +286,7 @@ export const MENU: MenuItem[] = [
       "牛肉面搭配番茄汤底,佐炖番茄、姜片与葱花。",
     spiceLevel: 0,
     tags: ["beef", "meat", "gluten", "soy"],
-    image: "https://source.unsplash.com/featured/?tomato-beef-noodle",
+    image: "/menu/tomato-beef-noodle-soup.jpg",
   },
   {
     name: "Golden Sour and Spicy Lamb Noodle Soup",
@@ -327,7 +327,7 @@ export const MENU: MenuItem[] = [
       "炖牛肉番茄浇白米饭,撒上葱花。",
     spiceLevel: 0,
     tags: ["beef", "meat", "soy", "gluten-free", "dairy-free"],
-    image: "https://source.unsplash.com/featured/?beef-rice",
+    image: "/menu/tomato-beef-rice.jpg",
   },
   {
     name: "Braised Pork over White Rice",
@@ -340,7 +340,7 @@ export const MENU: MenuItem[] = [
       "卤五花肉浇白米饭,常配青菜或腌菜。",
     spiceLevel: 0,
     tags: ["pork", "meat", "egg", "soy", "gluten-free", "dairy-free"],
-    image: "https://source.unsplash.com/featured/?pork-rice",
+    image: "/menu/braised-pork-rice.png",
   },
 
   {
@@ -354,7 +354,7 @@ export const MENU: MenuItem[] = [
       "鲜柠檬搭配茉莉或绿茶,加入少许蜂蜜或糖调味。",
     spiceLevel: 0,
     tags: ["vegan", "vegetarian", "dairy-free", "gluten-free"],
-    image: "https://source.unsplash.com/featured/?lemon-tea",
+    image: "/menu/lemon-tea.jpg",
   },
   {
     name: "Coffee Meets Milk Tea",
@@ -367,7 +367,7 @@ export const MENU: MenuItem[] = [
       "港式鸳鸯:咖啡与红茶相融,加入炼乳或淡奶。",
     spiceLevel: 0,
     tags: ["dairy", "vegetarian", "gluten-free"],
-    image: "https://source.unsplash.com/featured/?milk-tea",
+    image: "/menu/coffee-milk-tea.jpg",
   },
   {
     name: "Coke",
@@ -378,7 +378,7 @@ export const MENU: MenuItem[] = [
     descriptionZh: "经典可口可乐,冰镇供应。",
     spiceLevel: 0,
     tags: ["vegan", "vegetarian", "dairy-free", "gluten-free"],
-    image: "https://source.unsplash.com/featured/?coke",
+    image: "/menu/coke.webp",
   },
   {
     name: "Diet Coke",
@@ -389,7 +389,7 @@ export const MENU: MenuItem[] = [
     descriptionZh: "无糖健怡可乐,冰镇供应。",
     spiceLevel: 0,
     tags: ["vegan", "vegetarian", "dairy-free", "gluten-free"],
-    image: "https://source.unsplash.com/featured/?diet-coke",
+    image: "/menu/diet-coke.webp",
   },
   {
     name: "Sprite",
@@ -400,7 +400,7 @@ export const MENU: MenuItem[] = [
     descriptionZh: "清爽柠檬汽水,冰镇供应。",
     spiceLevel: 0,
     tags: ["vegan", "vegetarian", "dairy-free", "gluten-free"],
-    image: "https://source.unsplash.com/featured/?sprite",
+    image: "/menu/sprite.png",
   },
   {
     name: "Peach Sparkling Water",
@@ -411,7 +411,7 @@ export const MENU: MenuItem[] = [
     descriptionZh: "蜜桃风味气泡水,清淡微甜。",
     spiceLevel: 0,
     tags: ["vegan", "vegetarian", "dairy-free", "gluten-free"],
-    image: "https://source.unsplash.com/featured/?peach-water",
+    image: "/menu/peach-sparkling-water.jpg",
   },
 ];
 
