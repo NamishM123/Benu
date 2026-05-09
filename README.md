@@ -53,7 +53,7 @@ Visit <http://localhost:3000>.
 | Name | Required | Description | Where to get it |
 | --- | --- | --- | --- |
 | `OPENAI_API_KEY` | Yes (for live chatbot) | Server-side key for the OpenAI-backed `/api/chat` route. If missing, the route falls back to a local rule-based chatbot. | <https://platform.openai.com/api-keys> |
-| `UNSPLASH_ACCESS_KEY` | No | Unsplash API access key for fetching real dish photos via the official API. The current menu uses `source.unsplash.com` placeholder URLs that don't require a key. | <https://unsplash.com/oauth/applications> |
+| `UNSPLASH_ACCESS_KEY` | Recommended | Unsplash API access key. When set, the `/menu` page and chatbot dish cards resolve real photos via Unsplash search (cached in Next's fetch cache for 7 days). When unset, falls back to `source.unsplash.com` URLs. | <https://unsplash.com/oauth/applications> |
 | `UNSPLASH_SECRET_KEY` | No | Unsplash secret. Only needed for OAuth user actions, not for read-only image search. | Same as above |
 | `NEXT_PUBLIC_BRAND_NAME` | No | Brand name shown in the disclaimer copy. Defaults to `our restaurant`. | — |
 

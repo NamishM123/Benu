@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { MENU } from "@/lib/menu";
 import { answerMenuQuestion } from "@/lib/chatbot";
 import { findFlaggedPreferences } from "@/lib/preferences";
+import { searchPhoto } from "@/lib/unsplash";
 
 export const runtime = "nodejs";
 
@@ -114,12 +115,17 @@ export async function POST(req: Request) {
       .map((name) => dishMap.get(name.toLowerCase()))
       .filter((d): d is (typeof MENU)[number] => Boolean(d));
 
-    return NextResponse.json({
-      text: parsed.text,
-      dishes: dishes.map((d) => ({
+    const enrichedDishes = await Promise.all(
+      dishes.map(async (d) => ({
         ...d,
+        image: await searchPhoto(`${d.name} dish`, d.image),
         flaggedPreferences: findFlaggedPreferences(d, preferences),
       })),
+    );
+
+    return NextResponse.json({
+      text: parsed.text,
+      dishes: enrichedDishes,
     });
   } catch (error) {
     console.error("chat api error:", error);
