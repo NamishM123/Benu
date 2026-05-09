@@ -54,6 +54,8 @@ const TRANSLATIONS = {
     zh: "您确定要从购物车移除",
   },
   fromCart: { en: "from your cart?", zh: "吗？" },
+  selectAll: { en: "Select all", zh: "全选" },
+  reset: { en: "Reset", zh: "重置" },
   clearCartTitle: { en: "Clear your cart?", zh: "清空购物车？" },
   clearCartQuestion: {
     en: "This will remove all items from your cart. This can't be undone.",

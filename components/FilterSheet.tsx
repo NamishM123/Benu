@@ -111,60 +111,114 @@ export default function FilterSheet({ open, preferences, onClose }: Props) {
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
           onTouchCancel={handleTouchEnd}
-          className="bg-cream px-6 pt-2 pb-4"
+          className="bg-cream px-6 pt-2 pb-3"
         >
-          <h2 className="font-serif text-2xl text-neutral-900">
-            {t("filterMenuTitle")}
-          </h2>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <h2 className="font-serif text-2xl text-neutral-900">
+                {t("filterMenuTitle")}
+              </h2>
+              {draft.size > 0 && (
+                <span className="inline-flex h-6 min-w-[1.5rem] items-center justify-center rounded-full bg-neutral-900 px-2 text-xs font-semibold text-cream">
+                  {draft.size}
+                </span>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label={t("close")}
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-200 text-neutral-700 hover:bg-neutral-300"
+            >
+              ×
+            </button>
+          </div>
           <p className="mt-1 text-sm text-neutral-600">
             {t("filterMenuSubtitle")}
           </p>
+          <div className="mt-3 flex items-center gap-3 text-sm">
+            <button
+              type="button"
+              onClick={() => setDraft(new Set(DEFAULT_OPTIONS))}
+              className="text-cantaloupe-deep hover:text-neutral-900 hover:underline underline-offset-2"
+            >
+              {t("selectAll")}
+            </button>
+            <span className="text-neutral-400" aria-hidden="true">
+              ·
+            </span>
+            <button
+              type="button"
+              onClick={handleClear}
+              className="text-cantaloupe-deep hover:text-neutral-900 hover:underline underline-offset-2"
+            >
+              {t("reset")}
+            </button>
+          </div>
         </header>
 
-        <div className="px-6 pb-6">
-          <div className="grid grid-cols-2 gap-3">
-            {DEFAULT_OPTIONS.map((opt) => {
-              const active = draft.has(opt);
-              return (
+        <ul className="px-2 pb-6">
+          {DEFAULT_OPTIONS.map((opt) => {
+            const active = draft.has(opt);
+            return (
+              <li key={opt}>
                 <button
-                  key={opt}
                   type="button"
                   onClick={(e) => {
                     toggle(opt);
                     e.currentTarget.blur();
                   }}
                   className={[
-                    "rounded-2xl py-4 text-base transition-all border",
+                    "flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-base transition-colors",
                     "focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30",
                     active
-                      ? "bg-cantaloupe text-neutral-900 shadow-inner border-neutral-900/15"
-                      : "bg-cream-light text-neutral-900 border-neutral-300/70 hover:bg-[#FFFDF6] hover:border-neutral-400/70",
+                      ? "bg-cantaloupe/30 text-neutral-900"
+                      : "text-neutral-900 hover:bg-cream-light",
                   ].join(" ")}
+                  aria-pressed={active}
                 >
-                  {t(opt)}
+                  <span
+                    aria-hidden="true"
+                    className={[
+                      "flex h-5 w-5 flex-none items-center justify-center rounded border-2 transition-colors",
+                      active
+                        ? "border-cantaloupe-deep bg-cantaloupe"
+                        : "border-neutral-400 bg-white",
+                    ].join(" ")}
+                  >
+                    {active && (
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="text-neutral-900"
+                      >
+                        <polyline points="5 12 10 17 19 7" />
+                      </svg>
+                    )}
+                  </span>
+                  <span className="flex-1">{t(opt)}</span>
                 </button>
-              );
-            })}
-          </div>
-        </div>
+              </li>
+            );
+          })}
+        </ul>
 
         <div className="sticky bottom-0 border-t border-neutral-200 bg-cream/95 px-6 py-4 backdrop-blur">
-          <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={handleClear}
-              className="flex-none rounded-full border border-neutral-300 px-4 py-3 text-sm text-neutral-700 hover:bg-neutral-100"
-            >
-              {t("clear")}
-            </button>
-            <button
-              type="button"
-              onClick={handleApply}
-              className="flex-1 rounded-full bg-neutral-900 px-6 py-3 text-sm font-medium text-cream hover:bg-neutral-800"
-            >
-              {t("apply")}{draft.size > 0 ? ` (${draft.size})` : ""}
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={handleApply}
+            className="w-full rounded-full bg-neutral-900 px-6 py-3 text-sm font-medium text-cream hover:bg-neutral-800"
+          >
+            {t("apply")}
+            {draft.size > 0 ? ` (${draft.size})` : ""}
+          </button>
         </div>
       </div>
     </div>
