@@ -212,6 +212,14 @@ export default function ChatWidget() {
                             src={d.image}
                             alt={d.name}
                             className="h-12 w-12 flex-none rounded-lg bg-neutral-100 object-cover"
+                            onError={(e) => {
+                              const el = e.currentTarget;
+                              if (!el.dataset.fallback) {
+                                el.dataset.fallback = "1";
+                                el.src =
+                                  "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=800&q=80";
+                              }
+                            }}
                           />
                           <div className="min-w-0 flex-1">
                             <div className="flex items-baseline justify-between gap-2">

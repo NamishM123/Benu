@@ -5,7 +5,15 @@ import { useEffect, useMemo, useState } from "react";
 import { formatPrice, spiceLabel, type MenuItem } from "@/lib/menu";
 import { findFlaggedPreferences } from "@/lib/preferences";
 import { getStoredPreferences } from "@/lib/preferences-store";
+import {
+  CART_EVENT,
+  cartCount,
+  getCart,
+  type CartLine,
+} from "@/lib/cart-store";
 import ChatWidget from "./ChatWidget";
+import ItemDetailSheet from "./ItemDetailSheet";
+import CartDrawer from "./CartDrawer";
 
 const CATEGORY_ORDER = [
   "Appetizers",
@@ -24,16 +32,28 @@ export default function MenuPage({ menu }: Props) {
   const [activeCategory, setActiveCategory] = useState<string>(
     CATEGORY_ORDER[0],
   );
+  const [activeItem, setActiveItem] = useState<MenuItem | null>(null);
+  const [cart, setCart] = useState<CartLine[]>([]);
+  const [cartOpen, setCartOpen] = useState(false);
 
   useEffect(() => {
     setPreferences(getStoredPreferences());
-    function onChange(e: Event) {
+    setCart(getCart());
+
+    function onPrefs(e: Event) {
       const detail = (e as CustomEvent<string[]>).detail;
       if (Array.isArray(detail)) setPreferences(detail);
     }
-    window.addEventListener("benu:preferences-changed", onChange);
-    return () =>
-      window.removeEventListener("benu:preferences-changed", onChange);
+    function onCart(e: Event) {
+      const detail = (e as CustomEvent<CartLine[]>).detail;
+      if (Array.isArray(detail)) setCart(detail);
+    }
+    window.addEventListener("benu:preferences-changed", onPrefs);
+    window.addEventListener(CART_EVENT, onCart);
+    return () => {
+      window.removeEventListener("benu:preferences-changed", onPrefs);
+      window.removeEventListener(CART_EVENT, onCart);
+    };
   }, []);
 
   const categories = useMemo(() => {
@@ -45,6 +65,8 @@ export default function MenuPage({ menu }: Props) {
     () => menu.filter((m) => m.category === activeCategory),
     [menu, activeCategory],
   );
+
+  const totalCount = cartCount(cart);
 
   return (
     <>
@@ -107,7 +129,12 @@ export default function MenuPage({ menu }: Props) {
               const flags = findFlaggedPreferences(d, preferences);
               const isSpicy = d.spiceLevel >= 2;
               return (
-                <article key={d.name} className="flex flex-col">
+                <button
+                  key={d.name}
+                  type="button"
+                  onClick={() => setActiveItem(d)}
+                  className="flex flex-col text-left transition-transform duration-150 hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30 rounded-[28px]"
+                >
                   <div className="relative overflow-hidden rounded-[28px] bg-white shadow-sm">
                     <div className="relative aspect-square w-full bg-neutral-100">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -115,6 +142,14 @@ export default function MenuPage({ menu }: Props) {
                         src={d.image}
                         alt={d.name}
                         className="h-full w-full object-cover"
+                        onError={(e) => {
+                          const el = e.currentTarget;
+                          if (!el.dataset.fallback) {
+                            el.dataset.fallback = "1";
+                            el.src =
+                              "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=800&q=80";
+                          }
+                        }}
                       />
                       {isSpicy && (
                         <span className="absolute left-4 top-4 rounded-full bg-lime-300 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-neutral-900">
@@ -162,12 +197,33 @@ export default function MenuPage({ menu }: Props) {
                       </div>
                     )}
                   </div>
-                </article>
+                </button>
               );
             })}
           </section>
         </div>
       </main>
+
+      {totalCount > 0 && (
+        <button
+          type="button"
+          onClick={() => setCartOpen(true)}
+          className="fixed bottom-6 left-1/2 z-40 -translate-x-1/2 rounded-full bg-neutral-900 px-6 py-3 text-sm font-medium text-cream shadow-lg transition-transform hover:scale-105"
+        >
+          View cart · {totalCount} {totalCount === 1 ? "item" : "items"}
+        </button>
+      )}
+
+      <ItemDetailSheet
+        item={activeItem}
+        preferences={preferences}
+        onClose={() => setActiveItem(null)}
+      />
+      <CartDrawer
+        open={cartOpen}
+        cart={cart}
+        onClose={() => setCartOpen(false)}
+      />
       <ChatWidget />
     </>
   );
