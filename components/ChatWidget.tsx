@@ -170,12 +170,12 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
           <div className="flex items-center justify-between border-b border-neutral-200 px-4 pt-4 pb-3">
             <div>
               <h2 className="font-serif text-lg tracking-tight text-neutral-900">
-                Menu assistant
+                Ask About the Menu
               </h2>
               <p className="mt-0.5 text-xs text-neutral-500">
                 {preferences.length > 0
                   ? `Avoiding: ${preferences.join(", ")}`
-                  : "Ask about taste, spice, or what to order."}
+                  : "Tell me what you're craving, what you avoid, or how hungry you are. Ask in any language, and I'll help you understand the menu and find the right dish."}
               </p>
             </div>
           </div>
