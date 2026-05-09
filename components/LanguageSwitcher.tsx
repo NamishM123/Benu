@@ -13,14 +13,14 @@ export default function LanguageSwitcher() {
     <div
       role="group"
       aria-label="Language"
-      className="inline-flex items-center rounded-full border border-neutral-300 bg-white p-0.5 text-sm font-medium"
+      className="inline-flex items-center rounded-full border border-neutral-300 bg-white p-0.5 text-base font-medium"
     >
       <button
         type="button"
         onClick={() => pick("en")}
         aria-pressed={lang === "en"}
         className={[
-          "rounded-full px-3 py-1 transition-colors",
+          "rounded-full px-4 py-1.5 transition-colors",
           lang === "en"
             ? "bg-neutral-900 text-cream"
             : "text-neutral-700 hover:text-neutral-900",
@@ -33,7 +33,7 @@ export default function LanguageSwitcher() {
         onClick={() => pick("zh")}
         aria-pressed={lang === "zh"}
         className={[
-          "rounded-full px-3 py-1 transition-colors",
+          "rounded-full px-4 py-1.5 transition-colors",
           lang === "zh"
             ? "bg-neutral-900 text-cream"
             : "text-neutral-700 hover:text-neutral-900",
