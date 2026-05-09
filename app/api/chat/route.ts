@@ -1,4 +1,4 @@
-import Anthropic from "@anthropic-ai/sdk";
+import OpenAI from "openai";
 import { NextResponse } from "next/server";
 import { MENU } from "@/lib/menu";
 import { answerMenuQuestion } from "@/lib/chatbot";
@@ -66,46 +66,45 @@ export async function POST(req: Request) {
     return NextResponse.json({ text: "", dishes: [] });
   }
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     return NextResponse.json(localFallback(question, preferences));
   }
 
   try {
-    const client = new Anthropic({ apiKey });
+    const client = new OpenAI({ apiKey });
 
     const userContext =
       preferences.length > 0
         ? `Selected dietary preferences to avoid: ${preferences.join(", ")}.`
         : "No dietary preferences selected.";
 
-    const response = await client.messages.create({
-      model: "claude-opus-4-7",
+    const response = await client.chat.completions.create({
+      model: "gpt-4o-mini",
       max_tokens: 1024,
-      system: [
-        {
-          type: "text",
-          text: SYSTEM_PROMPT,
-          cache_control: { type: "ephemeral" },
-        },
-      ],
-      output_config: {
-        format: { type: "json_schema", schema: RESPONSE_SCHEMA },
-      },
       messages: [
+        { role: "system", content: SYSTEM_PROMPT },
         {
           role: "user",
           content: `${userContext}\n\nGuest question: ${question}`,
         },
       ],
+      response_format: {
+        type: "json_schema",
+        json_schema: {
+          name: "menu_reply",
+          strict: true,
+          schema: RESPONSE_SCHEMA,
+        },
+      },
     });
 
-    const textBlock = response.content.find((b) => b.type === "text");
-    if (!textBlock || textBlock.type !== "text") {
+    const text = response.choices[0]?.message?.content;
+    if (!text) {
       return NextResponse.json(localFallback(question, preferences));
     }
 
-    const parsed = JSON.parse(textBlock.text) as {
+    const parsed = JSON.parse(text) as {
       text: string;
       dish_names: string[];
     };

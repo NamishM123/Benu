@@ -8,7 +8,7 @@ Mobile-first restaurant dietary preferences screen with a built-in menu assistan
 - **React 19**
 - **TypeScript** (strict)
 - **Tailwind CSS**
-- **Anthropic Claude** for the chatbot (Opus 4.7) with prompt caching
+- **OpenAI** for the chatbot (`gpt-4o-mini`) with JSON-schema structured output
 
 ## Project structure
 
@@ -18,7 +18,7 @@ app/
   page.tsx                      # / → redirects to /dietary-preferences
   globals.css                   # Tailwind + base styles
   dietary-preferences/page.tsx  # Thin shell for the preferences screen
-  api/chat/route.ts             # POST /api/chat — Claude-backed assistant
+  api/chat/route.ts             # POST /api/chat — OpenAI-backed assistant
 components/
   DietaryPreferences.tsx        # Main client component (preferences UI)
   MenuAssistant.tsx             # Chatbot UI
@@ -28,14 +28,14 @@ lib/
   chatbot.ts                    # Local fallback chatbot (no API key needed)
 ```
 
-The API route gracefully falls back to the local rule-based chatbot if `ANTHROPIC_API_KEY` is missing or the API call fails, so the UI keeps working in any environment.
+The API route gracefully falls back to the local rule-based chatbot if `OPENAI_API_KEY` is missing or the API call fails, so the UI keeps working in any environment.
 
 ## Local development
 
 ```bash
 npm install
 cp .env.local.example .env.local
-# fill in ANTHROPIC_API_KEY in .env.local (optional — local fallback works without it)
+# fill in OPENAI_API_KEY in .env.local (optional — local fallback works without it)
 npm run dev
 ```
 
@@ -52,8 +52,7 @@ Visit <http://localhost:3000>.
 
 | Name | Required | Description | Where to get it |
 | --- | --- | --- | --- |
-| `ANTHROPIC_API_KEY` | Yes (for live chatbot) | Server-side key for the Claude-backed `/api/chat` route. If missing, the route falls back to a local rule-based chatbot. | <https://console.anthropic.com/settings/keys> |
-| `OPENAI_API_KEY` | No | Reserved for an optional OpenAI fallback or comparison path. Not wired in code yet. | <https://platform.openai.com/api-keys> |
+| `OPENAI_API_KEY` | Yes (for live chatbot) | Server-side key for the OpenAI-backed `/api/chat` route. If missing, the route falls back to a local rule-based chatbot. | <https://platform.openai.com/api-keys> |
 | `UNSPLASH_ACCESS_KEY` | No | Unsplash API access key for fetching real dish photos via the official API. The current menu uses `source.unsplash.com` placeholder URLs that don't require a key. | <https://unsplash.com/oauth/applications> |
 | `UNSPLASH_SECRET_KEY` | No | Unsplash secret. Only needed for OAuth user actions, not for read-only image search. | Same as above |
 | `NEXT_PUBLIC_BRAND_NAME` | No | Brand name shown in the disclaimer copy. Defaults to `our restaurant`. | — |
