@@ -128,6 +128,8 @@ export default function OrderStatus({ id }: Props) {
         >
           <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
             {t("orderNumber")} #{shortId}
+            {order.tableNumber !== undefined &&
+              ` · ${t("tableLabel")} ${order.tableNumber}`}
           </p>
           <h2 className="mt-2 font-serif text-3xl">{headline.title}</h2>
           {order.status === "new" && (

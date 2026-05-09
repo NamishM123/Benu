@@ -94,6 +94,16 @@ const TRANSLATIONS = {
   preferencesLabel: { en: "Customer avoids", zh: "顾客忌口" },
   noteLabel: { en: "Note", zh: "备注" },
   etaLabel: { en: "Est. time (min)", zh: "预计时间（分钟）" },
+  etaOverrideLabel: {
+    en: "Override ETA (min)",
+    zh: "覆盖预计时间（分钟）",
+  },
+  tableLabel: { en: "Table", zh: "桌号" },
+  tableShort: { en: "Tbl", zh: "桌" },
+  tableRequired: {
+    en: "Please select your table number.",
+    zh: "请选择您的桌号。",
+  },
   setEta: { en: "Set ETA", zh: "设定时间" },
   statusNew: { en: "New", zh: "新订单" },
   statusCooking: { en: "Cooking", zh: "制作中" },

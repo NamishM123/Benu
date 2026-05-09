@@ -1,4 +1,5 @@
 import type { CartLine } from "./cart-store";
+import { estimateOrderMinutes } from "./prep-time";
 
 const KEY = "benu.orders";
 const EVENT = "benu:orders-changed";
@@ -11,6 +12,7 @@ export type Order = {
   status: OrderStatus;
   lines: CartLine[];
   preferences: string[];
+  tableNumber: number;
   etaMinutes?: number;
 };
 
@@ -37,21 +39,32 @@ export function saveOrders(orders: Order[]): void {
   }
 }
 
-export function placeOrder(lines: CartLine[], preferences: string[]): Order {
+export function placeOrder(
+  lines: CartLine[],
+  preferences: string[],
+  tableNumber: number,
+): Order {
   const id =
     typeof crypto !== "undefined" && "randomUUID" in crypto
       ? crypto.randomUUID()
       : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+  const existing = getOrders();
+  const activeAhead = existing.filter(
+    (o) => o.status === "new" || o.status === "cooking",
+  ).length;
+
   const order: Order = {
     id,
     placedAt: Date.now(),
     status: "new",
     lines,
     preferences,
+    tableNumber,
+    etaMinutes: estimateOrderMinutes(lines, activeAhead),
   };
-  const orders = getOrders();
-  orders.unshift(order);
-  saveOrders(orders);
+  existing.unshift(order);
+  saveOrders(existing);
   return order;
 }
 

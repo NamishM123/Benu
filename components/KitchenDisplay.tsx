@@ -96,13 +96,23 @@ export default function KitchenDisplay() {
                   className="flex flex-col gap-3 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm"
                 >
                   <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
-                        {t("orderNumber")} #{shortId}
-                      </p>
-                      <p className="mt-0.5 text-xs text-neutral-500">
-                        {t("placedAt")} · {formatTime(order.placedAt)}
-                      </p>
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-12 w-12 flex-none flex-col items-center justify-center rounded-xl bg-neutral-900 text-cream">
+                        <span className="text-[9px] font-semibold uppercase tracking-wider text-cream/70">
+                          {t("tableShort")}
+                        </span>
+                        <span className="font-serif text-lg leading-none tabular-nums">
+                          {order.tableNumber ?? "—"}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
+                          {t("orderNumber")} #{shortId}
+                        </p>
+                        <p className="mt-0.5 text-xs text-neutral-500">
+                          {t("placedAt")} · {formatTime(order.placedAt)}
+                        </p>
+                      </div>
                     </div>
                     <span
                       className={[
@@ -161,7 +171,7 @@ export default function KitchenDisplay() {
                   <div className="flex items-end gap-2 border-t border-neutral-200 pt-3">
                     <label className="flex flex-1 flex-col gap-1">
                       <span className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
-                        {t("etaLabel")}
+                        {t("etaOverrideLabel")}
                       </span>
                       <input
                         type="number"

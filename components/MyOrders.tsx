@@ -94,6 +94,8 @@ export default function MyOrders() {
                     <div>
                       <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
                         {t("orderNumber")} #{shortId}
+                        {order.tableNumber !== undefined &&
+                          ` · ${t("tableLabel")} ${order.tableNumber}`}
                       </p>
                       <p className="mt-0.5 text-xs text-neutral-500">
                         {t("placedAt")} · {formatTime(order.placedAt)}
