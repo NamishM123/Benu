@@ -31,13 +31,13 @@ export default function MobileHeaderControl({
         {lang === "en" ? "EN" : "中"}
       </button>
 
-      {/* Filters: icon-only button */}
+      {/* Allergies: pill with icon + label so users know what it does */}
       <button
         type="button"
         onClick={onFiltersOpen}
         aria-label={t("filters")}
         className={[
-          "relative inline-flex h-10 w-10 items-center justify-center rounded-full shadow-sm transition-colors",
+          "relative inline-flex h-10 items-center gap-1.5 rounded-full px-3 text-sm font-medium shadow-sm transition-colors",
           "focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30",
           preferencesCount > 0
             ? "bg-cantaloupe text-neutral-900 hover:bg-cantaloupe-soft"
@@ -46,8 +46,8 @@ export default function MobileHeaderControl({
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          width="18"
-          height="18"
+          width="16"
+          height="16"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -56,15 +56,14 @@ export default function MobileHeaderControl({
           strokeLinejoin="round"
           aria-hidden="true"
         >
-          <line x1="4" y1="6" x2="20" y2="6" />
-          <line x1="7" y1="12" x2="17" y2="12" />
-          <line x1="10" y1="18" x2="14" y2="18" />
+          <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+          <line x1="12" y1="9" x2="12" y2="13" />
+          <line x1="12" y1="17" x2="12.01" y2="17" />
         </svg>
-        {preferencesCount > 0 && (
-          <span className="absolute -top-1 -right-1 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-neutral-900 px-1 text-[11px] font-semibold text-cream">
-            {preferencesCount}
-          </span>
-        )}
+        <span>
+          {t("filters")}
+          {preferencesCount > 0 ? ` · ${preferencesCount}` : ""}
+        </span>
       </button>
     </div>
   );

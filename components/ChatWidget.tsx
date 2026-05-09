@@ -180,29 +180,47 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
             </div>
           </div>
 
-          <div className="flex flex-1 flex-col gap-3 overflow-y-auto px-4 py-4">
-            {messages.map((m) => (
+          <div className="flex flex-1 flex-col overflow-y-auto px-4 py-4">
+            {messages.map((m, i) => {
+              const prev = messages[i - 1];
+              const samePrev = prev?.role === m.role;
+              const isUser = m.role === "user";
+              return (
               <div
                 key={m.id}
-                className={
-                  m.role === "user"
-                    ? "max-w-[85%] self-end"
-                    : "max-w-[92%] self-start"
-                }
+                className={[
+                  "flex items-end gap-1.5",
+                  isUser ? "flex-row-reverse self-end" : "self-start",
+                  samePrev ? "mt-0.5" : "mt-3",
+                  isUser ? "max-w-[85%]" : "max-w-[92%]",
+                ].join(" ")}
               >
+                {/* Bot avatar — shown only on the first message of a cluster */}
+                {!isUser && (
+                  <div
+                    aria-hidden="true"
+                    className={[
+                      "flex h-7 w-7 flex-none items-center justify-center rounded-full bg-cantaloupe text-[13px] text-neutral-900",
+                      samePrev ? "invisible" : "",
+                    ].join(" ")}
+                  >
+                    🍜
+                  </div>
+                )}
+                <div className="flex flex-col gap-1">
                 <div
                   className={[
-                    "rounded-2xl px-3.5 py-2 text-sm leading-relaxed",
-                    m.role === "user"
-                      ? "rounded-br-md bg-neutral-900 text-neutral-50"
-                      : "rounded-bl-md bg-neutral-100 text-neutral-900",
+                    "rounded-3xl px-4 py-2 text-sm leading-relaxed",
+                    isUser
+                      ? "bg-[#0095F6] text-white"
+                      : "bg-neutral-100 text-neutral-900",
                   ].join(" ")}
                 >
                   {m.text}
                 </div>
 
                 {m.dishes && m.dishes.length > 0 && (
-                  <ul className="mt-2 flex flex-col gap-2">
+                  <ul className="flex flex-col gap-2">
                     {m.dishes.map((d) => {
                       const flags = findFlaggedPreferences(
                         d as MenuItem,
@@ -260,8 +278,10 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
                     })}
                   </ul>
                 )}
+                </div>
               </div>
-            ))}
+              );
+            })}
             <div ref={messagesEndRef} />
           </div>
 
