@@ -33,7 +33,11 @@ type ApiResponse = {
   dishes?: ApiDish[];
 };
 
-export default function ChatWidget() {
+type ChatWidgetProps = {
+  hidden?: boolean;
+};
+
+export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
   const [open, setOpen] = useState(false);
   const [preferences, setPreferences] = useState<string[]>([]);
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -111,6 +115,8 @@ export default function ChatWidget() {
       setIsSending(false);
     }
   }
+
+  if (hidden) return null;
 
   return (
     <>

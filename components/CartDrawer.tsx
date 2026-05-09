@@ -101,14 +101,6 @@ export default function CartDrawer({ open, cart, onClose }: Props) {
           className="sticky top-6 z-10 flex items-center justify-between border-b border-neutral-200 bg-cream/95 px-6 py-4 backdrop-blur"
         >
           <h2 className="font-serif text-2xl text-neutral-900">Your cart</h2>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close cart"
-            className="flex h-9 w-9 items-center justify-center rounded-full bg-neutral-200 text-neutral-700 hover:bg-neutral-300"
-          >
-            ×
-          </button>
         </header>
 
         {cart.length === 0 ? (
