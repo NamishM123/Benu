@@ -8,7 +8,37 @@ export type CartLine = {
   quantity: number;
   unitPrice: number;
   selections: { groupLabel: string; choiceLabels: string[] }[];
+  specialRequest?: string;
 };
+
+function sameSelections(
+  a: CartLine["selections"],
+  b: CartLine["selections"],
+): boolean {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i].groupLabel !== b[i].groupLabel) return false;
+    const ac = a[i].choiceLabels;
+    const bc = b[i].choiceLabels;
+    if (ac.length !== bc.length) return false;
+    for (let j = 0; j < ac.length; j++) {
+      if (ac[j] !== bc[j]) return false;
+    }
+  }
+  return true;
+}
+
+function isSameLine(
+  existing: CartLine,
+  incoming: Omit<CartLine, "id">,
+): boolean {
+  return (
+    existing.itemName === incoming.itemName &&
+    existing.unitPrice === incoming.unitPrice &&
+    (existing.specialRequest ?? "") === (incoming.specialRequest ?? "") &&
+    sameSelections(existing.selections, incoming.selections)
+  );
+}
 
 export function getCart(): CartLine[] {
   if (typeof window === "undefined") return [];
@@ -35,6 +65,16 @@ export function saveCart(cart: CartLine[]): void {
 
 export function addToCart(line: Omit<CartLine, "id">): void {
   const cart = getCart();
+  // If an identical line already exists, just bump its quantity
+  const existingIdx = cart.findIndex((l) => isSameLine(l, line));
+  if (existingIdx >= 0) {
+    cart[existingIdx] = {
+      ...cart[existingIdx],
+      quantity: cart[existingIdx].quantity + line.quantity,
+    };
+    saveCart(cart);
+    return;
+  }
   const id =
     typeof crypto !== "undefined" && "randomUUID" in crypto
       ? crypto.randomUUID()
