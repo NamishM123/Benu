@@ -118,7 +118,7 @@ export default function FilterSheet({ open, preferences, onClose }: Props) {
         </header>
 
         <div className="px-6 pb-6">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="flex flex-wrap gap-2">
             {DEFAULT_OPTIONS.map((opt) => {
               const active = draft.has(opt);
               return (
@@ -130,11 +130,11 @@ export default function FilterSheet({ open, preferences, onClose }: Props) {
                     e.currentTarget.blur();
                   }}
                   className={[
-                    "rounded-2xl py-4 text-base transition-all",
+                    "flex-none whitespace-nowrap rounded-full px-4 py-2 text-base font-medium transition-colors duration-150",
                     "focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30",
                     active
-                      ? "bg-cantaloupe text-neutral-900 shadow-inner ring-1 ring-inset ring-neutral-900/15"
-                      : "bg-sage text-neutral-900 hover:bg-sage-dark/40",
+                      ? "bg-cantaloupe text-neutral-900"
+                      : "bg-cantaloupe/15 text-neutral-700 hover:bg-cantaloupe/25",
                   ].join(" ")}
                 >
                   {opt}

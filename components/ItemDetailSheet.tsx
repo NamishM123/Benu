@@ -14,6 +14,30 @@ type Props = {
 
 type Selections = Record<string, string[]>;
 
+function ChiliIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="14"
+      height="14"
+      aria-hidden="true"
+      className="flex-none"
+    >
+      <path
+        d="M9.2 4.8c-.6-.6-.6-1.6 0-2.2.5-.5 1.4-.5 2 0 1 .9 1.6 2.2 1.6 3.6"
+        stroke="#16a34a"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        fill="none"
+      />
+      <path
+        d="M11 6c4.5.4 8 4 8.5 8.6.3 2.5-1 4.7-3.3 5.4-2.8.8-5.7-.7-7.6-3.5-2-3-2.4-7-.8-9.4.7-1 1.9-1.3 3.2-1.1z"
+        fill="#dc2626"
+      />
+    </svg>
+  );
+}
+
 function initialSelections(groups: OptionGroup[]): Selections {
   const sel: Selections = {};
   groups.forEach((g) => {
@@ -192,6 +216,16 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
                 <div className="grid grid-cols-2 gap-2">
                   {g.choices.map((c) => {
                     const picked = (selections[g.id] ?? []).includes(c.id);
+                    const chiliCount =
+                      g.id === "spice"
+                        ? c.id === "mild"
+                          ? 1
+                          : c.id === "default"
+                            ? 2
+                            : c.id === "extra"
+                              ? 3
+                              : 0
+                        : 0;
                     return (
                       <button
                         key={c.id}
@@ -201,44 +235,56 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
                           e.currentTarget.blur();
                         }}
                         className={[
-                          "rounded-2xl border px-3 py-3 text-left text-sm transition-all",
+                          "flex flex-col justify-center rounded-2xl border px-3 py-3 text-left text-sm transition-all",
                           "focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30",
                           picked
                             ? "border-cantaloupe-deep bg-cantaloupe text-neutral-900 shadow-inner"
                             : "border-neutral-300 bg-white text-neutral-800 hover:border-neutral-500 hover:shadow-sm",
                         ].join(" ")}
                       >
-                        <div className="flex items-center gap-2">
-                          <span
-                            aria-hidden="true"
-                            className={[
-                              "flex h-4 w-4 flex-none items-center justify-center rounded-full border",
-                              picked
-                                ? "border-neutral-900 bg-neutral-900 text-white"
-                                : "border-neutral-400 bg-transparent",
-                            ].join(" ")}
-                          >
-                            {picked && (
-                              <span className="text-[10px] leading-none">
-                                ✓
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex min-w-0 items-center gap-2">
+                            <span
+                              aria-hidden="true"
+                              className={[
+                                "flex h-4 w-4 flex-none items-center justify-center rounded-full border",
+                                picked
+                                  ? "border-neutral-900 bg-neutral-900 text-white"
+                                  : "border-neutral-400 bg-transparent",
+                              ].join(" ")}
+                            >
+                              {picked && (
+                                <span className="text-[10px] leading-none">
+                                  ✓
+                                </span>
+                              )}
+                            </span>
+                            <span className="truncate font-medium">
+                              {c.label}
+                            </span>
+                            {chiliCount > 0 && (
+                              <span
+                                className="flex flex-none items-center gap-0.5"
+                                aria-hidden="true"
+                              >
+                                {Array.from({ length: chiliCount }).map((_, i) => (
+                                  <ChiliIcon key={i} />
+                                ))}
                               </span>
                             )}
-                          </span>
-                          <span className="font-medium">{c.label}</span>
-                        </div>
-                        <div className="mt-1 ml-6 flex flex-wrap items-center gap-x-2 text-xs text-neutral-500">
+                          </div>
                           {c.priceModifier != null && c.priceModifier !== 0 && (
-                            <span>
+                            <span className="flex-none text-xs text-neutral-500">
                               {c.priceModifier > 0 ? "+" : ""}
                               {formatPrice(c.priceModifier)}
                             </span>
                           )}
-                          {c.warning && (
-                            <span className="text-amber-700">
-                              {c.warning} allergy
-                            </span>
-                          )}
                         </div>
+                        {c.warning && (
+                          <div className="mt-1 ml-6 text-xs text-amber-700">
+                            {c.warning} allergy
+                          </div>
+                        )}
                       </button>
                     );
                   })}
