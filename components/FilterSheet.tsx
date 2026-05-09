@@ -1,9 +1,56 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { DEFAULT_OPTIONS } from "@/lib/preferences";
 import { setStoredPreferences } from "@/lib/preferences-store";
 import { useTranslation } from "@/lib/i18n";
+
+const OPTION_ICONS: Record<string, ReactNode> = {
+  Dairy: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M8 3h8l1 4-1 12a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2L7 7l1-4z" />
+      <path d="M7 7h10" />
+    </svg>
+  ),
+  Fish: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 12c3-5 8-6 12-6 4 0 6 3 6 6s-2 6-6 6c-4 0-9-1-12-6z" />
+      <path d="M21 12l-3-2v4l3-2z" />
+      <circle cx="8" cy="11" r="0.8" fill="currentColor" />
+    </svg>
+  ),
+  Gluten: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 3v18" />
+      <path d="M12 7c-2-1-4-1-5 1 1 2 3 2 5 1" />
+      <path d="M12 7c2-1 4-1 5 1-1 2-3 2-5 1" />
+      <path d="M12 12c-2-1-4-1-5 1 1 2 3 2 5 1" />
+      <path d="M12 12c2-1 4-1 5 1-1 2-3 2-5 1" />
+      <path d="M12 17c-2-1-4-1-5 1 1 2 3 2 5 1" />
+      <path d="M12 17c2-1 4-1 5 1-1 2-3 2-5 1" />
+    </svg>
+  ),
+  Meat: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M5 13a7 7 0 1 1 11 5l-3 3-2-2-3-2-3-2v-2z" />
+      <circle cx="9" cy="11" r="1.3" />
+    </svg>
+  ),
+  Nuts: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <ellipse cx="12" cy="12" rx="5" ry="8" />
+      <path d="M9 7c1 2 1 8 0 10" />
+      <path d="M15 7c-1 2-1 8 0 10" />
+    </svg>
+  ),
+  Soy: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+      <ellipse cx="9" cy="9" rx="3.5" ry="3" transform="rotate(-30 9 9)" />
+      <ellipse cx="15" cy="15" rx="3.5" ry="3" transform="rotate(-30 15 15)" />
+      <path d="M5 14c4 0 6-2 6-6" />
+    </svg>
+  ),
+};
 
 type Props = {
   open: boolean;
@@ -157,7 +204,7 @@ export default function FilterSheet({ open, preferences, onClose }: Props) {
           </div>
         </header>
 
-        <ul className="px-2 pb-6">
+        <ul className="space-y-2 px-4 pb-6 pt-2">
           {DEFAULT_OPTIONS.map((opt) => {
             const active = draft.has(opt);
             return (
@@ -169,18 +216,37 @@ export default function FilterSheet({ open, preferences, onClose }: Props) {
                     e.currentTarget.blur();
                   }}
                   className={[
-                    "flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-base transition-colors",
+                    "flex w-full items-center gap-4 rounded-2xl border px-4 py-3 text-left transition-all",
                     "focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30",
                     active
-                      ? "bg-cantaloupe/30 text-neutral-900"
-                      : "text-neutral-900 hover:bg-cream-light",
+                      ? "border-cantaloupe-deep bg-cantaloupe/30 shadow-inner"
+                      : "border-neutral-300/70 bg-cream-light hover:border-neutral-400/70 hover:bg-[#FFFDF6]",
                   ].join(" ")}
                   aria-pressed={active}
                 >
                   <span
                     aria-hidden="true"
                     className={[
-                      "flex h-5 w-5 flex-none items-center justify-center rounded border-2 transition-colors",
+                      "flex h-10 w-10 flex-none items-center justify-center rounded-full transition-colors",
+                      active
+                        ? "bg-cantaloupe text-neutral-900"
+                        : "bg-white text-neutral-700",
+                    ].join(" ")}
+                  >
+                    <span className="h-5 w-5">{OPTION_ICONS[opt]}</span>
+                  </span>
+                  <span className="flex-1">
+                    <span className="block text-base font-medium text-neutral-900">
+                      {t(opt)}
+                    </span>
+                    <span className="block text-xs text-neutral-500">
+                      {t(`${opt}_desc`)}
+                    </span>
+                  </span>
+                  <span
+                    aria-hidden="true"
+                    className={[
+                      "flex h-5 w-5 flex-none items-center justify-center rounded-md border-2 transition-colors",
                       active
                         ? "border-cantaloupe-deep bg-cantaloupe"
                         : "border-neutral-400 bg-white",
@@ -203,7 +269,6 @@ export default function FilterSheet({ open, preferences, onClose }: Props) {
                       </svg>
                     )}
                   </span>
-                  <span className="flex-1">{t(opt)}</span>
                 </button>
               </li>
             );
