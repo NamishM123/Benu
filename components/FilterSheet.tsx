@@ -134,7 +134,7 @@ export default function FilterSheet({ open, preferences, onClose }: Props) {
                     "focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30",
                     active
                       ? "bg-cantaloupe text-neutral-900 shadow-inner border-neutral-900/15"
-                      : "bg-cream-light text-neutral-900 border-neutral-300/70 hover:bg-white",
+                      : "bg-cream-light text-neutral-900 border-neutral-300/70 hover:bg-[#FFFDF6] hover:border-neutral-400/70",
                   ].join(" ")}
                 >
                   {opt}
