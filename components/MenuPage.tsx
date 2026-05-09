@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { formatPrice, spiceLabel, type MenuItem } from "@/lib/menu";
 import { findFlaggedPreferences } from "@/lib/preferences";
@@ -14,6 +13,7 @@ import {
 import ChatWidget from "./ChatWidget";
 import ItemDetailSheet from "./ItemDetailSheet";
 import CartDrawer from "./CartDrawer";
+import FilterSheet from "./FilterSheet";
 
 const CATEGORY_ORDER = [
   "Appetizers",
@@ -35,6 +35,7 @@ export default function MenuPage({ menu }: Props) {
   const [activeItem, setActiveItem] = useState<MenuItem | null>(null);
   const [cart, setCart] = useState<CartLine[]>([]);
   const [cartOpen, setCartOpen] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   useEffect(() => {
     setPreferences(getStoredPreferences());
@@ -72,19 +73,51 @@ export default function MenuPage({ menu }: Props) {
     <>
       <main className="min-h-screen w-full bg-cream pb-28">
         <div className="mx-auto w-full max-w-6xl">
-          <div className="flex items-center justify-between px-6 pt-6 sm:px-10">
-            <Link
-              href="/dietary-preferences"
-              className="text-sm text-neutral-600 hover:text-neutral-900"
+          <div className="flex items-center justify-between gap-3 px-6 pt-6 sm:px-10">
+            <h1 className="font-serif text-2xl tracking-tight text-neutral-900 sm:text-3xl">
+              Menu
+            </h1>
+            <button
+              type="button"
+              onClick={() => setFiltersOpen(true)}
+              aria-label="Open dietary filters"
+              className={[
+                "inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors",
+                "focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30",
+                preferences.length > 0
+                  ? "bg-cantaloupe text-neutral-900 hover:bg-cantaloupe-soft"
+                  : "border border-neutral-300 bg-white text-neutral-800 hover:bg-neutral-100",
+              ].join(" ")}
             >
-              ← Preferences
-            </Link>
-            {preferences.length > 0 && (
-              <span className="rounded-full bg-sage px-3 py-1 text-xs text-neutral-800">
-                Avoiding: {preferences.join(", ")}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <line x1="4" y1="6" x2="20" y2="6" />
+                <line x1="7" y1="12" x2="17" y2="12" />
+                <line x1="10" y1="18" x2="14" y2="18" />
+              </svg>
+              <span>
+                Filters
+                {preferences.length > 0 ? ` · ${preferences.length}` : ""}
               </span>
-            )}
+            </button>
           </div>
+          {preferences.length > 0 && (
+            <div className="px-6 pt-2 sm:px-10">
+              <p className="text-xs text-neutral-600">
+                Flagging items containing: {preferences.join(", ")}
+              </p>
+            </div>
+          )}
 
           <nav
             aria-label="Menu categories"
@@ -224,7 +257,14 @@ export default function MenuPage({ menu }: Props) {
         cart={cart}
         onClose={() => setCartOpen(false)}
       />
-      <ChatWidget hidden={cartOpen || activeItem !== null} />
+      <FilterSheet
+        open={filtersOpen}
+        preferences={preferences}
+        onClose={() => setFiltersOpen(false)}
+      />
+      <ChatWidget
+        hidden={cartOpen || activeItem !== null || filtersOpen}
+      />
     </>
   );
 }
