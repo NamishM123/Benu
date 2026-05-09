@@ -11,6 +11,7 @@ const config: Config = {
       colors: {
         cream: "#FBF7EE",
         "cream-light": "#FFFBF2",
+        "cream-dark": "#F0E6D2",
         sage: {
           DEFAULT: "#D8E1D2",
           dark: "#A9BBA0",

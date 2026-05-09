@@ -153,7 +153,7 @@ export default function MenuPage({ menu }: Props) {
               onClick={() => setFiltersOpen(true)}
               aria-label={t("filters")}
               className={[
-                "hidden sm:inline-flex items-center gap-2 rounded-full px-4 py-2 text-base font-medium transition-colors",
+                "hidden sm:inline-flex items-center gap-2 rounded-full px-4 py-2 text-base font-medium shadow-sm transition-colors",
                 "focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30",
                 preferences.length > 0
                   ? "bg-cantaloupe text-neutral-900 hover:bg-cantaloupe-soft"
@@ -185,7 +185,7 @@ export default function MenuPage({ menu }: Props) {
                 type="button"
                 onClick={() => setCartOpen(true)}
                 aria-label={t("yourCart")}
-                className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-neutral-300 bg-white text-neutral-800 transition-colors hover:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
+                className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-neutral-300 bg-white text-neutral-800 shadow-sm transition-colors hover:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"

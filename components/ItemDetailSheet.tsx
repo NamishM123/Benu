@@ -193,7 +193,7 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
           const max = el.scrollHeight - el.clientHeight;
           if (el.scrollTop >= max) el.scrollTop = max - 1;
         }}
-        className="popup-scroll relative w-full max-w-[480px] h-[100dvh] overflow-y-auto overscroll-none bg-cream shadow-xl sm:h-auto sm:max-h-[92vh] sm:rounded-3xl"
+        className="popup-scroll relative w-full max-w-[480px] h-[100dvh] overflow-y-auto overscroll-none bg-cream-dark shadow-xl sm:h-auto sm:max-h-[92vh] sm:rounded-3xl"
         style={{ WebkitOverflowScrolling: "auto" }}
       >
         {/* Soft fade strip at top: image scrolls into this instead of being cut sharply */}
@@ -202,56 +202,59 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
           style={{
             opacity: fadeOpacity,
             background:
-              "linear-gradient(to bottom, #FBF7EE 0%, rgba(251,247,238,0.95) 25%, rgba(251,247,238,0.75) 50%, rgba(251,247,238,0.4) 75%, rgba(251,247,238,0) 100%)",
+              "linear-gradient(to bottom, #F0E6D2 0%, rgba(240,230,210,0.95) 25%, rgba(240,230,210,0.75) 50%, rgba(240,230,210,0.4) 75%, rgba(240,230,210,0) 100%)",
           }}
           className="pointer-events-none sticky top-0 z-10 -mb-24 h-24 transition-opacity duration-150 sm:rounded-t-3xl"
         />
 
-        {/* Hero: image on cream background */}
+        {/* Hero: image as a rounded card on darker cream */}
         <div className="relative">
           <button
             type="button"
             onClick={onClose}
             aria-label={t("close")}
-            className="absolute top-4 left-4 z-30 flex h-8 w-8 items-center justify-center rounded-full bg-neutral-900/55 text-base leading-none text-white backdrop-blur-sm hover:bg-neutral-900/75 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+            className="absolute top-4 left-4 z-30 flex h-9 w-9 items-center justify-center rounded-full bg-neutral-900/60 text-base leading-none text-white shadow-sm backdrop-blur-sm hover:bg-neutral-900/75 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
           >
             ×
           </button>
-          <div className="relative aspect-square w-full overflow-hidden sm:rounded-t-3xl">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={item.image}
-              alt={item.name}
-              decoding="async"
-              fetchPriority="high"
-              ref={(img) => {
-                if (img && img.complete && img.naturalWidth > 0) {
+          <div className="px-6 pt-14 pb-6">
+            <div className="relative aspect-square w-full overflow-hidden rounded-3xl bg-white shadow-md">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={item.image}
+                alt={item.name}
+                decoding="async"
+                fetchPriority="high"
+                ref={(img) => {
+                  if (img && img.complete && img.naturalWidth > 0) {
+                    img.style.opacity = "1";
+                    img.style.filter = "blur(0px)";
+                  }
+                }}
+                style={{ filter: "blur(8px)" }}
+                className="h-full w-full object-cover opacity-0 transition-[opacity,filter] duration-500 ease-out"
+                onLoad={(e) => {
+                  e.currentTarget.style.opacity = "1";
+                  e.currentTarget.style.filter = "blur(0px)";
+                }}
+                onError={(e) => {
+                  const img = e.currentTarget;
+                  if (img.dataset.fallback) return;
+                  img.dataset.fallback = "1";
+                  img.src =
+                    "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%23FBF7EE'%2F%3E%3Cg transform='translate(100 110)' stroke='%23B8A88E' stroke-width='4' fill='none' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M-50 -10 a50 50 0 0 0 100 0 z' fill='%23E5D8C3'%2F%3E%3Cline x1='-30' y1='-25' x2='-15' y2='-40'%2F%3E%3Cline x1='-10' y1='-30' x2='5' y2='-50'%2F%3E%3Cline x1='15' y1='-25' x2='30' y2='-45'%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E";
                   img.style.opacity = "1";
                   img.style.filter = "blur(0px)";
-                }
-              }}
-              style={{ filter: "blur(8px)" }}
-              className="relative z-10 h-full w-full object-contain p-6 opacity-0 transition-[opacity,filter] duration-500 ease-out sm:p-10"
-              onLoad={(e) => {
-                e.currentTarget.style.opacity = "1";
-                e.currentTarget.style.filter = "blur(0px)";
-              }}
-              onError={(e) => {
-                const img = e.currentTarget;
-                if (img.dataset.fallback) return;
-                img.dataset.fallback = "1";
-                img.src =
-                  "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%23FBF7EE'%2F%3E%3Cg transform='translate(100 110)' stroke='%23B8A88E' stroke-width='4' fill='none' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M-50 -10 a50 50 0 0 0 100 0 z' fill='%23E5D8C3'%2F%3E%3Cline x1='-30' y1='-25' x2='-15' y2='-40'%2F%3E%3Cline x1='-10' y1='-30' x2='5' y2='-50'%2F%3E%3Cline x1='15' y1='-25' x2='30' y2='-45'%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E";
-                img.style.opacity = "1";
-                img.style.filter = "blur(0px)";
-              }}
-            />
+                }}
+              />
+            </div>
           </div>
         </div>
 
-        {/* Lighter content card with a wide arc top edge */}
+        {/* Lighter content card with a wide arc top edge — comes up so the
+            curve sits behind the bottom ~25% of the image card */}
         <div
-          className="relative -mt-10 bg-cream-light px-6 pt-12 pb-6 shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.05)]"
+          className="relative -mt-[20%] bg-cream-light px-6 pt-[22%] pb-6 shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.06)]"
           style={{
             borderTopLeftRadius: "50% 40px",
             borderTopRightRadius: "50% 40px",
@@ -305,11 +308,11 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
                           e.currentTarget.blur();
                         }}
                         className={[
-                          "flex h-full flex-col rounded-2xl border px-3 py-3 text-left text-sm transition-all",
+                          "flex h-full flex-col rounded-2xl border px-3 py-3 text-left text-sm shadow-sm transition-all",
                           "focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30",
                           picked
                             ? "border-cantaloupe-deep bg-cantaloupe text-neutral-900 shadow-inner"
-                            : "border-neutral-300 bg-white text-neutral-800 hover:border-neutral-500 hover:shadow-sm",
+                            : "border-neutral-300 bg-white text-neutral-800 hover:border-neutral-500 hover:shadow-md",
                         ].join(" ")}
                       >
                         <div className="flex items-center gap-2">
@@ -396,7 +399,7 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
               onClick={handleAdd}
               disabled={!allRequiredMet}
               className={[
-                "flex w-full items-center justify-between rounded-full px-6 py-4 text-base font-medium transition-colors",
+                "flex w-full items-center justify-between rounded-full px-6 py-4 text-base font-medium shadow-md transition-colors",
                 allRequiredMet
                   ? "bg-neutral-900 text-cream hover:bg-neutral-800"
                   : "bg-neutral-300 text-neutral-500",

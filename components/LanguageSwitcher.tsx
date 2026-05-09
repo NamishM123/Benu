@@ -13,7 +13,7 @@ export default function LanguageSwitcher() {
     <div
       role="group"
       aria-label="Language"
-      className="inline-flex items-center rounded-full border border-neutral-300 bg-white text-base font-medium"
+      className="inline-flex items-center rounded-full border border-neutral-300 bg-white text-base font-medium shadow-sm"
     >
       <button
         type="button"
