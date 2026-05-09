@@ -22,8 +22,8 @@ export default function LanguageSwitcher() {
         className={[
           "rounded-full px-4 py-2 text-base font-medium transition-colors",
           lang === "en"
-            ? "bg-neutral-900 text-cream"
-            : "text-neutral-700 hover:text-neutral-900",
+            ? "bg-neutral-900 text-yellow-400"
+            : "text-yellow-500 hover:text-yellow-600",
         ].join(" ")}
       >
         EN
