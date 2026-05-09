@@ -207,16 +207,22 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
           className="pointer-events-none sticky top-0 z-10 -mb-24 h-24 transition-opacity duration-150 sm:rounded-t-3xl"
         />
 
-        <div className="px-6 pt-6">
-          <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-gradient-to-br from-cream-light to-neutral-200/60">
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label={t("close")}
-              className="absolute top-4 left-4 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-neutral-900/55 text-base leading-none text-white backdrop-blur-sm hover:bg-neutral-900/75 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
-            >
-              ×
-            </button>
+        {/* Hero: image on cream background with a circular backdrop */}
+        <div className="relative">
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={t("close")}
+            className="absolute top-4 left-4 z-30 flex h-8 w-8 items-center justify-center rounded-full bg-neutral-900/55 text-base leading-none text-white backdrop-blur-sm hover:bg-neutral-900/75 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+          >
+            ×
+          </button>
+          <div className="relative aspect-square w-full overflow-hidden sm:rounded-t-3xl">
+            {/* Circular backdrop behind the product */}
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute left-1/2 top-1/2 aspect-square h-[72%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-cantaloupe-soft/45"
+            />
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={item.image}
@@ -230,7 +236,7 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
                 }
               }}
               style={{ filter: "blur(8px)" }}
-              className="h-full w-full object-contain opacity-0 transition-[opacity,filter] duration-500 ease-out"
+              className="relative z-10 h-full w-full object-contain p-8 opacity-0 transition-[opacity,filter] duration-500 ease-out sm:p-10"
               onLoad={(e) => {
                 e.currentTarget.style.opacity = "1";
                 e.currentTarget.style.filter = "blur(0px)";
@@ -246,8 +252,11 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
               }}
             />
           </div>
+        </div>
 
-          <div className="mt-5">
+        {/* Lighter content card with rounded top */}
+        <div className="relative -mt-6 rounded-t-[2rem] bg-cream-light px-6 pt-8 pb-6 shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.05)]">
+          <div>
             <h2 className="font-serif text-3xl tracking-tight text-neutral-900">
               {localName(item, lang, autoMap)}
             </h2>
@@ -380,7 +389,7 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
             </section>
           </div>
 
-          <div className="sticky bottom-0 -mx-6 mt-8 bg-cream/95 px-6 py-5 backdrop-blur">
+          <div className="sticky bottom-0 -mx-6 mt-8 bg-cream-light/95 px-6 py-5 backdrop-blur">
             <button
               type="button"
               onClick={handleAdd}
