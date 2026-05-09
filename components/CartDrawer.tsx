@@ -167,6 +167,11 @@ export default function CartDrawer({
                       ))}
                     </ul>
                   )}
+                  {line.specialRequest && (
+                    <p className="mt-1 text-xs italic text-neutral-500">
+                      Note: {line.specialRequest}
+                    </p>
+                  )}
                   <div className="mt-3 flex items-center justify-between gap-3">
                     <div className="inline-flex items-center gap-2 rounded-full border border-neutral-300 bg-white px-2 py-1 select-none">
                       <button
