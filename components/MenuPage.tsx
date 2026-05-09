@@ -73,12 +73,12 @@ export default function MenuPage({ menu }: Props) {
     <>
       <main className="min-h-screen w-full bg-cream pb-28">
         <div className="mx-auto w-full max-w-6xl">
-          <div className="flex items-center justify-between gap-3 px-6 pt-6 sm:px-10">
+          <div className="flex items-center justify-between gap-3 px-6 pt-4 sm:px-10">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/shake-shake-logo.png"
               alt="Shake Shake Fresh Noodle"
-              className="h-28 w-auto sm:h-36"
+              className="h-44 w-auto sm:h-52"
             />
             <button
               type="button"
@@ -124,10 +124,10 @@ export default function MenuPage({ menu }: Props) {
 
           <nav
             aria-label="Menu categories"
-            className="sticky top-0 z-20 mt-1 bg-cream/90 backdrop-blur"
+            className="sticky top-0 z-20 -mt-1 bg-cream/90 backdrop-blur"
           >
             <div className="overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <div className="flex w-max min-w-full items-center justify-start gap-2 px-6 py-3 sm:justify-center sm:px-10">
+              <div className="flex w-max min-w-full items-center justify-start gap-2 px-6 py-1 sm:justify-center sm:px-10">
                 {categories.map((cat) => {
                   const isActive = cat === activeCategory;
                   return (
