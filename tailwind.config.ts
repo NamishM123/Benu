@@ -15,9 +15,9 @@ const config: Config = {
           dark: "#A9BBA0",
         },
         cantaloupe: {
-          DEFAULT: "#FF7900",
-          soft: "#FF944D",
-          deep: "#CC6100",
+          DEFAULT: "#FDA172",
+          soft: "#FFB892",
+          deep: "#E88A5C",
         },
       },
       fontFamily: {
