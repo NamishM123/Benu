@@ -9,11 +9,7 @@ import {
   removeFromCart,
   type CartLine,
 } from "@/lib/cart-store";
-import {
-  getTasteFact,
-  pairingReason,
-  pickPairing,
-} from "@/lib/cart-insights";
+import { pairingReason, pickPairing } from "@/lib/cart-insights";
 
 type Props = {
   open: boolean;
@@ -52,7 +48,6 @@ export default function CartDrawer({
     cart,
     preferences,
   ]);
-  const tasteFact = useMemo(() => getTasteFact(cart), [cart]);
   const pairReason = useMemo(
     () => (pairing ? pairingReason(pairing, cart) : null),
     [pairing, cart],
@@ -168,12 +163,6 @@ export default function CartDrawer({
             </ul>
 
             <div className="space-y-3 px-6 pb-2 pt-4">
-              {tasteFact && (
-                <div className="rounded-2xl bg-sage/60 px-4 py-3 text-sm leading-relaxed text-neutral-800">
-                  {tasteFact}
-                </div>
-              )}
-
               {pairing && (
                 <div className="rounded-2xl border border-neutral-200 bg-white p-4">
                   <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">

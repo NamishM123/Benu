@@ -95,33 +95,3 @@ export function pairingReason(item: MenuItem, cart: CartLine[]): string {
   return "Goes well with what you've picked.";
 }
 
-export function getTasteFact(cart: CartLine[]): string | null {
-  const items = cartItems(cart);
-  if (items.length === 0) return null;
-
-  const tagCount = new Map<string, number>();
-  for (const m of items) {
-    for (const t of m.tags) tagCount.set(t, (tagCount.get(t) ?? 0) + 1);
-  }
-  const total = items.length;
-  const ratio = (tag: string) => (tagCount.get(tag) ?? 0) / total;
-  const avgSpice = items.reduce((s, m) => s + m.spiceLevel, 0) / total;
-
-  if (avgSpice >= 2.3)
-    return "Fun fact: your basket averages 'very spicy'. Most diners cool that down with sparkling water.";
-  if (avgSpice >= 1.5)
-    return "Fun fact: heat seeker. Sichuan peppercorn is doing a lot of work in your order.";
-  if (ratio("beef") >= 0.5)
-    return "Fun fact: you're going Lanzhou-style — beef bone broth is the soul of this menu.";
-  if (ratio("pork") >= 0.5)
-    return "Fun fact: pork-forward palate. Our braise has been going since open.";
-  if (ratio("lamb") >= 0.34)
-    return "Fun fact: lamb-and-cumin country. Adventurous pick — most carts don't go here.";
-  if (ratio("vegetarian") >= 0.5)
-    return "Fun fact: you're keeping it green. The yuba salad is the chef's quiet favorite.";
-  if (avgSpice === 0)
-    return "Fun fact: comfort-food energy. These dishes were made for a slow rainy night.";
-  if (items.length >= 3)
-    return "Fun fact: you're tasting our range — appetizer + main + drink is how we'd order, too.";
-  return "Fun fact: solid pick. These flavors were built to be eaten together.";
-}
