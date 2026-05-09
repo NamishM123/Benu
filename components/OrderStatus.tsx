@@ -84,12 +84,18 @@ export default function OrderStatus({ id }: Props) {
           <div className="rounded-2xl border border-dashed border-neutral-300 bg-white px-6 py-16 text-center text-sm text-neutral-600">
             {t("orderNotFound")}
           </div>
-          <div className="mt-6 flex justify-center">
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
             <Link
               href="/menu"
               className="rounded-full bg-neutral-900 px-6 py-3 text-sm font-medium text-cream hover:bg-neutral-800"
             >
               {t("backToMenu")}
+            </Link>
+            <Link
+              href="/orders"
+              className="rounded-full border border-neutral-300 bg-white px-6 py-3 text-sm font-medium text-neutral-900 hover:bg-neutral-100"
+            >
+              {t("viewMyOrders")}
             </Link>
           </div>
         </main>
@@ -195,12 +201,18 @@ export default function OrderStatus({ id }: Props) {
           </ul>
         </section>
 
-        <div className="mt-6 flex justify-center">
+        <div className="mt-6 flex flex-wrap justify-center gap-3">
           <Link
             href="/menu"
             className="rounded-full border border-neutral-300 bg-white px-6 py-3 text-sm font-medium text-neutral-900 hover:bg-neutral-100"
           >
             {t("orderAnother")}
+          </Link>
+          <Link
+            href="/orders"
+            className="rounded-full border border-neutral-300 bg-white px-6 py-3 text-sm font-medium text-neutral-900 hover:bg-neutral-100"
+          >
+            {t("viewMyOrders")}
           </Link>
         </div>
       </main>

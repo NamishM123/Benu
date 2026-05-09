@@ -129,6 +129,21 @@ const TRANSLATIONS = {
   backToMenu: { en: "Back to menu", zh: "返回菜单" },
   orderAnother: { en: "Order something else", zh: "再来一份" },
 
+  // My orders portal (customer-facing)
+  myOrdersTitle: { en: "My orders", zh: "我的订单" },
+  myOrdersSubtitle: {
+    en: "Orders you've sent to the kitchen from this device.",
+    zh: "您从此设备送至厨房的订单。",
+  },
+  myOrdersEmpty: {
+    en: "You haven't sent any orders yet.",
+    zh: "您还没有下过订单。",
+  },
+  viewMyOrders: { en: "View my orders", zh: "查看我的订单" },
+  itemsCount_one: { en: "item", zh: "件" },
+  itemsCount_other: { en: "items", zh: "件" },
+  viewOrder: { en: "View order", zh: "查看订单" },
+
   // Item detail sheet
   addToCart: { en: "Add to cart", zh: "加入购物车" },
   added: { en: "Added ✓", zh: "已加入 ✓" },

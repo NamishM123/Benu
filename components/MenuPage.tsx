@@ -388,7 +388,13 @@ export default function MenuPage({ menu }: Props) {
             })}
           </section>
 
-          <footer className="mt-16 flex justify-center px-6 pb-6 sm:px-10">
+          <footer className="mt-16 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 px-6 pb-6 sm:px-10">
+            <Link
+              href="/orders"
+              className="text-xs text-neutral-500 underline-offset-4 hover:text-neutral-800 hover:underline"
+            >
+              {t("viewMyOrders")}
+            </Link>
             <Link
               href="/kitchen"
               className="text-xs text-neutral-500 underline-offset-4 hover:text-neutral-800 hover:underline"
