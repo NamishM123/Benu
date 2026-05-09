@@ -47,6 +47,16 @@ export function removeFromCart(id: string): void {
   saveCart(getCart().filter((l) => l.id !== id));
 }
 
+export function updateLineQuantity(id: string, quantity: number): void {
+  if (quantity <= 0) {
+    removeFromCart(id);
+    return;
+  }
+  saveCart(
+    getCart().map((l) => (l.id === id ? { ...l, quantity } : l)),
+  );
+}
+
 export function clearCart(): void {
   saveCart([]);
 }

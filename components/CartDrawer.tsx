@@ -7,6 +7,7 @@ import {
   cartTotal,
   clearCart,
   removeFromCart,
+  updateLineQuantity,
   type CartLine,
 } from "@/lib/cart-store";
 import { pairingReason, pickPairings } from "@/lib/cart-insights";
@@ -29,6 +30,30 @@ export default function CartDrawer({
   const [dragOffset, setDragOffset] = useState(0);
   const startYRef = useRef<number | null>(null);
   const draggingRef = useRef(false);
+
+  // Hold-to-repeat for line quantity buttons
+  const holdTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const holdIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  function clearHold() {
+    if (holdTimeoutRef.current) {
+      clearTimeout(holdTimeoutRef.current);
+      holdTimeoutRef.current = null;
+    }
+    if (holdIntervalRef.current) {
+      clearInterval(holdIntervalRef.current);
+      holdIntervalRef.current = null;
+    }
+  }
+
+  function startHold(step: () => void) {
+    step();
+    holdTimeoutRef.current = setTimeout(() => {
+      holdIntervalRef.current = setInterval(step, 80);
+    }, 400);
+  }
+
+  useEffect(() => clearHold, []);
 
   useEffect(() => {
     if (!open) return;
@@ -127,11 +152,6 @@ export default function CartDrawer({
                 <li key={line.id} className="py-4">
                   <div className="flex items-baseline justify-between gap-3">
                     <p className="font-medium text-neutral-900">
-                      {line.quantity > 1 && (
-                        <span className="mr-1 text-neutral-500">
-                          {line.quantity}×
-                        </span>
-                      )}
                       {line.itemName}
                     </p>
                     <p className="text-sm text-neutral-700">
@@ -147,13 +167,52 @@ export default function CartDrawer({
                       ))}
                     </ul>
                   )}
-                  <button
-                    type="button"
-                    onClick={() => removeFromCart(line.id)}
-                    className="mt-2 text-xs text-neutral-500 underline-offset-2 hover:text-neutral-800 hover:underline"
-                  >
-                    Remove
-                  </button>
+                  <div className="mt-3 flex items-center justify-between gap-3">
+                    <div className="inline-flex items-center gap-2 rounded-full border border-neutral-300 bg-white px-2 py-1 select-none">
+                      <button
+                        type="button"
+                        aria-label="Decrease quantity"
+                        onPointerDown={(e) => {
+                          e.preventDefault();
+                          startHold(() =>
+                            updateLineQuantity(line.id, line.quantity - 1),
+                          );
+                        }}
+                        onPointerUp={clearHold}
+                        onPointerLeave={clearHold}
+                        onPointerCancel={clearHold}
+                        className="flex h-7 w-7 items-center justify-center rounded-full bg-cantaloupe text-neutral-900 hover:bg-cantaloupe-soft active:bg-cantaloupe-deep touch-none"
+                      >
+                        −
+                      </button>
+                      <span className="min-w-[1.25rem] text-center text-sm font-medium tabular-nums">
+                        {line.quantity}
+                      </span>
+                      <button
+                        type="button"
+                        aria-label="Increase quantity"
+                        onPointerDown={(e) => {
+                          e.preventDefault();
+                          startHold(() =>
+                            updateLineQuantity(line.id, line.quantity + 1),
+                          );
+                        }}
+                        onPointerUp={clearHold}
+                        onPointerLeave={clearHold}
+                        onPointerCancel={clearHold}
+                        className="flex h-7 w-7 items-center justify-center rounded-full bg-cantaloupe text-neutral-900 hover:bg-cantaloupe-soft active:bg-cantaloupe-deep touch-none"
+                      >
+                        +
+                      </button>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeFromCart(line.id)}
+                      className="text-xs text-neutral-500 underline-offset-2 hover:text-neutral-800 hover:underline"
+                    >
+                      Remove
+                    </button>
+                  </div>
                 </li>
               ))}
             </ul>
