@@ -19,7 +19,7 @@ export const MENU: MenuItem[] = [
       "Bite-sized fried chicken pieces tossed with salt, pepper, and Taiwanese five spice; optional chili seasoning.",
     spiceLevel: 1,
     tags: ["chicken", "meat", "gluten", "spicy"],
-    image: "/menu/popcorn-chicken.webp",
+    image: "/menu/popcorn-chicken.jpg",
   },
   {
     name: "Garlic Cucumber",
