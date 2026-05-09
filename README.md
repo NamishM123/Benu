@@ -53,6 +53,9 @@ Visit <http://localhost:3000>.
 | Name | Required | Description | Where to get it |
 | --- | --- | --- | --- |
 | `ANTHROPIC_API_KEY` | Yes (for live chatbot) | Server-side key for the Claude-backed `/api/chat` route. If missing, the route falls back to a local rule-based chatbot. | <https://console.anthropic.com/settings/keys> |
+| `OPENAI_API_KEY` | No | Reserved for an optional OpenAI fallback or comparison path. Not wired in code yet. | <https://platform.openai.com/api-keys> |
+| `UNSPLASH_ACCESS_KEY` | No | Unsplash API access key for fetching real dish photos via the official API. The current menu uses `source.unsplash.com` placeholder URLs that don't require a key. | <https://unsplash.com/oauth/applications> |
+| `UNSPLASH_SECRET_KEY` | No | Unsplash secret. Only needed for OAuth user actions, not for read-only image search. | Same as above |
 | `NEXT_PUBLIC_BRAND_NAME` | No | Brand name shown in the disclaimer copy. Defaults to `our restaurant`. | — |
 
-You're ready to add API keys once the project is deployed (or whenever you want the live chatbot locally). Add `ANTHROPIC_API_KEY` in Vercel → Project → Settings → Environment Variables, then redeploy.
+You're ready to add API keys once the project is deployed (or whenever you want the live chatbot locally). Add them in Vercel → Project → Settings → Environment Variables, then redeploy.
