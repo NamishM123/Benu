@@ -32,6 +32,7 @@ export default function CartDrawer({
   const { t, lang } = useTranslation();
   const [dragOffset, setDragOffset] = useState(0);
   const [confirmRemoveId, setConfirmRemoveId] = useState<string | null>(null);
+  const [confirmClear, setConfirmClear] = useState(false);
   const startYRef = useRef<number | null>(null);
   const draggingRef = useRef(false);
 
@@ -298,9 +299,7 @@ export default function CartDrawer({
               <div className="flex gap-3">
                 <button
                   type="button"
-                  onClick={() => {
-                    clearCart();
-                  }}
+                  onClick={() => setConfirmClear(true)}
                   className="flex-none rounded-full border border-neutral-300 px-4 py-3 text-sm text-neutral-700 hover:bg-neutral-100"
                 >
                   {t("clear")}
@@ -317,6 +316,50 @@ export default function CartDrawer({
               </div>
             </div>
           </>
+        )}
+
+        {confirmClear && (
+          <div
+            className="absolute inset-0 z-30 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              setConfirmClear(false);
+            }}
+          >
+            <div
+              role="alertdialog"
+              aria-modal="true"
+              aria-label={t("clearCartTitle")}
+              onClick={(e) => e.stopPropagation()}
+              className="mx-6 w-full max-w-[340px] rounded-2xl bg-cream p-5 shadow-xl"
+            >
+              <h3 className="font-serif text-xl text-neutral-900">
+                {t("clearCartTitle")}
+              </h3>
+              <p className="mt-2 text-sm text-neutral-600">
+                {t("clearCartQuestion")}
+              </p>
+              <div className="mt-5 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setConfirmClear(false)}
+                  className="flex-1 rounded-full border border-neutral-300 px-4 py-2.5 text-sm text-neutral-700 hover:bg-neutral-100"
+                >
+                  {t("cancel")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    clearCart();
+                    setConfirmClear(false);
+                  }}
+                  className="flex-1 rounded-full bg-neutral-900 px-4 py-2.5 text-sm font-medium text-cream hover:bg-neutral-800"
+                >
+                  {t("clearAll")}
+                </button>
+              </div>
+            </div>
+          </div>
         )}
 
         {confirmRemoveId && (

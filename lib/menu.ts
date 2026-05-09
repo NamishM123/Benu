@@ -426,12 +426,26 @@ export function spiceLabel(level: SpiceLevel): string {
   return "very spicy";
 }
 
-export function localName(item: MenuItem, lang: "en" | "zh"): string {
-  if (lang === "zh" && item.nameZh) return item.nameZh;
+export function localName(
+  item: MenuItem,
+  lang: "en" | "zh",
+  autoMap?: Record<string, string>,
+): string {
+  if (lang === "zh") {
+    if (item.nameZh) return item.nameZh;
+    if (autoMap && autoMap[item.name]) return autoMap[item.name];
+  }
   return item.name;
 }
 
-export function localDescription(item: MenuItem, lang: "en" | "zh"): string {
-  if (lang === "zh" && item.descriptionZh) return item.descriptionZh;
+export function localDescription(
+  item: MenuItem,
+  lang: "en" | "zh",
+  autoMap?: Record<string, string>,
+): string {
+  if (lang === "zh") {
+    if (item.descriptionZh) return item.descriptionZh;
+    if (autoMap && autoMap[item.description]) return autoMap[item.description];
+  }
   return item.description;
 }
