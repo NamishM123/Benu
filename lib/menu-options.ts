@@ -141,6 +141,18 @@ const DRINK_SIZE: OptionGroup = {
   ],
 };
 
+const NO_SPECIAL_REQUEST_ITEMS = new Set<string>([
+  "Garlic Cucumber",
+  "Chili Oil Potato Salad",
+  "Yuba with Celery Salad",
+]);
+
+export function itemSupportsSpecialRequest(item: MenuItem): boolean {
+  if (item.category === "Beverages") return false;
+  if (NO_SPECIAL_REQUEST_ITEMS.has(item.name)) return false;
+  return true;
+}
+
 export function getOptionGroupsForItem(item: MenuItem): OptionGroup[] {
   const groups: OptionGroup[] = [];
   const isSpicy = item.tags.includes("spicy") || item.spiceLevel > 0;

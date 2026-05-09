@@ -147,6 +147,11 @@ export default function CartDrawer({
                       ))}
                     </ul>
                   )}
+                  {line.specialRequest && (
+                    <p className="mt-1 text-xs italic text-neutral-500">
+                      Note: {line.specialRequest}
+                    </p>
+                  )}
                   <button
                     type="button"
                     onClick={() => removeFromCart(line.id)}
