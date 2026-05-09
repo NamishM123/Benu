@@ -47,7 +47,7 @@ export default function DietaryPreferences({
     const arr = Array.from(selected);
     setStoredPreferences(arr);
     onConfirm?.(arr);
-    router.push("/menu");
+    router.replace("/menu");
   }
 
   return (

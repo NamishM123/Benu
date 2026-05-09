@@ -122,7 +122,7 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm sm:items-center"
+      className="fixed inset-0 z-50 flex items-stretch justify-center bg-black/40 backdrop-blur-sm sm:items-center"
       onClick={onClose}
     >
       <div
@@ -130,8 +130,17 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
         aria-modal="true"
         aria-label={item.name}
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-[480px] max-h-[92vh] overflow-y-auto rounded-t-3xl bg-cream shadow-xl sm:rounded-3xl"
+        className="relative w-full max-w-[480px] h-[100dvh] overflow-y-auto bg-cream shadow-xl sm:h-auto sm:max-h-[92vh] sm:rounded-3xl"
       >
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close"
+          className="absolute top-4 left-4 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-neutral-200/95 text-lg leading-none text-neutral-700 shadow-sm hover:bg-neutral-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
+        >
+          ×
+        </button>
+
         <div className="px-6 pt-6">
           <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-neutral-100">
             {/* eslint-disable-next-line @next/next/no-img-element */}
