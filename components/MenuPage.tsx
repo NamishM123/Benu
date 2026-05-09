@@ -111,7 +111,8 @@ export default function MenuPage({ menu }: Props) {
                 src="/shake-shake-logo.png"
                 alt="Shake Shake Fresh Noodle"
                 fetchPriority="high"
-                decoding="async"
+                decoding="sync"
+                loading="eager"
                 className="h-28 w-auto sm:h-36"
               />
             </button>
