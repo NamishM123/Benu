@@ -19,7 +19,7 @@ export const MENU: MenuItem[] = [
       "Bite-sized fried chicken pieces tossed with salt, pepper, and Taiwanese five spice; optional chili seasoning.",
     spiceLevel: 1,
     tags: ["chicken", "meat", "gluten", "spicy"],
-    image: "https://source.unsplash.com/featured/?popcorn-chicken",
+    image: "/menu/popcorn-chicken.webp",
   },
   {
     name: "Garlic Cucumber",
@@ -29,7 +29,7 @@ export const MENU: MenuItem[] = [
       "Smashed cucumbers tossed in minced garlic, soy sauce, vinegar, sesame oil, and a touch of sugar.",
     spiceLevel: 0,
     tags: ["vegetarian", "vegan", "dairy-free", "soy", "gluten-free"],
-    image: "https://source.unsplash.com/featured/?cucumber-salad",
+    image: "/menu/garlic-cucumber.jpg",
   },
   {
     name: "Yuba with Celery Salad",
@@ -49,7 +49,7 @@ export const MENU: MenuItem[] = [
       "Pork-filled wontons in chili oil, soy sauce, garlic, vinegar, and Sichuan peppercorn.",
     spiceLevel: 2,
     tags: ["pork", "meat", "gluten", "soy", "spicy"],
-    image: "https://source.unsplash.com/featured/?chili-wontons",
+    image: "/menu/chili-oil-wontons.png",
   },
   {
     name: "Pork and Cabbage Boiled Dumplings (12 pc)",
@@ -59,7 +59,7 @@ export const MENU: MenuItem[] = [
       "Hand-wrapped dumplings filled with ground pork, napa cabbage, ginger, and scallion.",
     spiceLevel: 0,
     tags: ["pork", "meat", "gluten", "soy"],
-    image: "https://source.unsplash.com/featured/?dumplings",
+    image: "/menu/pork-cabbage-dumplings.jpg",
   },
   {
     name: "House Beef Roll",
@@ -69,7 +69,7 @@ export const MENU: MenuItem[] = [
       "Flaky scallion pancake rolled with sliced braised beef, hoisin sauce, scallions, and cilantro.",
     spiceLevel: 0,
     tags: ["beef", "meat", "gluten", "soy"],
-    image: "https://source.unsplash.com/featured/?beef-roll",
+    image: "/menu/house-beef-roll.jpg",
   },
   {
     name: "House Cold Cut Beef",
@@ -79,7 +79,7 @@ export const MENU: MenuItem[] = [
       "Thinly sliced soy-braised beef shank served cold with chili oil, garlic, and scallion.",
     spiceLevel: 1,
     tags: ["beef", "meat", "soy", "spicy", "gluten-free"],
-    image: "https://source.unsplash.com/featured/?cold-beef",
+    image: "/menu/house-cold-cut-beef.jpg",
   },
 
   {
@@ -90,7 +90,7 @@ export const MENU: MenuItem[] = [
       "Wide hand-pulled noodles topped with chili oil, scallions, garlic, and bone-in braised beef.",
     spiceLevel: 3,
     tags: ["beef", "meat", "gluten", "soy", "spicy"],
-    image: "https://source.unsplash.com/featured/?chili-noodles",
+    image: "/menu/chili-oil-flat-noodle-beef.png",
   },
   {
     name: "Regular Chili Oil Flat Noodle",
@@ -110,7 +110,7 @@ export const MENU: MenuItem[] = [
       "Noodles tossed with ground pork, chili oil, Sichuan peppercorn, garlic, and scallion (mala style).",
     spiceLevel: 3,
     tags: ["pork", "meat", "gluten", "soy", "spicy"],
-    image: "https://source.unsplash.com/featured/?spicy-noodles",
+    image: "/menu/minced-pork-noodle.jpg",
   },
   {
     name: "Braised Pork Belly Noodle",
@@ -120,7 +120,7 @@ export const MENU: MenuItem[] = [
       "Noodles topped with soy-braised pork belly, scallions, and bok choy in a light sauce.",
     spiceLevel: 0,
     tags: ["pork", "meat", "gluten", "soy"],
-    image: "https://source.unsplash.com/featured/?pork-belly-noodle",
+    image: "/menu/braised-pork-belly-noodle.jpg",
   },
   {
     name: "Cumin Onion Lamb Stirred Noodle",
@@ -130,7 +130,7 @@ export const MENU: MenuItem[] = [
       "Stir-fried noodles with sliced lamb, onions, cumin, chili, garlic, and scallion.",
     spiceLevel: 2,
     tags: ["lamb", "meat", "gluten", "soy", "spicy"],
-    image: "https://source.unsplash.com/featured/?lamb-noodles",
+    image: "/menu/lamb-stirred-noodle.jpg",
   },
   {
     name: "Tomato Egg Noodle",
@@ -140,7 +140,7 @@ export const MENU: MenuItem[] = [
       "Noodles tossed with stir-fried tomato, scrambled egg, garlic, and scallion.",
     spiceLevel: 0,
     tags: ["vegetarian", "egg", "gluten", "soy", "dairy-free"],
-    image: "https://source.unsplash.com/featured/?tomato-noodles",
+    image: "/menu/tomato-egg-noodle.jpg",
   },
 
   {
@@ -151,7 +151,7 @@ export const MENU: MenuItem[] = [
       "Slow-simmered beef bone broth with hand-pulled noodles, braised beef, bok choy, and scallions.",
     spiceLevel: 1,
     tags: ["beef", "meat", "gluten", "soy"],
-    image: "https://source.unsplash.com/featured/?beef-noodle-soup",
+    image: "/menu/beef-bone-noodle-soup.png",
   },
   {
     name: "Braised Beef Noodle Soup",
@@ -161,7 +161,7 @@ export const MENU: MenuItem[] = [
       "Soy-braised beef and noodles in a rich aromatic broth with star anise, ginger, and scallion.",
     spiceLevel: 1,
     tags: ["beef", "meat", "gluten", "soy"],
-    image: "https://source.unsplash.com/featured/?braised-beef",
+    image: "/menu/braised-beef-noodle-soup.jpg",
   },
   {
     name: "Pickled Cabbage Beef Noodle Soup",
@@ -171,7 +171,7 @@ export const MENU: MenuItem[] = [
       "Beef and noodles in a tangy broth with Chinese pickled mustard greens (suan cai), scallion, and chili.",
     spiceLevel: 1,
     tags: ["beef", "meat", "gluten", "soy"],
-    image: "https://source.unsplash.com/featured/?pickled-cabbage-soup",
+    image: "/menu/pickled-cabbage-soup.png",
   },
   {
     name: "Tomato Beef Noodle Soup",
@@ -191,7 +191,7 @@ export const MENU: MenuItem[] = [
       "Lamb and noodles in a golden broth made with pickled peppers, ají amarillo–style chilies, garlic, and ginger.",
     spiceLevel: 3,
     tags: ["lamb", "meat", "gluten", "soy", "spicy"],
-    image: "https://source.unsplash.com/featured/?lamb-soup",
+    image: "/menu/golden-lamb-soup.png",
   },
 
   {
