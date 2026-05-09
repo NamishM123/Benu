@@ -254,10 +254,10 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
         {/* Lighter content card with a wide arc top edge — comes up high so
             the curve sits behind the lower half of the image card */}
         <div
-          className="relative -mt-[50%] bg-cream-light px-6 pt-[55%] pb-6 shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.06)]"
+          className="relative -mt-[80%] bg-cream-light px-6 pt-[85%] pb-6 shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.06)]"
           style={{
-            borderTopLeftRadius: "50% 50px",
-            borderTopRightRadius: "50% 50px",
+            borderTopLeftRadius: "50% 60px",
+            borderTopRightRadius: "50% 60px",
           }}
         >
           <div>

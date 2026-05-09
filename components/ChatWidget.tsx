@@ -216,11 +216,15 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
               <h2 className="font-serif text-lg tracking-tight text-neutral-900">
                 Ask Benu
               </h2>
-              {preferences.length > 0 && (
-                <p className="mt-0.5 text-xs text-neutral-500">
-                  Avoiding: {preferences.join(", ")}
-                </p>
-              )}
+              <p className="mt-0.5 text-xs text-neutral-500">
+                {preferences.length > 0 ? (
+                  <>Avoiding: {preferences.join(", ")}</>
+                ) : (
+                  <>
+                    Ask in <span className="font-bold text-neutral-700">any language</span>
+                  </>
+                )}
+              </p>
             </div>
           </div>
 
