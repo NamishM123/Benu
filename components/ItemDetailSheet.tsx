@@ -138,7 +138,15 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
           const next = Math.min(1, top / 80);
           setFadeOpacity(next);
         }}
-        className="relative w-full max-w-[480px] h-[100dvh] overflow-y-auto overscroll-contain bg-cream shadow-xl sm:h-auto sm:max-h-[92vh] sm:rounded-3xl"
+        onTouchStart={(e) => {
+          const el = e.currentTarget;
+          // If at exact top, nudge down 1px to prevent iOS rubber-band overscroll up
+          if (el.scrollTop <= 0) el.scrollTop = 1;
+          // If at exact bottom, nudge up 1px to prevent rubber-band overscroll down
+          const max = el.scrollHeight - el.clientHeight;
+          if (el.scrollTop >= max) el.scrollTop = max - 1;
+        }}
+        className="relative w-full max-w-[480px] h-[100dvh] overflow-y-auto overscroll-none bg-cream shadow-xl sm:h-auto sm:max-h-[92vh] sm:rounded-3xl"
         style={{ WebkitOverflowScrolling: "auto" }}
       >
         {/* Soft fade strip at top: image scrolls into this instead of being cut sharply */}
