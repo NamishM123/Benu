@@ -8,6 +8,7 @@ export type CartLine = {
   quantity: number;
   unitPrice: number;
   selections: { groupLabel: string; choiceLabels: string[] }[];
+  specialRequest?: string;
 };
 
 export function getCart(): CartLine[] {

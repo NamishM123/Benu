@@ -2,7 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { formatPrice, type MenuItem } from "@/lib/menu";
-import { getOptionGroupsForItem, type OptionGroup } from "@/lib/menu-options";
+import {
+  getOptionGroupsForItem,
+  itemSupportsSpecialRequest,
+  type OptionGroup,
+} from "@/lib/menu-options";
 import { findFlaggedPreferences } from "@/lib/preferences";
 import { addToCart } from "@/lib/cart-store";
 
@@ -35,12 +39,16 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
     initialSelections(groups),
   );
   const [quantity, setQuantity] = useState(1);
+  const [specialRequest, setSpecialRequest] = useState("");
   const [justAdded, setJustAdded] = useState(false);
+
+  const supportsSpecialRequest = item ? itemSupportsSpecialRequest(item) : false;
 
   // Reset when a new item opens
   useEffect(() => {
     setSelections(initialSelections(groups));
     setQuantity(1);
+    setSpecialRequest("");
     setJustAdded(false);
   }, [item, groups]);
 
@@ -107,12 +115,16 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
         Boolean(x),
       );
 
+    const trimmedRequest = specialRequest.trim();
     addToCart({
       itemName: item!.name,
       basePrice: item!.price,
       quantity,
       unitPrice,
       selections: lineSelections,
+      ...(supportsSpecialRequest && trimmedRequest
+        ? { specialRequest: trimmedRequest }
+        : {}),
     });
     setJustAdded(true);
     setTimeout(() => {
@@ -237,6 +249,27 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
                 </div>
               </section>
             ))}
+
+            {supportsSpecialRequest && (
+              <section>
+                <div className="mb-2 flex items-baseline justify-between">
+                  <h3 className="text-sm font-semibold uppercase tracking-wider text-neutral-700">
+                    Special Request
+                  </h3>
+                  <span className="text-[10px] uppercase tracking-wider text-neutral-500">
+                    Optional
+                  </span>
+                </div>
+                <textarea
+                  value={specialRequest}
+                  onChange={(e) => setSpecialRequest(e.target.value)}
+                  placeholder="Allergies, sauce on the side, less salt, etc."
+                  rows={3}
+                  maxLength={250}
+                  className="w-full resize-none rounded-2xl border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-800 placeholder:text-neutral-400 focus:border-neutral-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
+                />
+              </section>
+            )}
 
             <section>
               <h3 className="mb-2 text-sm font-semibold uppercase tracking-wider text-neutral-700">
