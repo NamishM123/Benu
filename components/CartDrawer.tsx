@@ -7,6 +7,7 @@ import {
   cartTotal,
   clearCart,
   removeFromCart,
+  setLineQuantity,
   type CartLine,
 } from "@/lib/cart-store";
 import { pairingReason, pickPairings } from "@/lib/cart-insights";
@@ -127,11 +128,6 @@ export default function CartDrawer({
                 <li key={line.id} className="py-4">
                   <div className="flex items-baseline justify-between gap-3">
                     <p className="font-medium text-neutral-900">
-                      {line.quantity > 1 && (
-                        <span className="mr-1 text-neutral-500">
-                          {line.quantity}×
-                        </span>
-                      )}
                       {line.itemName}
                     </p>
                     <p className="text-sm text-neutral-700">
@@ -147,13 +143,47 @@ export default function CartDrawer({
                       ))}
                     </ul>
                   )}
-                  <button
-                    type="button"
-                    onClick={() => removeFromCart(line.id)}
-                    className="mt-2 text-xs text-neutral-500 underline-offset-2 hover:text-neutral-800 hover:underline"
-                  >
-                    Remove
-                  </button>
+                  <div className="mt-2 flex items-center justify-between gap-3">
+                    <div className="inline-flex items-center rounded-full border border-neutral-300 bg-white">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setLineQuantity(line.id, line.quantity - 1)
+                        }
+                        aria-label={
+                          line.quantity > 1
+                            ? `Decrease ${line.itemName} quantity`
+                            : `Remove ${line.itemName}`
+                        }
+                        className="flex h-8 w-8 items-center justify-center rounded-l-full text-lg leading-none text-neutral-700 hover:bg-neutral-100"
+                      >
+                        −
+                      </button>
+                      <span
+                        aria-live="polite"
+                        className="min-w-[2ch] text-center text-sm font-medium tabular-nums text-neutral-900"
+                      >
+                        {line.quantity}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setLineQuantity(line.id, line.quantity + 1)
+                        }
+                        aria-label={`Increase ${line.itemName} quantity`}
+                        className="flex h-8 w-8 items-center justify-center rounded-r-full text-lg leading-none text-neutral-700 hover:bg-neutral-100"
+                      >
+                        +
+                      </button>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => removeFromCart(line.id)}
+                      className="text-xs text-neutral-500 underline-offset-2 hover:text-neutral-800 hover:underline"
+                    >
+                      Remove
+                    </button>
+                  </div>
                 </li>
               ))}
             </ul>
