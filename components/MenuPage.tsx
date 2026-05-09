@@ -130,7 +130,7 @@ export default function MenuPage({ menu }: Props) {
                 fetchPriority="high"
                 decoding="sync"
                 loading="eager"
-                className="h-28 w-auto sm:h-36"
+                className="h-32 w-auto sm:h-40"
               />
             </button>
             <div className="flex items-center gap-2">
@@ -209,10 +209,10 @@ export default function MenuPage({ menu }: Props) {
 
           <nav
             aria-label="Menu categories"
-            className="sticky top-0 z-20 mt-1 bg-cream/95 backdrop-blur"
+            className="sticky top-0 z-20 -mt-5 bg-cream/95 backdrop-blur"
           >
             <div className="overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <div className="flex w-max min-w-full items-center justify-start gap-2 px-6 py-3 sm:justify-center sm:px-10">
+              <div className="flex w-max min-w-full items-center justify-start gap-2 px-6 py-0 sm:justify-center sm:px-10">
                 {categories.map((cat) => {
                   const isActive = cat === activeCategory;
                   return (

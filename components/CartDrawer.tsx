@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { formatPrice } from "@/lib/menu";
 import {
@@ -31,6 +32,7 @@ export default function CartDrawer({
   onClose,
 }: Props) {
   const { t, lang } = useTranslation();
+  const router = useRouter();
   const [dragOffset, setDragOffset] = useState(0);
   const [confirmRemoveId, setConfirmRemoveId] = useState<string | null>(null);
   const [confirmClear, setConfirmClear] = useState(false);
@@ -314,13 +316,14 @@ export default function CartDrawer({
                   className="flex-1 rounded-full bg-neutral-900 px-6 py-3 text-sm font-medium text-cream hover:bg-neutral-800 disabled:opacity-70"
                   onClick={() => {
                     if (cart.length === 0) return;
-                    placeOrder(cart, preferences);
+                    const order = placeOrder(cart, preferences);
                     clearCart();
                     setSentFlash(true);
                     setTimeout(() => {
                       setSentFlash(false);
                       onClose();
-                    }, 1100);
+                      router.push(`/order/${order.id}`);
+                    }, 900);
                   }}
                 >
                   {sentFlash ? t("orderSent") : t("sendToKitchen")}
