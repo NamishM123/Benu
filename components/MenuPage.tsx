@@ -83,7 +83,7 @@ export default function MenuPage({ menu }: Props) {
                 }
               }}
               aria-label="Back to start of menu"
-              className="rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
+              className="cursor-default rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
