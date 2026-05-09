@@ -32,6 +32,16 @@ export const MENU: MenuItem[] = [
     image: "/menu/garlic-cucumber.jpg",
   },
   {
+    name: "Chili Oil Potato Salad",
+    price: 8.99,
+    category: "Appetizers",
+    description:
+      "Shredded potato chilled and tossed with chili oil, garlic, vinegar, and scallion.",
+    spiceLevel: 1,
+    tags: ["vegetarian", "vegan", "dairy-free", "soy", "gluten-free", "spicy"],
+    image: "/menu/chili-oil-potato-salad.jpg",
+  },
+  {
     name: "Yuba with Celery Salad",
     price: 8.99,
     category: "Appetizers",
@@ -130,7 +140,37 @@ export const MENU: MenuItem[] = [
       "Stir-fried noodles with sliced lamb, onions, cumin, chili, garlic, and scallion.",
     spiceLevel: 2,
     tags: ["lamb", "meat", "gluten", "soy", "spicy"],
-    image: "/menu/lamb-stirred-noodle.jpg",
+    image: "https://source.unsplash.com/featured/?lamb-noodles",
+  },
+  {
+    name: "Diced Mushroom and Chicken Tossed Noodle",
+    price: 16.99,
+    category: "Dry Noodles",
+    description:
+      "Tossed noodles with diced chicken, mushrooms, garlic, and scallion in a savory soy-based sauce.",
+    spiceLevel: 0,
+    tags: ["chicken", "meat", "gluten", "soy"],
+    image: "/menu/diced-mushroom-chicken-noodle.jpg",
+  },
+  {
+    name: "Potato Chicken Noodle",
+    price: 16.99,
+    category: "Dry Noodles",
+    description:
+      "Noodles topped with stewed chicken and potato in a fragrant ginger-soy sauce with scallion.",
+    spiceLevel: 0,
+    tags: ["chicken", "meat", "gluten", "soy"],
+    image: "/menu/potato-chicken-noodle.jpg",
+  },
+  {
+    name: "Stew Lamb and Carrots Noodle",
+    price: 18.99,
+    category: "Dry Noodles",
+    description:
+      "Tender stewed lamb with carrots over noodles, finished with ginger, garlic, and scallion.",
+    spiceLevel: 0,
+    tags: ["lamb", "meat", "gluten", "soy"],
+    image: "/menu/stew-lamb-carrots-noodle.jpg",
   },
   {
     name: "Tomato Egg Noodle",
@@ -192,6 +232,17 @@ export const MENU: MenuItem[] = [
     spiceLevel: 3,
     tags: ["lamb", "meat", "gluten", "soy", "spicy"],
     image: "/menu/golden-lamb-soup.png",
+  },
+
+  {
+    name: "Sichuan Spicy Tofu Noodle Soup",
+    price: 15.99,
+    category: "Noodle Soup",
+    description:
+      "Silky tofu and noodles in a numbing Sichuan broth with chili oil, peppercorn, and scallion.",
+    spiceLevel: 3,
+    tags: ["vegetarian", "soy", "gluten", "spicy"],
+    image: "/menu/sichuan-tofu-soup.jpg",
   },
 
   {
