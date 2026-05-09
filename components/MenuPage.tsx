@@ -132,7 +132,7 @@ export default function MenuPage({ menu }: Props) {
                 fetchPriority="high"
                 decoding="sync"
                 loading="eager"
-                className="h-20 w-auto sm:h-32"
+                className="h-14 w-auto sm:h-32"
               />
             </button>
             <div className="flex items-center gap-2">

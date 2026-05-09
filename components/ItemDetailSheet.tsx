@@ -202,7 +202,7 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
           style={{
             opacity: fadeOpacity,
             background:
-              "linear-gradient(to bottom, #F0E6D2 0%, rgba(240,230,210,0.95) 25%, rgba(240,230,210,0.75) 50%, rgba(240,230,210,0.4) 75%, rgba(240,230,210,0) 100%)",
+              "linear-gradient(to bottom, #F7EFDE 0%, rgba(247,239,222,0.95) 25%, rgba(247,239,222,0.75) 50%, rgba(247,239,222,0.4) 75%, rgba(247,239,222,0) 100%)",
           }}
           className="pointer-events-none sticky top-0 z-10 -mb-24 h-24 transition-opacity duration-150 sm:rounded-t-3xl"
         />
@@ -251,13 +251,13 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
           </div>
         </div>
 
-        {/* Lighter content card with a wide arc top edge — comes up so the
-            curve sits behind the bottom ~25% of the image card */}
+        {/* Lighter content card with a wide arc top edge — comes up high so
+            the curve sits behind the lower half of the image card */}
         <div
-          className="relative -mt-[20%] bg-cream-light px-6 pt-[22%] pb-6 shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.06)]"
+          className="relative -mt-[50%] bg-cream-light px-6 pt-[55%] pb-6 shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.06)]"
           style={{
-            borderTopLeftRadius: "50% 40px",
-            borderTopRightRadius: "50% 40px",
+            borderTopLeftRadius: "50% 50px",
+            borderTopRightRadius: "50% 50px",
           }}
         >
           <div>
