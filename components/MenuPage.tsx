@@ -78,7 +78,7 @@ export default function MenuPage({ menu }: Props) {
             <img
               src="/shake-shake-logo.png"
               alt="Shake Shake Fresh Noodle"
-              className="h-16 w-auto sm:h-20"
+              className="h-28 w-auto sm:h-36"
             />
             <button
               type="button"
