@@ -61,9 +61,14 @@ export async function resolveDishPhotos<T extends { name: string; image: string 
   items: T[],
 ): Promise<T[]> {
   return Promise.all(
-    items.map(async (item) => ({
-      ...item,
-      image: await searchPhoto(`${item.name} dish`, item.image),
-    })),
+    items.map(async (item) => {
+      // Local images bundled with the app (e.g. /menu/*.jpg) are authoritative —
+      // never override them with Unsplash search results.
+      if (item.image.startsWith("/")) return item;
+      return {
+        ...item,
+        image: await searchPhoto(`${item.name} dish`, item.image),
+      };
+    }),
   );
 }
