@@ -240,7 +240,12 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
                 e.currentTarget.style.opacity = "1";
               }}
               onError={(e) => {
-                e.currentTarget.style.opacity = "1";
+                const img = e.currentTarget;
+                if (img.dataset.fallback) return;
+                img.dataset.fallback = "1";
+                img.src =
+                  "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%23FBF7EE'%2F%3E%3Cg transform='translate(100 110)' stroke='%23B8A88E' stroke-width='4' fill='none' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M-50 -10 a50 50 0 0 0 100 0 z' fill='%23E5D8C3'%2F%3E%3Cline x1='-30' y1='-25' x2='-15' y2='-40'%2F%3E%3Cline x1='-10' y1='-30' x2='5' y2='-50'%2F%3E%3Cline x1='15' y1='-25' x2='30' y2='-45'%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E";
+                img.style.opacity = "1";
               }}
             />
           </div>
