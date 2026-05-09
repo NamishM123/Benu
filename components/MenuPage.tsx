@@ -164,14 +164,36 @@ export default function MenuPage({ menu }: Props) {
             {visibleItems.map((d) => {
               const flags = findFlaggedPreferences(d, preferences);
               const isSpicy = d.spiceLevel >= 2;
+              const isRestricted = flags.length > 0;
               return (
                 <button
                   key={d.name}
                   type="button"
-                  onClick={() => setActiveItem(d)}
-                  className="group flex flex-col text-left rounded-[28px] transition-all duration-150 hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
+                  onClick={() => {
+                    if (!isRestricted) setActiveItem(d);
+                  }}
+                  disabled={isRestricted}
+                  aria-disabled={isRestricted}
+                  title={
+                    isRestricted
+                      ? `Hidden by your filter: contains ${flags.join(", ").toLowerCase()}`
+                      : undefined
+                  }
+                  className={[
+                    "group flex flex-col text-left rounded-[28px] transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30",
+                    isRestricted
+                      ? "cursor-not-allowed"
+                      : "hover:-translate-y-0.5",
+                  ].join(" ")}
                 >
-                  <div className="relative overflow-hidden rounded-[28px] bg-white shadow-sm ring-4 ring-transparent transition-all duration-150 group-hover:bg-butter-soft group-hover:shadow-lg group-hover:ring-butter">
+                  <div
+                    className={[
+                      "relative overflow-hidden rounded-[28px] bg-white shadow-sm ring-4 ring-transparent transition-all duration-150",
+                      isRestricted
+                        ? "opacity-50 grayscale"
+                        : "group-hover:bg-butter-soft group-hover:shadow-lg group-hover:ring-butter",
+                    ].join(" ")}
+                  >
                     <div className="relative aspect-square w-full bg-neutral-100">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
@@ -185,17 +207,19 @@ export default function MenuPage({ menu }: Props) {
                         </span>
                       )}
                       {flags.length > 0 && (
-                        <span
-                          title={`contains ${flags.join(", ").toLowerCase()}`}
-                          className="absolute right-4 top-4 flex h-7 w-7 items-center justify-center rounded-full border border-neutral-300 bg-white text-[11px] font-semibold text-neutral-700"
-                        >
-                          {flags[0][0]}
+                        <span className="absolute right-4 top-4 rounded-full bg-amber-50/95 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-amber-800">
+                          Filtered
                         </span>
                       )}
                     </div>
                   </div>
 
-                  <div className="mt-5 px-1">
+                  <div
+                    className={[
+                      "mt-5 px-1 transition-opacity",
+                      isRestricted ? "opacity-50" : "",
+                    ].join(" ")}
+                  >
                     <div className="flex items-baseline justify-between gap-3">
                       <h3 className="text-base font-semibold uppercase tracking-[0.08em] text-neutral-900">
                         {d.name}
