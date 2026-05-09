@@ -66,6 +66,28 @@ const TRANSLATIONS = {
     en: "Checkout flow coming soon.",
     zh: "结账功能即将推出。",
   },
+  sendToKitchen: { en: "Send to kitchen", zh: "送至厨房" },
+  orderSent: { en: "Order sent ✓", zh: "订单已送出 ✓" },
+
+  // Kitchen display
+  kitchenTitle: { en: "Kitchen Orders", zh: "厨房订单" },
+  noOrders: {
+    en: "No orders yet. New orders will appear here.",
+    zh: "暂无订单。新订单将显示在这里。",
+  },
+  orderNumber: { en: "Order", zh: "订单" },
+  placedAt: { en: "Placed", zh: "下单时间" },
+  preferencesLabel: { en: "Customer avoids", zh: "顾客忌口" },
+  noteLabel: { en: "Note", zh: "备注" },
+  etaLabel: { en: "Est. time (min)", zh: "预计时间（分钟）" },
+  setEta: { en: "Set ETA", zh: "设定时间" },
+  statusNew: { en: "New", zh: "新订单" },
+  statusCooking: { en: "Cooking", zh: "制作中" },
+  statusReady: { en: "Ready", zh: "已完成" },
+  startCooking: { en: "Start cooking", zh: "开始制作" },
+  markReady: { en: "Mark ready", zh: "标记完成" },
+  clearOrder: { en: "Clear", zh: "清除" },
+  qty: { en: "Qty", zh: "数量" },
 
   // Item detail sheet
   addToCart: { en: "Add to cart", zh: "加入购物车" },
