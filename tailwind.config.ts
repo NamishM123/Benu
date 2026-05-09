@@ -19,6 +19,11 @@ const config: Config = {
           soft: "#FFB892",
           deep: "#E88A5C",
         },
+        butter: {
+          DEFAULT: "#FFEAA8",
+          soft: "#FFF3CC",
+          deep: "#E8C871",
+        },
       },
       fontFamily: {
         serif: [
