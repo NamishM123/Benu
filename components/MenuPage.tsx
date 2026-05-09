@@ -124,7 +124,7 @@ export default function MenuPage({ menu }: Props) {
 
           <nav
             aria-label="Menu categories"
-            className="sticky top-0 z-20 mt-1 bg-cream/90 backdrop-blur"
+            className="sticky top-0 z-20 mt-1 border-b border-neutral-300/60 bg-cream/90 shadow-[0_4px_8px_-4px_rgba(0,0,0,0.06)] backdrop-blur"
           >
             <div className="overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <div className="flex w-max min-w-full items-center justify-start gap-2 px-6 py-3 sm:justify-center sm:px-10">
