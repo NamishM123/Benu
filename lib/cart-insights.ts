@@ -15,83 +15,75 @@ function cartItems(cart: CartLine[]): MenuItem[] {
 
 const MAINS = new Set(["Dry Noodles", "Noodle Soup", "Rice"]);
 
-export function pickPairing(
+const COOLING = new Set([
+  "Peach Sparkling Water",
+  "Sprite",
+  "Coke",
+  "Diet Coke",
+]);
+
+function isCooling(d: MenuItem): boolean {
+  return COOLING.has(d.name);
+}
+
+function isTea(d: MenuItem): boolean {
+  return d.name.includes("Tea");
+}
+
+// Pair one drink per main course. Once every main has a drink (either already
+// in the cart or in the suggestion list), nothing else is suggested — that is
+// what keeps the cart drawer from looping ("add → new suggestion → add → …").
+export function pickPairings(
   cart: CartLine[],
   preferences: string[],
-): MenuItem | null {
+): MenuItem[] {
   const items = cartItems(cart);
-  if (items.length === 0) return null;
+  if (items.length === 0) return [];
+
+  const mainsCount = items.filter((m) => MAINS.has(m.category)).length;
+  const drinksInCart = items.filter((m) => m.category === "Beverages").length;
+  const drinksNeeded = Math.max(0, mainsCount - drinksInCart);
+  if (drinksNeeded === 0) return [];
 
   const namesInCart = new Set(items.map((m) => m.name));
   const safe = (m: MenuItem) =>
     findFlaggedPreferences(m, preferences).length === 0 &&
     !namesInCart.has(m.name);
 
-  const hasCategory = (cat: string) => items.some((m) => m.category === cat);
-  const hasMain = items.some((m) => MAINS.has(m.category));
   const spicyHeavy =
     items.filter((m) => m.spiceLevel >= 2).length >=
-    Math.ceil(items.length / 2);
+    Math.ceil(mainsCount / 2);
 
-  // 1. No drink yet → recommend one (cooling if the order is spicy)
-  if (!hasCategory("Beverages")) {
-    const drinks = MENU.filter((m) => m.category === "Beverages").filter(safe);
-    if (spicyHeavy) {
-      const cooling = drinks.find(
-        (d) =>
-          d.name.includes("Sparkling") ||
-          d.name === "Sprite" ||
-          d.name === "Coke" ||
-          d.name === "Diet Coke",
-      );
-      if (cooling) return cooling;
-    }
-    const lemon = drinks.find((d) => d.name.includes("Lemon"));
-    if (lemon) return lemon;
-    if (drinks[0]) return drinks[0];
-  }
+  const allDrinks = MENU.filter((m) => m.category === "Beverages").filter(safe);
 
-  // 2. Has a main but no appetizer → suggest a starter
-  if (hasMain && !hasCategory("Appetizers")) {
-    const apps = MENU.filter((m) => m.category === "Appetizers").filter(safe);
-    const wontons = apps.find((a) => a.name === "Chili Oil Wontons");
-    if (wontons && !spicyHeavy) return wontons;
-    const popcorn = apps.find((a) => a.name === "Popcorn Chicken");
-    if (popcorn) return popcorn;
-    if (apps[0]) return apps[0];
-  }
+  // Rank: cooling drinks first when the meal runs spicy, otherwise tea first.
+  const ranked = [...allDrinks].sort((a, b) => {
+    const score = (d: MenuItem) => {
+      if (spicyHeavy) return isCooling(d) ? -2 : isTea(d) ? -1 : 0;
+      return isTea(d) ? -2 : isCooling(d) ? -1 : 0;
+    };
+    return score(a) - score(b);
+  });
 
-  // 3. Only appetizers → suggest a main to anchor the meal
-  if (!hasMain && hasCategory("Appetizers")) {
-    const mains = MENU.filter((m) => MAINS.has(m.category)).filter(safe);
-    const signature = mains.find((m) => m.name.includes("House Special"));
-    if (signature) return signature;
-    if (mains[0]) return mains[0];
-  }
-
-  // Fallback: pick any safe appetizer
-  const fallback = MENU.filter((m) => m.category === "Appetizers").filter(
-    safe,
-  )[0];
-  return fallback ?? null;
+  // Pick distinct drinks, one per missing main, up to what the menu supports.
+  return ranked.slice(0, drinksNeeded);
 }
 
 export function pairingReason(item: MenuItem, cart: CartLine[]): string {
   const items = cartItems(cart);
+  const mainsCount = items.filter((m) => MAINS.has(m.category)).length;
   const spicyHeavy =
+    mainsCount > 0 &&
     items.filter((m) => m.spiceLevel >= 2).length >=
-    Math.ceil(items.length / 2);
+      Math.ceil(mainsCount / 2);
 
-  if (item.category === "Beverages") {
-    if (spicyHeavy) return "Cools the heat in your noodles.";
+  if (isCooling(item)) {
+    return spicyHeavy
+      ? "Cools the heat in your noodles."
+      : "Crisp and refreshing alongside the meal.";
+  }
+  if (isTea(item)) {
     return "Rounds out the meal nicely.";
-  }
-  if (item.category === "Appetizers") {
-    return "A quick starter while the noodles cook.";
-  }
-  if (MAINS.has(item.category)) {
-    return "Anchors the order with a proper bowl.";
   }
   return "Goes well with what you've picked.";
 }
-
