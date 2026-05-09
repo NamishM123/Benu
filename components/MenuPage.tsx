@@ -297,14 +297,26 @@ export default function MenuPage({ menu }: Props) {
                     ].join(" ")}
                   >
                     <div className="flex items-baseline justify-between gap-3">
-                      <h3 className="text-base font-semibold uppercase tracking-[0.08em] text-neutral-900">
+                      <h3
+                        className={[
+                          "min-h-[1.5em] font-semibold uppercase tracking-[0.08em] text-neutral-900",
+                          lang === "zh" ? "text-lg" : "text-base",
+                        ].join(" ")}
+                      >
                         {localName(d, lang, autoMap)}
                       </h3>
                       <p className="flex-none text-sm text-neutral-700">
                         {formatPrice(d.price)}
                       </p>
                     </div>
-                    <p className="mt-2 text-sm leading-relaxed text-neutral-500">
+                    <p
+                      className={[
+                        "mt-2 leading-relaxed text-neutral-500",
+                        // Reserve ~3 lines so cards in different languages stay aligned
+                        "min-h-[4.875em]",
+                        lang === "zh" ? "text-base" : "text-sm",
+                      ].join(" ")}
+                    >
                       {localDescription(d, lang, autoMap)}
                     </p>
                     {flags.length > 0 && (
