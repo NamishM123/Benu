@@ -323,8 +323,10 @@ export default function MenuPage({ menu }: Props) {
                     <div className="flex items-baseline justify-between gap-3">
                       <h3
                         className={[
-                          "min-h-[1.5em] font-semibold uppercase tracking-[0.08em] text-neutral-900",
-                          lang === "zh" ? "text-2xl tracking-normal" : "text-base",
+                          "min-h-[1.5em] font-semibold uppercase text-neutral-900",
+                          lang === "zh"
+                            ? "text-base tracking-normal"
+                            : "text-base tracking-[0.08em]",
                         ].join(" ")}
                       >
                         {localName(d, lang, autoMap)}
@@ -333,14 +335,7 @@ export default function MenuPage({ menu }: Props) {
                         {formatPrice(d.price)}
                       </p>
                     </div>
-                    <p
-                      className={[
-                        "mt-2 leading-relaxed text-neutral-500",
-                        // Reserve ~3 lines so cards in different languages stay aligned
-                        "min-h-[4.875em]",
-                        lang === "zh" ? "text-lg" : "text-sm",
-                      ].join(" ")}
-                    >
+                    <p className="mt-2 min-h-[4.875em] text-sm leading-relaxed text-neutral-500">
                       {localDescription(d, lang, autoMap)}
                     </p>
                     {flags.length > 0 && (
