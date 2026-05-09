@@ -9,10 +9,15 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        cream: "#F5F1E8",
+        cream: "#FBF7EE",
         sage: {
           DEFAULT: "#D8E1D2",
           dark: "#A9BBA0",
+        },
+        cantaloupe: {
+          DEFAULT: "#FDA172",
+          soft: "#FFB892",
+          deep: "#E88A5C",
         },
       },
       fontFamily: {

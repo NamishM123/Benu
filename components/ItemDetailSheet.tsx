@@ -132,16 +132,7 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
         onClick={(e) => e.stopPropagation()}
         className="relative w-full max-w-[480px] max-h-[92vh] overflow-y-auto rounded-t-3xl bg-cream shadow-xl sm:rounded-3xl"
       >
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close"
-          className="sticky top-3 left-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-neutral-200/90 text-neutral-700 hover:bg-neutral-300"
-        >
-          ×
-        </button>
-
-        <div className="-mt-12 px-6 pt-2">
+        <div className="px-6 pt-6">
           <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-neutral-100">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -205,7 +196,7 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
                           "rounded-2xl border px-3 py-3 text-left text-sm transition-all",
                           "focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30",
                           picked
-                            ? "border-neutral-900 bg-sage-dark text-neutral-900 shadow-inner"
+                            ? "border-cantaloupe-deep bg-cantaloupe text-neutral-900 shadow-inner"
                             : "border-neutral-300 bg-white text-neutral-800 hover:border-neutral-500 hover:shadow-sm",
                         ].join(" ")}
                       >
@@ -256,7 +247,7 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
                   type="button"
                   aria-label="Decrease quantity"
                   onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-sage-dark text-neutral-900 hover:bg-sage"
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-cantaloupe text-neutral-900 hover:bg-cantaloupe-soft"
                 >
                   −
                 </button>
@@ -267,7 +258,7 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
                   type="button"
                   aria-label="Increase quantity"
                   onClick={() => setQuantity((q) => q + 1)}
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-sage-dark text-neutral-900 hover:bg-sage"
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-cantaloupe text-neutral-900 hover:bg-cantaloupe-soft"
                 >
                   +
                 </button>

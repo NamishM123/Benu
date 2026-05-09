@@ -88,7 +88,7 @@ export default function DietaryPreferences({
                     "focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30",
                     "hover:ring-2 hover:ring-neutral-900/40 hover:shadow-md",
                     isSelected
-                      ? "bg-sage-dark shadow-inner ring-1 ring-inset ring-neutral-900/15"
+                      ? "bg-cantaloupe text-neutral-900 shadow-inner ring-1 ring-inset ring-neutral-900/15"
                       : "bg-sage",
                   ].join(" ")}
                 >
