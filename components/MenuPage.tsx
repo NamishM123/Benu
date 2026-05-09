@@ -21,6 +21,7 @@ import CartDrawer from "./CartDrawer";
 import FilterSheet from "./FilterSheet";
 import LanguageSwitcher from "./LanguageSwitcher";
 import { useTranslation } from "@/lib/i18n";
+import { useAutoTranslate } from "@/lib/auto-translate";
 
 const CATEGORY_ORDER = [
   "Appetizers",
@@ -74,6 +75,18 @@ export default function MenuPage({ menu }: Props) {
     () => menu.filter((m) => m.category === activeCategory),
     [menu, activeCategory],
   );
+
+  // Collect English strings missing a manual nameZh/descriptionZh so the
+  // auto-translate API can fill them in lazily.
+  const stringsToAutoTranslate = useMemo(() => {
+    const list: string[] = [];
+    for (const m of menu) {
+      if (!m.nameZh) list.push(m.name);
+      if (!m.descriptionZh) list.push(m.description);
+    }
+    return list;
+  }, [menu]);
+  const autoMap = useAutoTranslate(stringsToAutoTranslate, lang);
 
   const totalCount = cartCount(cart);
 
@@ -285,14 +298,14 @@ export default function MenuPage({ menu }: Props) {
                   >
                     <div className="flex items-baseline justify-between gap-3">
                       <h3 className="text-base font-semibold uppercase tracking-[0.08em] text-neutral-900">
-                        {localName(d, lang)}
+                        {localName(d, lang, autoMap)}
                       </h3>
                       <p className="flex-none text-sm text-neutral-700">
                         {formatPrice(d.price)}
                       </p>
                     </div>
                     <p className="mt-2 text-sm leading-relaxed text-neutral-500">
-                      {localDescription(d, lang)}
+                      {localDescription(d, lang, autoMap)}
                     </p>
                     {flags.length > 0 && (
                       <div className="mt-2 flex flex-wrap gap-1.5">

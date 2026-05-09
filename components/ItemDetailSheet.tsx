@@ -15,6 +15,7 @@ import {
 import { findFlaggedPreferences } from "@/lib/preferences";
 import { addToCart } from "@/lib/cart-store";
 import { useTranslation } from "@/lib/i18n";
+import { useAutoTranslate } from "@/lib/auto-translate";
 
 type Props = {
   item: MenuItem | null;
@@ -38,6 +39,17 @@ function initialSelections(groups: OptionGroup[]): Selections {
 
 export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
   const { t, lang } = useTranslation();
+  const autoStrings = useMemo(
+    () =>
+      item
+        ? [
+            ...(item.nameZh ? [] : [item.name]),
+            ...(item.descriptionZh ? [] : [item.description]),
+          ]
+        : [],
+    [item],
+  );
+  const autoMap = useAutoTranslate(autoStrings, lang);
   const groups = useMemo(
     () => (item ? getOptionGroupsForItem(item) : []),
     [item],
@@ -227,13 +239,13 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
 
           <div className="mt-5">
             <h2 className="font-serif text-3xl tracking-tight text-neutral-900">
-              {localName(item, lang)}
+              {localName(item, lang, autoMap)}
             </h2>
             <div className="mt-1 flex items-baseline gap-3 text-sm text-neutral-700">
               <span>{formatPrice(item.price)}</span>
             </div>
             <p className="mt-3 text-sm leading-relaxed text-neutral-700">
-              {localDescription(item, lang)}
+              {localDescription(item, lang, autoMap)}
             </p>
             {flags.length > 0 && (
               <p className="mt-3 text-sm text-amber-700">

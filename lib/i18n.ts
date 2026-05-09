@@ -54,6 +54,12 @@ const TRANSLATIONS = {
     zh: "您确定要从购物车移除",
   },
   fromCart: { en: "from your cart?", zh: "吗？" },
+  clearCartTitle: { en: "Clear your cart?", zh: "清空购物车？" },
+  clearCartQuestion: {
+    en: "This will remove all items from your cart. This can't be undone.",
+    zh: "这会清空所有菜品,且无法撤销。",
+  },
+  clearAll: { en: "Clear all", zh: "全部清空" },
   decreaseQty: { en: "Decrease quantity", zh: "减少数量" },
   increaseQty: { en: "Increase quantity", zh: "增加数量" },
   checkoutComingSoon: {
