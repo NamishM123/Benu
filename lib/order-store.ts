@@ -1,8 +1,37 @@
 import type { CartLine } from "./cart-store";
-import { estimateOrderMinutes } from "./prep-time";
+import { estimateOrderMinutes, TABLE_COUNT } from "./prep-time";
 
 const KEY = "benu.orders";
 const EVENT = "benu:orders-changed";
+const TABLE_SESSION_KEY = "benu.table";
+
+// Source the active table number for this session. Order of preference:
+// 1. ?table=N URL param (this is what the in-restaurant QR codes will use)
+// 2. A previously cached value in sessionStorage
+// 3. A random table 1..TABLE_COUNT, cached for the rest of the session
+export function getCurrentTableNumber(): number {
+  if (typeof window === "undefined") return 1;
+  try {
+    const fromUrl = new URL(window.location.href).searchParams.get("table");
+    if (fromUrl) {
+      const n = Number(fromUrl);
+      if (Number.isInteger(n) && n >= 1 && n <= TABLE_COUNT) {
+        window.sessionStorage.setItem(TABLE_SESSION_KEY, String(n));
+        return n;
+      }
+    }
+    const cached = window.sessionStorage.getItem(TABLE_SESSION_KEY);
+    if (cached) {
+      const n = Number(cached);
+      if (Number.isInteger(n) && n >= 1 && n <= TABLE_COUNT) return n;
+    }
+    const n = 1 + Math.floor(Math.random() * TABLE_COUNT);
+    window.sessionStorage.setItem(TABLE_SESSION_KEY, String(n));
+    return n;
+  } catch {
+    return 1;
+  }
+}
 
 export type OrderStatus = "new" | "cooking" | "ready";
 

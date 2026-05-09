@@ -11,8 +11,7 @@ import {
   updateLineQuantity,
   type CartLine,
 } from "@/lib/cart-store";
-import { placeOrder } from "@/lib/order-store";
-import { TABLE_COUNT } from "@/lib/prep-time";
+import { getCurrentTableNumber, placeOrder } from "@/lib/order-store";
 import { pairingReason, pickPairings } from "@/lib/cart-insights";
 import { useTranslation } from "@/lib/i18n";
 import { localName } from "@/lib/menu";
@@ -38,8 +37,6 @@ export default function CartDrawer({
   const [confirmRemoveId, setConfirmRemoveId] = useState<string | null>(null);
   const [confirmClear, setConfirmClear] = useState(false);
   const [sentFlash, setSentFlash] = useState(false);
-  const [tableNumber, setTableNumber] = useState<number | null>(null);
-  const [tableError, setTableError] = useState(false);
   const startYRef = useRef<number | null>(null);
   const draggingRef = useRef(false);
 
@@ -301,42 +298,6 @@ export default function CartDrawer({
             )}
 
             <div className="sticky bottom-0 mt-2 border-t border-neutral-200 bg-cream/95 px-6 py-5 backdrop-blur">
-              <div className="mb-4">
-                <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
-                  {t("tableLabel")}
-                </p>
-                <div className="grid grid-cols-6 gap-1.5">
-                  {Array.from({ length: TABLE_COUNT }, (_, i) => i + 1).map(
-                    (n) => {
-                      const selected = tableNumber === n;
-                      return (
-                        <button
-                          key={n}
-                          type="button"
-                          onClick={() => {
-                            setTableNumber(n);
-                            setTableError(false);
-                          }}
-                          aria-pressed={selected}
-                          className={[
-                            "rounded-full px-2 py-2 text-sm font-medium tabular-nums transition-colors",
-                            selected
-                              ? "bg-neutral-900 text-cream"
-                              : "border border-neutral-300 bg-white text-neutral-800 hover:bg-neutral-100",
-                          ].join(" ")}
-                        >
-                          {n}
-                        </button>
-                      );
-                    },
-                  )}
-                </div>
-                {tableError && (
-                  <p className="mt-2 text-xs text-red-600">
-                    {t("tableRequired")}
-                  </p>
-                )}
-              </div>
               <div className="mb-3 flex items-baseline justify-between">
                 <span className="text-sm text-neutral-600">{t("subtotal")}</span>
                 <span className="text-lg font-medium text-neutral-900">
@@ -357,16 +318,15 @@ export default function CartDrawer({
                   className="flex-1 rounded-full bg-neutral-900 px-6 py-3 text-sm font-medium text-cream hover:bg-neutral-800 disabled:opacity-70"
                   onClick={() => {
                     if (cart.length === 0) return;
-                    if (tableNumber === null) {
-                      setTableError(true);
-                      return;
-                    }
-                    const order = placeOrder(cart, preferences, tableNumber);
+                    const order = placeOrder(
+                      cart,
+                      preferences,
+                      getCurrentTableNumber(),
+                    );
                     clearCart();
                     setSentFlash(true);
                     setTimeout(() => {
                       setSentFlash(false);
-                      setTableNumber(null);
                       onClose();
                       router.push(`/order/${order.id}`);
                     }, 900);

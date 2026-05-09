@@ -84,11 +84,18 @@ const TRANSLATIONS = {
   orderSent: { en: "Order sent ✓", zh: "订单已送出 ✓" },
 
   // Kitchen display
-  kitchenTitle: { en: "Kitchen Orders", zh: "厨房订单" },
+  kitchenTitle: { en: "Kitchen — Floor View", zh: "厨房 — 餐厅平面图" },
   noOrders: {
     en: "No orders yet. New orders will appear here.",
     zh: "暂无订单。新订单将显示在这里。",
   },
+  tableEmpty: { en: "No active orders", zh: "暂无订单" },
+  estTime: { en: "Est.", zh: "预计" },
+  floorWindow: { en: "Window", zh: "窗户" },
+  floorKitchen: { en: "Kitchen", zh: "厨房" },
+  floorEntrance: { en: "Entrance", zh: "入口" },
+  dish: { en: "dish", zh: "道菜" },
+  dishes: { en: "dishes", zh: "道菜" },
   orderNumber: { en: "Order", zh: "订单" },
   placedAt: { en: "Placed", zh: "下单时间" },
   preferencesLabel: { en: "Customer avoids", zh: "顾客忌口" },
