@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { formatPrice } from "@/lib/menu";
 import {
   cartTotal,
@@ -15,7 +15,13 @@ type Props = {
   onClose: () => void;
 };
 
+const SWIPE_DISMISS_THRESHOLD = 110; // px to drag before close fires
+
 export default function CartDrawer({ open, cart, onClose }: Props) {
+  const [dragOffset, setDragOffset] = useState(0);
+  const startYRef = useRef<number | null>(null);
+  const draggingRef = useRef(false);
+
   useEffect(() => {
     if (!open) return;
     const orig = document.body.style.overflow;
@@ -25,23 +31,75 @@ export default function CartDrawer({ open, cart, onClose }: Props) {
     };
   }, [open]);
 
+  // Reset drag state when the drawer reopens
+  useEffect(() => {
+    if (open) setDragOffset(0);
+  }, [open]);
+
   if (!open) return null;
 
   const total = cartTotal(cart);
+
+  function handleTouchStart(e: React.TouchEvent<HTMLDivElement>) {
+    startYRef.current = e.touches[0].clientY;
+    draggingRef.current = true;
+  }
+
+  function handleTouchMove(e: React.TouchEvent<HTMLDivElement>) {
+    if (!draggingRef.current || startYRef.current == null) return;
+    const dy = e.touches[0].clientY - startYRef.current;
+    // Only respond to downward drag
+    setDragOffset(Math.max(0, dy));
+  }
+
+  function handleTouchEnd() {
+    if (dragOffset > SWIPE_DISMISS_THRESHOLD) {
+      onClose();
+    } else {
+      setDragOffset(0);
+    }
+    draggingRef.current = false;
+    startYRef.current = null;
+  }
 
   return (
     <div
       className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm sm:items-center"
       onClick={onClose}
+      style={{
+        transition: draggingRef.current ? "none" : "background-color 150ms",
+      }}
     >
       <div
         role="dialog"
         aria-modal="true"
         aria-label="Cart"
         onClick={(e) => e.stopPropagation()}
+        style={{
+          transform: `translateY(${dragOffset}px)`,
+          transition: draggingRef.current ? "none" : "transform 200ms ease-out",
+        }}
         className="relative w-full max-w-[480px] max-h-[88vh] overflow-y-auto rounded-t-3xl bg-cream shadow-xl sm:rounded-3xl"
       >
-        <header className="sticky top-0 z-10 flex items-center justify-between border-b border-neutral-200 bg-cream/95 px-6 py-4 backdrop-blur">
+        {/* Drag handle — touch this region to swipe down */}
+        <div
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          onTouchCancel={handleTouchEnd}
+          className="sticky top-0 z-10 flex cursor-grab touch-none flex-col items-center justify-center bg-cream/95 pt-3 pb-1 backdrop-blur active:cursor-grabbing"
+          aria-hidden="true"
+        >
+          <span className="h-1.5 w-12 rounded-full bg-neutral-300" />
+        </div>
+
+        <header
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          onTouchCancel={handleTouchEnd}
+          className="sticky top-6 z-10 flex items-center justify-between border-b border-neutral-200 bg-cream/95 px-6 py-4 backdrop-blur"
+        >
           <h2 className="font-serif text-2xl text-neutral-900">Your cart</h2>
           <button
             type="button"
