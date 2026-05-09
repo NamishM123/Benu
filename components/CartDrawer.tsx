@@ -160,7 +160,9 @@ export default function CartDrawer({
                     <img
                       src={line.image}
                       alt=""
-                      className="h-16 w-16 flex-none rounded-lg object-cover"
+                      loading="lazy"
+                      decoding="async"
+                      className="h-16 w-16 flex-none rounded-lg bg-neutral-100 object-cover"
                     />
                   )}
                   <div className="flex-1 min-w-0">

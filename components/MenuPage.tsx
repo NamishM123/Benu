@@ -110,6 +110,8 @@ export default function MenuPage({ menu }: Props) {
               <img
                 src="/shake-shake-logo.png"
                 alt="Shake Shake Fresh Noodle"
+                fetchPriority="high"
+                decoding="async"
                 className="h-28 w-auto sm:h-36"
               />
             </button>
@@ -262,7 +264,15 @@ export default function MenuPage({ menu }: Props) {
                       <img
                         src={d.image}
                         alt={d.name}
-                        className="h-full w-full object-cover"
+                        loading="lazy"
+                        decoding="async"
+                        className="menu-img h-full w-full object-cover opacity-0 transition-opacity duration-200"
+                        onLoad={(e) => {
+                          e.currentTarget.style.opacity = "1";
+                        }}
+                        onError={(e) => {
+                          e.currentTarget.style.opacity = "1";
+                        }}
                       />
                       {d.spiceLevel >= 1 && (
                         <span
