@@ -16,7 +16,7 @@ export const MENU: MenuItem[] = [
     price: 11.99,
     category: "Appetizers",
     description:
-      "Crispy bite-sized chicken tossed with cumin, chili, and Sichuan peppercorn salt.",
+      "Bite-sized fried chicken pieces tossed with salt, pepper, and Taiwanese five spice; optional chili seasoning.",
     spiceLevel: 1,
     tags: ["chicken", "meat", "gluten", "spicy"],
     image: "https://source.unsplash.com/featured/?popcorn-chicken",
@@ -26,7 +26,7 @@ export const MENU: MenuItem[] = [
     price: 8.99,
     category: "Appetizers",
     description:
-      "Smashed cucumber with fresh garlic, sesame oil, and a touch of black vinegar.",
+      "Smashed cucumbers tossed in minced garlic, soy sauce, vinegar, sesame oil, and a touch of sugar.",
     spiceLevel: 0,
     tags: ["vegetarian", "vegan", "dairy-free", "soy", "gluten-free"],
     image: "https://source.unsplash.com/featured/?cucumber-salad",
@@ -36,27 +36,27 @@ export const MENU: MenuItem[] = [
     price: 8.99,
     category: "Appetizers",
     description:
-      "Chilled tofu skin and crisp celery in a light soy-sesame dressing.",
+      "Cold tofu skin (yuba) and celery tossed in soy sauce, sesame oil, and salt.",
     spiceLevel: 0,
     tags: ["vegetarian", "vegan", "soy", "dairy-free"],
     image: "https://source.unsplash.com/featured/?tofu-salad",
   },
   {
-    name: "Chili Oil Wontons",
+    name: "Chili Oil Wontons (8 pc)",
     price: 11.99,
     category: "Appetizers",
     description:
-      "Pork wontons drenched in our house chili oil with garlic and scallion.",
+      "Pork-filled wontons in chili oil, soy sauce, garlic, vinegar, and Sichuan peppercorn.",
     spiceLevel: 2,
     tags: ["pork", "meat", "gluten", "soy", "spicy"],
     image: "https://source.unsplash.com/featured/?chili-wontons",
   },
   {
-    name: "Pork and Cabbage Boiled Dumplings",
+    name: "Pork and Cabbage Boiled Dumplings (12 pc)",
     price: 15.99,
     category: "Appetizers",
     description:
-      "Hand-folded dumplings filled with pork and napa cabbage, gently boiled.",
+      "Hand-wrapped dumplings filled with ground pork, napa cabbage, ginger, and scallion.",
     spiceLevel: 0,
     tags: ["pork", "meat", "gluten", "soy"],
     image: "https://source.unsplash.com/featured/?dumplings",
@@ -66,7 +66,7 @@ export const MENU: MenuItem[] = [
     price: 12.99,
     category: "Appetizers",
     description:
-      "Flaky scallion pancake rolled with thin-sliced beef and hoisin.",
+      "Flaky scallion pancake rolled with sliced braised beef, hoisin sauce, scallions, and cilantro.",
     spiceLevel: 0,
     tags: ["beef", "meat", "gluten", "soy"],
     image: "https://source.unsplash.com/featured/?beef-roll",
@@ -76,7 +76,7 @@ export const MENU: MenuItem[] = [
     price: 12.99,
     category: "Appetizers",
     description:
-      "Thin slices of slow-braised beef shank served chilled with chili oil.",
+      "Thinly sliced soy-braised beef shank served cold with chili oil, garlic, and scallion.",
     spiceLevel: 1,
     tags: ["beef", "meat", "soy", "spicy", "gluten-free"],
     image: "https://source.unsplash.com/featured/?cold-beef",
@@ -87,7 +87,7 @@ export const MENU: MenuItem[] = [
     price: 21.99,
     category: "Dry Noodles",
     description:
-      "Hand-pulled flat noodles tossed in fragrant chili oil, served with a roasted beef bone.",
+      "Wide hand-pulled noodles topped with chili oil, scallions, garlic, and bone-in braised beef.",
     spiceLevel: 3,
     tags: ["beef", "meat", "gluten", "soy", "spicy"],
     image: "https://source.unsplash.com/featured/?chili-noodles",
@@ -97,7 +97,7 @@ export const MENU: MenuItem[] = [
     price: 14.99,
     category: "Dry Noodles",
     description:
-      "Our signature wide hand-pulled noodles in chili oil, garlic, and scallion.",
+      "Wide hand-pulled noodles tossed with chili oil, soy sauce, garlic, scallions, and Sichuan peppercorn. Add tomato eggs +$2, ground pork +$3, braised beef +$4.",
     spiceLevel: 2,
     tags: ["vegetarian", "gluten", "soy", "spicy"],
     image: "https://source.unsplash.com/featured/?flat-noodle",
@@ -107,7 +107,7 @@ export const MENU: MenuItem[] = [
     price: 17.99,
     category: "Dry Noodles",
     description:
-      "Springy noodles in a numbing Sichuan sauce topped with minced pork.",
+      "Noodles tossed with ground pork, chili oil, Sichuan peppercorn, garlic, and scallion (mala style).",
     spiceLevel: 3,
     tags: ["pork", "meat", "gluten", "soy", "spicy"],
     image: "https://source.unsplash.com/featured/?spicy-noodles",
@@ -117,7 +117,7 @@ export const MENU: MenuItem[] = [
     price: 17.99,
     category: "Dry Noodles",
     description:
-      "Tender soy-braised pork belly over hand-pulled noodles with bok choy.",
+      "Noodles topped with soy-braised pork belly, scallions, and bok choy in a light sauce.",
     spiceLevel: 0,
     tags: ["pork", "meat", "gluten", "soy"],
     image: "https://source.unsplash.com/featured/?pork-belly-noodle",
@@ -127,7 +127,7 @@ export const MENU: MenuItem[] = [
     price: 19.99,
     category: "Dry Noodles",
     description:
-      "Wok-tossed noodles with cumin, lamb, sweet onion, and a hint of chili.",
+      "Stir-fried noodles with sliced lamb, onions, cumin, chili, garlic, and scallion.",
     spiceLevel: 2,
     tags: ["lamb", "meat", "gluten", "soy", "spicy"],
     image: "https://source.unsplash.com/featured/?lamb-noodles",
@@ -137,7 +137,7 @@ export const MENU: MenuItem[] = [
     price: 14.99,
     category: "Dry Noodles",
     description:
-      "Comforting tomato and egg sauce over noodles — a homestyle classic.",
+      "Noodles tossed with stir-fried tomato, scrambled egg, garlic, and scallion.",
     spiceLevel: 0,
     tags: ["vegetarian", "egg", "gluten", "soy", "dairy-free"],
     image: "https://source.unsplash.com/featured/?tomato-noodles",
@@ -148,8 +148,8 @@ export const MENU: MenuItem[] = [
     price: 20.99,
     category: "Noodle Soup",
     description:
-      "Slow-simmered beef bone broth with hand-pulled noodles and braised brisket.",
-    spiceLevel: 0,
+      "Slow-simmered beef bone broth with hand-pulled noodles, braised beef, bok choy, and scallions.",
+    spiceLevel: 1,
     tags: ["beef", "meat", "gluten", "soy"],
     image: "https://source.unsplash.com/featured/?beef-noodle-soup",
   },
@@ -158,7 +158,7 @@ export const MENU: MenuItem[] = [
     price: 18.99,
     category: "Noodle Soup",
     description:
-      "Aromatic five-spice broth with tender braised beef and bok choy.",
+      "Soy-braised beef and noodles in a rich aromatic broth with star anise, ginger, and scallion.",
     spiceLevel: 1,
     tags: ["beef", "meat", "gluten", "soy"],
     image: "https://source.unsplash.com/featured/?braised-beef",
@@ -168,7 +168,7 @@ export const MENU: MenuItem[] = [
     price: 18.99,
     category: "Noodle Soup",
     description:
-      "Tangy pickled mustard greens, beef, and noodles in a savory broth.",
+      "Beef and noodles in a tangy broth with Chinese pickled mustard greens (suan cai), scallion, and chili.",
     spiceLevel: 1,
     tags: ["beef", "meat", "gluten", "soy"],
     image: "https://source.unsplash.com/featured/?pickled-cabbage-soup",
@@ -178,7 +178,7 @@ export const MENU: MenuItem[] = [
     price: 18.99,
     category: "Noodle Soup",
     description:
-      "Bright tomato broth with tender beef chunks over hand-pulled noodles.",
+      "Beef and noodles in a tomato-based broth with stewed tomatoes, ginger, and scallion.",
     spiceLevel: 0,
     tags: ["beef", "meat", "gluten", "soy"],
     image: "https://source.unsplash.com/featured/?tomato-beef-noodle",
@@ -188,7 +188,7 @@ export const MENU: MenuItem[] = [
     price: 18.99,
     category: "Noodle Soup",
     description:
-      "Pickled-pepper broth with lamb and chewy noodles — bright, sour, and spicy.",
+      "Lamb and noodles in a golden broth made with pickled peppers, ají amarillo–style chilies, garlic, and ginger.",
     spiceLevel: 3,
     tags: ["lamb", "meat", "gluten", "soy", "spicy"],
     image: "https://source.unsplash.com/featured/?lamb-soup",
@@ -198,7 +198,8 @@ export const MENU: MenuItem[] = [
     name: "Tomato Beef over White Rice",
     price: 16.99,
     category: "Rice",
-    description: "Stewed tomato and beef ladled over steamed jasmine rice.",
+    description:
+      "Stewed beef and tomato over steamed white rice with scallion.",
     spiceLevel: 0,
     tags: ["beef", "meat", "soy", "gluten-free", "dairy-free"],
     image: "https://source.unsplash.com/featured/?beef-rice",
@@ -208,7 +209,7 @@ export const MENU: MenuItem[] = [
     price: 16.99,
     category: "Rice",
     description:
-      "Soy-braised pork belly with marinated egg and greens over jasmine rice.",
+      "Soy-braised pork belly over steamed white rice, often with bok choy or pickled vegetables.",
     spiceLevel: 0,
     tags: ["pork", "meat", "egg", "soy", "gluten-free", "dairy-free"],
     image: "https://source.unsplash.com/featured/?pork-rice",
@@ -218,7 +219,8 @@ export const MENU: MenuItem[] = [
     name: "Handmade Fragrance Lemon Tea",
     price: 6.99,
     category: "Beverages",
-    description: "Hand-pressed lemons, jasmine tea, and a touch of honey.",
+    description:
+      "Fresh lemon, jasmine or green tea, and a touch of honey or sugar.",
     spiceLevel: 0,
     tags: ["vegan", "vegetarian", "dairy-free", "gluten-free"],
     image: "https://source.unsplash.com/featured/?lemon-tea",
@@ -228,7 +230,7 @@ export const MENU: MenuItem[] = [
     price: 6.99,
     category: "Beverages",
     description:
-      "Smooth espresso layered with creamy Hong Kong–style milk tea.",
+      "Hong Kong–style yuanyang: brewed coffee, black tea, and sweetened condensed or evaporated milk.",
     spiceLevel: 0,
     tags: ["dairy", "vegetarian", "gluten-free"],
     image: "https://source.unsplash.com/featured/?milk-tea",
