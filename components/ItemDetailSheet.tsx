@@ -117,7 +117,7 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
     setJustAdded(true);
     setTimeout(() => {
       onClose();
-    }, 600);
+    }, 900);
   }
 
   return (
@@ -270,16 +270,46 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
             <button
               type="button"
               onClick={handleAdd}
-              disabled={!allRequiredMet}
+              disabled={!allRequiredMet || justAdded}
               className={[
-                "flex w-full items-center justify-between rounded-full px-6 py-4 text-base font-medium transition-colors",
-                allRequiredMet
-                  ? "bg-neutral-900 text-cream hover:bg-neutral-800"
-                  : "bg-neutral-300 text-neutral-500",
+                "flex w-full items-center justify-between rounded-full px-6 py-4 text-base font-medium transition-[background-color,color,transform] duration-200",
+                "active:scale-[0.98]",
+                justAdded
+                  ? "animate-pop bg-emerald-600 text-cream"
+                  : allRequiredMet
+                    ? "bg-neutral-900 text-cream hover:bg-neutral-800"
+                    : "bg-neutral-300 text-neutral-500",
               ].join(" ")}
             >
-              <span>{justAdded ? "Added ✓" : "Add to cart"}</span>
-              <span>{formatPrice(totalPrice)}</span>
+              {justAdded ? (
+                <span className="flex flex-1 items-center justify-center gap-2">
+                  <span className="flex h-6 w-6 animate-check-pop items-center justify-center rounded-full bg-white/20">
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 16 16"
+                      fill="none"
+                      aria-hidden="true"
+                    >
+                      <path
+                        d="M3 8.5L6.5 12L13 5"
+                        stroke="currentColor"
+                        strokeWidth="2.4"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        style={{ strokeDasharray: 16, strokeDashoffset: 16 }}
+                        className="animate-check-draw"
+                      />
+                    </svg>
+                  </span>
+                  <span>Added to cart</span>
+                </span>
+              ) : (
+                <>
+                  <span>Add to cart</span>
+                  <span>{formatPrice(totalPrice)}</span>
+                </>
+              )}
             </button>
           </div>
         </div>
