@@ -31,6 +31,11 @@ const CATEGORY_ORDER = [
   "Beverages",
 ];
 
+// Module-level cache of image URLs that have successfully loaded at least once.
+// We use this to skip the fade-in when switching categories so cached images
+// appear instantly instead of going opacity-0 -> opacity-1 every remount.
+const loadedImages = new Set<string>();
+
 type Props = {
   menu: MenuItem[];
 };
@@ -65,6 +70,18 @@ export default function MenuPage({ menu }: Props) {
       window.removeEventListener(CART_EVENT, onCart);
     };
   }, []);
+
+  // Preload every menu image once at mount so switching categories never has
+  // to wait on the network — the browser cache + loadedImages Set will both
+  // be primed.
+  useEffect(() => {
+    menu.forEach((m) => {
+      if (loadedImages.has(m.image)) return;
+      const img = new window.Image();
+      img.onload = () => loadedImages.add(m.image);
+      img.src = m.image;
+    });
+  }, [menu]);
 
   const categories = useMemo(() => {
     const present = new Set(menu.map((m) => m.category));
@@ -262,33 +279,44 @@ export default function MenuPage({ menu }: Props) {
                   >
                     <div className="relative aspect-square w-full bg-gradient-to-br from-cream-light to-neutral-200/60">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={d.image}
-                        alt={d.name}
-                        loading="lazy"
-                        decoding="async"
-                        ref={(img) => {
-                          if (img && img.complete && img.naturalWidth > 0) {
-                            img.style.opacity = "1";
-                            img.style.filter = "blur(0px)";
-                          }
-                        }}
-                        style={{ filter: "blur(8px)" }}
-                        className="menu-img h-full w-full object-cover opacity-0 transition-[opacity,filter] duration-500 ease-out"
-                        onLoad={(e) => {
-                          e.currentTarget.style.opacity = "1";
-                          e.currentTarget.style.filter = "blur(0px)";
-                        }}
-                        onError={(e) => {
-                          const img = e.currentTarget;
-                          if (img.dataset.fallback) return;
-                          img.dataset.fallback = "1";
-                          img.src =
-                            "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%23FBF7EE'%2F%3E%3Cg transform='translate(100 110)' stroke='%23B8A88E' stroke-width='4' fill='none' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M-50 -10 a50 50 0 0 0 100 0 z' fill='%23E5D8C3'%2F%3E%3Cline x1='-30' y1='-25' x2='-15' y2='-40'%2F%3E%3Cline x1='-10' y1='-30' x2='5' y2='-50'%2F%3E%3Cline x1='15' y1='-25' x2='30' y2='-45'%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E";
-                          img.style.opacity = "1";
-                          img.style.filter = "blur(0px)";
-                        }}
-                      />
+                      {(() => {
+                        const wasLoaded = loadedImages.has(d.image);
+                        return (
+                          /* eslint-disable-next-line @next/next/no-img-element */
+                          <img
+                            src={d.image}
+                            alt={d.name}
+                            loading="eager"
+                            decoding="async"
+                            ref={(img) => {
+                              if (img && img.complete && img.naturalWidth > 0) {
+                                loadedImages.add(d.image);
+                                img.style.opacity = "1";
+                                img.style.filter = "blur(0px)";
+                              }
+                            }}
+                            style={{
+                              filter: wasLoaded ? "blur(0px)" : "blur(8px)",
+                              opacity: wasLoaded ? 1 : 0,
+                            }}
+                            className="menu-img h-full w-full object-cover transition-[opacity,filter] duration-500 ease-out"
+                            onLoad={(e) => {
+                              loadedImages.add(d.image);
+                              e.currentTarget.style.opacity = "1";
+                              e.currentTarget.style.filter = "blur(0px)";
+                            }}
+                            onError={(e) => {
+                              const img = e.currentTarget;
+                              if (img.dataset.fallback) return;
+                              img.dataset.fallback = "1";
+                              img.src =
+                                "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%23FBF7EE'%2F%3E%3Cg transform='translate(100 110)' stroke='%23B8A88E' stroke-width='4' fill='none' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M-50 -10 a50 50 0 0 0 100 0 z' fill='%23E5D8C3'%2F%3E%3Cline x1='-30' y1='-25' x2='-15' y2='-40'%2F%3E%3Cline x1='-10' y1='-30' x2='5' y2='-50'%2F%3E%3Cline x1='15' y1='-25' x2='30' y2='-45'%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E";
+                              img.style.opacity = "1";
+                              img.style.filter = "blur(0px)";
+                            }}
+                          />
+                        );
+                      })()}
                       {d.spiceLevel >= 1 && (
                         <span
                           className={[
