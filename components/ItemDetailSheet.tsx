@@ -175,7 +175,7 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
           const max = el.scrollHeight - el.clientHeight;
           if (el.scrollTop >= max) el.scrollTop = max - 1;
         }}
-        className="relative w-full max-w-[480px] h-[100dvh] overflow-y-auto overscroll-none bg-cream shadow-xl sm:h-auto sm:max-h-[92vh] sm:rounded-3xl [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="popup-scroll relative w-full max-w-[480px] h-[100dvh] overflow-y-auto overscroll-none bg-cream shadow-xl sm:h-auto sm:max-h-[92vh] sm:rounded-3xl"
         style={{ WebkitOverflowScrolling: "auto" }}
       >
         {/* Soft fade strip at top: image scrolls into this instead of being cut sharply */}
