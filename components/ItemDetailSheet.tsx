@@ -141,7 +141,7 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
           ×
         </button>
 
-        <div className="px-6 pt-6">
+        <div className="px-6 pt-16">
           <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-neutral-100">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
