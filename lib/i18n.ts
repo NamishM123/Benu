@@ -38,6 +38,14 @@ const TRANSLATIONS = {
   Nuts: { en: "Nuts", zh: "坚果" },
   Soy: { en: "Soy", zh: "大豆" },
 
+  // Filter option subtitles
+  Dairy_desc: { en: "Milk, butter, cheese, cream", zh: "牛奶、黄油、奶酪、奶油" },
+  Fish_desc: { en: "Fish and shellfish", zh: "鱼类与贝类" },
+  Gluten_desc: { en: "Wheat, barley, rye", zh: "小麦、大麦、黑麦" },
+  Meat_desc: { en: "Beef, pork, lamb, poultry", zh: "牛肉、猪肉、羊肉、禽肉" },
+  Nuts_desc: { en: "Tree nuts and peanuts", zh: "坚果与花生" },
+  Soy_desc: { en: "Soybeans, tofu, soy sauce", zh: "大豆、豆腐、酱油" },
+
   // Cart
   yourCart: { en: "Your cart", zh: "您的购物车" },
   emptyCart: {
