@@ -300,7 +300,7 @@ export default function MenuPage({ menu }: Props) {
                       <h3
                         className={[
                           "min-h-[1.5em] font-semibold uppercase tracking-[0.08em] text-neutral-900",
-                          lang === "zh" ? "text-lg" : "text-base",
+                          lang === "zh" ? "text-2xl tracking-normal" : "text-base",
                         ].join(" ")}
                       >
                         {localName(d, lang, autoMap)}
@@ -314,7 +314,7 @@ export default function MenuPage({ menu }: Props) {
                         "mt-2 leading-relaxed text-neutral-500",
                         // Reserve ~3 lines so cards in different languages stay aligned
                         "min-h-[4.875em]",
-                        lang === "zh" ? "text-base" : "text-sm",
+                        lang === "zh" ? "text-lg" : "text-sm",
                       ].join(" ")}
                     >
                       {localDescription(d, lang, autoMap)}
