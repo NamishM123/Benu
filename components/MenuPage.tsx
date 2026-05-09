@@ -46,91 +46,29 @@ export default function MenuPage({ menu }: Props) {
     [menu, activeCategory],
   );
 
-  const featured = useMemo(() => {
-    const featuredNames = [
-      "House Special Beef Bone Noodle Soup",
-      "Chili Oil Wontons",
-      "Braised Pork Belly Noodle",
-    ];
-    return featuredNames
-      .map((n) => menu.find((m) => m.name === n))
-      .filter((m): m is MenuItem => Boolean(m));
-  }, [menu]);
-
   return (
     <>
       <main className="min-h-screen w-full bg-cream pb-28">
-        <div className="mx-auto w-full max-w-[560px]">
-          <div className="sticky top-0 z-30 bg-cream/90 px-6 pt-6 pb-4 backdrop-blur">
-            <div className="flex items-center justify-between">
-              <Link
-                href="/dietary-preferences"
-                className="text-sm text-neutral-600 hover:text-neutral-900"
-              >
-                ← Preferences
-              </Link>
-              {preferences.length > 0 && (
-                <span className="rounded-full bg-sage px-3 py-1 text-xs text-neutral-800">
-                  Avoiding: {preferences.join(", ")}
-                </span>
-              )}
-            </div>
-            <h1 className="mt-3 font-serif text-4xl tracking-tight text-neutral-900">
-              Menu
-            </h1>
+        <div className="mx-auto w-full max-w-6xl">
+          <div className="flex items-center justify-between px-6 pt-6 sm:px-10">
+            <Link
+              href="/dietary-preferences"
+              className="text-sm text-neutral-600 hover:text-neutral-900"
+            >
+              ← Preferences
+            </Link>
+            {preferences.length > 0 && (
+              <span className="rounded-full bg-sage px-3 py-1 text-xs text-neutral-800">
+                Avoiding: {preferences.join(", ")}
+              </span>
+            )}
           </div>
-
-          {featured.length > 0 && (
-            <section className="px-6 pt-3">
-              <h2 className="mb-3 text-xs font-medium uppercase tracking-wider text-neutral-500">
-                Featured
-              </h2>
-              <div className="-mx-6 flex gap-4 overflow-x-auto px-6 pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                {featured.map((d) => {
-                  const flags = findFlaggedPreferences(d, preferences);
-                  return (
-                    <article
-                      key={d.name}
-                      className="relative w-[300px] flex-none overflow-hidden rounded-3xl bg-white shadow-sm"
-                    >
-                      <div className="relative aspect-[4/3] w-full bg-neutral-100">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={d.image}
-                          alt={d.name}
-                          className="h-full w-full object-cover"
-                        />
-                        {flags.length > 0 && (
-                          <span className="absolute left-3 top-3 rounded-full bg-amber-50/95 px-2.5 py-1 text-[11px] text-amber-800">
-                            contains {flags[0].toLowerCase()}
-                          </span>
-                        )}
-                      </div>
-                      <div className="p-4">
-                        <div className="flex items-baseline justify-between gap-2">
-                          <p className="truncate font-medium text-neutral-900">
-                            {d.name}
-                          </p>
-                          <p className="text-sm text-neutral-700">
-                            {formatPrice(d.price)}
-                          </p>
-                        </div>
-                        <p className="mt-1 line-clamp-2 text-xs leading-snug text-neutral-500">
-                          {d.description}
-                        </p>
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-            </section>
-          )}
 
           <nav
             aria-label="Menu categories"
-            className="sticky top-[100px] z-20 mt-3 bg-cream/90 px-6 py-3 backdrop-blur"
+            className="sticky top-0 z-20 mt-6 bg-cream/90 px-6 py-6 backdrop-blur sm:px-10"
           >
-            <div className="flex gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="flex flex-wrap items-end justify-center gap-x-10 gap-y-3 sm:gap-x-14">
               {categories.map((cat) => {
                 const isActive = cat === activeCategory;
                 return (
@@ -139,58 +77,90 @@ export default function MenuPage({ menu }: Props) {
                     type="button"
                     onClick={() => setActiveCategory(cat)}
                     aria-pressed={isActive}
-                    className={[
-                      "flex-none rounded-full px-4 py-2 text-sm transition-colors duration-150 ease-out",
-                      isActive
-                        ? "bg-neutral-900 text-neutral-50"
-                        : "bg-white text-neutral-700 hover:bg-neutral-100",
-                    ].join(" ")}
+                    className="group flex flex-col items-center"
                   >
-                    {cat}
+                    <span
+                      className={[
+                        "font-serif text-2xl tracking-tight transition-colors duration-150 sm:text-3xl",
+                        isActive
+                          ? "text-neutral-900"
+                          : "text-neutral-400 hover:text-neutral-600",
+                      ].join(" ")}
+                    >
+                      {cat}
+                    </span>
+                    <span
+                      className={[
+                        "mt-1.5 h-1.5 w-1.5 rounded-full transition-colors duration-150",
+                        isActive ? "bg-neutral-900" : "bg-transparent",
+                      ].join(" ")}
+                      aria-hidden="true"
+                    />
                   </button>
                 );
               })}
             </div>
           </nav>
 
-          <section className="flex flex-col gap-5 px-6 pt-5">
+          <section className="grid grid-cols-1 gap-x-8 gap-y-12 px-6 pt-4 sm:grid-cols-2 sm:px-10 lg:grid-cols-3">
             {visibleItems.map((d) => {
               const flags = findFlaggedPreferences(d, preferences);
+              const isSpicy = d.spiceLevel >= 2;
               return (
-                <article
-                  key={d.name}
-                  className="group overflow-hidden rounded-3xl bg-white shadow-sm"
-                >
-                  <div className="relative aspect-[4/3] w-full bg-neutral-100">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={d.image}
-                      alt={d.name}
-                      className="h-full w-full object-cover"
-                    />
-                    {d.spiceLevel >= 2 && (
-                      <span className="absolute left-3 top-3 rounded-full bg-rose-50/95 px-2.5 py-1 text-[11px] text-rose-700">
-                        {spiceLabel(d.spiceLevel)}
-                      </span>
-                    )}
-                    {flags.length > 0 && (
-                      <span className="absolute right-3 top-3 rounded-full bg-amber-50/95 px-2.5 py-1 text-[11px] text-amber-800">
-                        contains {flags[0].toLowerCase()}
-                      </span>
-                    )}
+                <article key={d.name} className="flex flex-col">
+                  <div className="relative overflow-hidden rounded-[28px] bg-white shadow-sm">
+                    <div className="relative aspect-square w-full bg-neutral-100">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={d.image}
+                        alt={d.name}
+                        className="h-full w-full object-cover"
+                      />
+                      {isSpicy && (
+                        <span className="absolute left-4 top-4 rounded-full bg-lime-300 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-neutral-900">
+                          {d.spiceLevel === 3 ? "Very Spicy" : "Spicy"}
+                        </span>
+                      )}
+                      {flags.length > 0 && (
+                        <span
+                          title={`contains ${flags.join(", ").toLowerCase()}`}
+                          className="absolute right-4 top-4 flex h-7 w-7 items-center justify-center rounded-full border border-neutral-300 bg-white text-[11px] font-semibold text-neutral-700"
+                        >
+                          {flags[0][0]}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <div className="p-4">
-                    <div className="flex items-baseline justify-between gap-2">
-                      <p className="truncate text-base font-medium text-neutral-900">
+
+                  <div className="mt-5 px-1">
+                    <div className="flex items-baseline justify-between gap-3">
+                      <h3 className="text-base font-semibold uppercase tracking-[0.08em] text-neutral-900">
                         {d.name}
-                      </p>
+                      </h3>
                       <p className="flex-none text-sm text-neutral-700">
                         {formatPrice(d.price)}
                       </p>
                     </div>
-                    <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-neutral-500">
+                    <p className="mt-2 text-sm leading-relaxed text-neutral-500">
                       {d.description}
                     </p>
+                    {(flags.length > 0 || d.spiceLevel >= 1) && (
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {d.spiceLevel >= 1 && (
+                          <span className="text-[11px] uppercase tracking-wider text-rose-700">
+                            {spiceLabel(d.spiceLevel)}
+                          </span>
+                        )}
+                        {flags.map((f) => (
+                          <span
+                            key={f}
+                            className="text-[11px] uppercase tracking-wider text-amber-700"
+                          >
+                            contains {f.toLowerCase()}
+                          </span>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </article>
               );
