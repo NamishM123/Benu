@@ -3,8 +3,6 @@ import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 
-const openai = new OpenAI();
-
 type Body = { texts?: string[]; target?: "zh" | "en" };
 
 export async function POST(req: Request) {
@@ -24,8 +22,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ translations: {} });
   }
 
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    return NextResponse.json({ translations: {} });
+  }
+
   // Hard-cap input size for safety
   if (texts.length > 60) texts.length = 60;
+
+  const openai = new OpenAI({ apiKey });
 
   const targetLang =
     target === "zh"
