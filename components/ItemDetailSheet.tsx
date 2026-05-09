@@ -220,7 +220,7 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
         />
 
         <div className="px-6 pt-6">
-          <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-neutral-100">
+          <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-gradient-to-br from-cream-light to-neutral-200/60">
             <button
               type="button"
               onClick={onClose}
@@ -238,11 +238,14 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
               ref={(img) => {
                 if (img && img.complete && img.naturalWidth > 0) {
                   img.style.opacity = "1";
+                  img.style.filter = "blur(0px)";
                 }
               }}
-              className="h-full w-full object-cover opacity-0 transition-opacity duration-200"
+              style={{ filter: "blur(8px)" }}
+              className="h-full w-full object-cover opacity-0 transition-[opacity,filter] duration-500 ease-out"
               onLoad={(e) => {
                 e.currentTarget.style.opacity = "1";
+                e.currentTarget.style.filter = "blur(0px)";
               }}
               onError={(e) => {
                 const img = e.currentTarget;
@@ -251,6 +254,7 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
                 img.src =
                   "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%23FBF7EE'%2F%3E%3Cg transform='translate(100 110)' stroke='%23B8A88E' stroke-width='4' fill='none' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M-50 -10 a50 50 0 0 0 100 0 z' fill='%23E5D8C3'%2F%3E%3Cline x1='-30' y1='-25' x2='-15' y2='-40'%2F%3E%3Cline x1='-10' y1='-30' x2='5' y2='-50'%2F%3E%3Cline x1='15' y1='-25' x2='30' y2='-45'%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E";
                 img.style.opacity = "1";
+                img.style.filter = "blur(0px)";
               }}
             />
           </div>
