@@ -74,12 +74,24 @@ export default function MenuPage({ menu }: Props) {
       <main className="min-h-screen w-full bg-cream pb-28">
         <div className="mx-auto w-full max-w-6xl">
           <div className="flex items-center justify-between gap-3 px-6 pt-6 sm:px-10">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/shake-shake-logo.png"
-              alt="Shake Shake Fresh Noodle"
-              className="h-28 w-auto sm:h-36"
-            />
+            <button
+              type="button"
+              onClick={() => {
+                setActiveCategory(CATEGORY_ORDER[0]);
+                if (typeof window !== "undefined") {
+                  window.scrollTo({ top: 0, behavior: "smooth" });
+                }
+              }}
+              aria-label="Back to start of menu"
+              className="rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/shake-shake-logo.png"
+                alt="Shake Shake Fresh Noodle"
+                className="h-28 w-auto sm:h-36"
+              />
+            </button>
             <button
               type="button"
               onClick={() => setFiltersOpen(true)}
