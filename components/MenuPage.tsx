@@ -88,39 +88,39 @@ export default function MenuPage({ menu }: Props) {
 
           <nav
             aria-label="Menu categories"
-            className="sticky top-0 z-20 mt-6 bg-cream/90 px-6 py-6 backdrop-blur sm:px-10"
+            className="sticky top-0 z-20 mt-6 bg-cream/90 backdrop-blur"
           >
-            <div className="flex flex-wrap items-end justify-center gap-x-10 gap-y-3 sm:gap-x-14">
-              {categories.map((cat) => {
-                const isActive = cat === activeCategory;
-                return (
-                  <button
-                    key={cat}
-                    type="button"
-                    onClick={() => setActiveCategory(cat)}
-                    aria-pressed={isActive}
-                    className="group flex flex-col items-center"
-                  >
-                    <span
+            <div className="overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <div className="flex w-max min-w-full items-center justify-start gap-2 px-6 py-3 sm:justify-center sm:px-10">
+                {categories.map((cat) => {
+                  const isActive = cat === activeCategory;
+                  return (
+                    <button
+                      key={cat}
+                      ref={(el) => {
+                        if (isActive && el) {
+                          el.scrollIntoView({
+                            behavior: "smooth",
+                            inline: "center",
+                            block: "nearest",
+                          });
+                        }
+                      }}
+                      type="button"
+                      onClick={() => setActiveCategory(cat)}
+                      aria-pressed={isActive}
                       className={[
-                        "font-serif text-2xl tracking-tight transition-colors duration-150 sm:text-3xl",
+                        "flex-none whitespace-nowrap rounded-full px-4 py-2 text-base font-medium transition-colors duration-150",
                         isActive
-                          ? "text-neutral-900"
-                          : "text-neutral-400 hover:text-neutral-600",
+                          ? "bg-cantaloupe text-neutral-900"
+                          : "text-neutral-600 hover:text-neutral-900",
                       ].join(" ")}
                     >
                       {cat}
-                    </span>
-                    <span
-                      className={[
-                        "mt-1.5 h-1.5 w-1.5 rounded-full transition-colors duration-150",
-                        isActive ? "bg-neutral-900" : "bg-transparent",
-                      ].join(" ")}
-                      aria-hidden="true"
-                    />
-                  </button>
-                );
-              })}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           </nav>
 
