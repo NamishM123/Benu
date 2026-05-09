@@ -99,6 +99,31 @@ const TRANSLATIONS = {
   clearOrder: { en: "Clear", zh: "清除" },
   qty: { en: "Qty", zh: "数量" },
 
+  // Customer order status page
+  orderConfirmedTitle: { en: "Order received!", zh: "订单已收到！" },
+  orderConfirmedSubtitle: {
+    en: "We've sent it to the kitchen.",
+    zh: "已送至厨房。",
+  },
+  waitingForEta: {
+    en: "Waiting for the kitchen to confirm prep time…",
+    zh: "正在等待厨房确认制作时间…",
+  },
+  estimatedReady: { en: "Estimated ready in", zh: "预计完成时间" },
+  minutesShort: { en: "min", zh: "分钟" },
+  yourOrder: { en: "Your order", zh: "您的订单" },
+  orderReadyHeadline: { en: "Your order is ready!", zh: "您的订单已完成！" },
+  orderCookingHeadline: {
+    en: "The kitchen is on it.",
+    zh: "厨房正在制作。",
+  },
+  orderNotFound: {
+    en: "We couldn't find that order on this device.",
+    zh: "在此设备上找不到该订单。",
+  },
+  backToMenu: { en: "Back to menu", zh: "返回菜单" },
+  orderAnother: { en: "Order something else", zh: "再来一份" },
+
   // Item detail sheet
   addToCart: { en: "Add to cart", zh: "加入购物车" },
   added: { en: "Added ✓", zh: "已加入 ✓" },
