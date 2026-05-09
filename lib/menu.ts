@@ -400,7 +400,7 @@ export const MENU: MenuItem[] = [
     descriptionZh: "清爽柠檬汽水,冰镇供应。",
     spiceLevel: 0,
     tags: ["vegan", "vegetarian", "dairy-free", "gluten-free"],
-    image: "/menu/sprite.png",
+    image: "/menu/sprite.webp",
   },
   {
     name: "Peach Sparkling Water",

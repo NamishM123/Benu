@@ -301,7 +301,7 @@ export default function MenuPage({ menu }: Props) {
                           }
                         }}
                         style={{ filter: "blur(8px)" }}
-                        className="menu-img h-full w-full object-cover opacity-0 transition-[opacity,filter] duration-500 ease-out"
+                        className={`menu-img h-full w-full ${d.category === "Beverages" ? "object-contain p-4" : "object-cover"} opacity-0 transition-[opacity,filter] duration-500 ease-out`}
                         onLoad={(e) => {
                           loadedImages.add(d.image);
                           const img = e.currentTarget;
