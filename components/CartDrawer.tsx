@@ -28,6 +28,7 @@ export default function CartDrawer({
   onClose,
 }: Props) {
   const [dragOffset, setDragOffset] = useState(0);
+  const [confirmRemoveId, setConfirmRemoveId] = useState<string | null>(null);
   const startYRef = useRef<number | null>(null);
   const draggingRef = useRef(false);
 
@@ -180,13 +181,17 @@ export default function CartDrawer({
                         onPointerDown={(e) => {
                           e.preventDefault();
                           startHold(() =>
-                            updateLineQuantity(line.id, line.quantity - 1),
+                            updateLineQuantity(
+                              line.id,
+                              Math.max(1, line.quantity - 1),
+                            ),
                           );
                         }}
                         onPointerUp={clearHold}
                         onPointerLeave={clearHold}
                         onPointerCancel={clearHold}
-                        className="flex h-7 w-7 items-center justify-center rounded-full bg-cantaloupe text-neutral-900 hover:bg-cantaloupe-soft active:bg-cantaloupe-deep touch-none"
+                        disabled={line.quantity <= 1}
+                        className="flex h-7 w-7 items-center justify-center rounded-full bg-cantaloupe text-neutral-900 hover:bg-cantaloupe-soft active:bg-cantaloupe-deep disabled:opacity-40 disabled:cursor-not-allowed touch-none"
                       >
                         −
                       </button>
@@ -212,7 +217,7 @@ export default function CartDrawer({
                     </div>
                     <button
                       type="button"
-                      onClick={() => removeFromCart(line.id)}
+                      onClick={() => setConfirmRemoveId(line.id)}
                       className="text-xs text-neutral-500 underline-offset-2 hover:text-neutral-800 hover:underline"
                     >
                       Remove
@@ -295,6 +300,54 @@ export default function CartDrawer({
               </div>
             </div>
           </>
+        )}
+
+        {confirmRemoveId && (
+          <div
+            className="absolute inset-0 z-30 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              setConfirmRemoveId(null);
+            }}
+          >
+            <div
+              role="alertdialog"
+              aria-modal="true"
+              aria-label="Confirm remove"
+              onClick={(e) => e.stopPropagation()}
+              className="mx-6 w-full max-w-[340px] rounded-2xl bg-cream p-5 shadow-xl"
+            >
+              <h3 className="font-serif text-xl text-neutral-900">
+                Remove this item?
+              </h3>
+              <p className="mt-2 text-sm text-neutral-600">
+                Are you sure you want to remove{" "}
+                <span className="font-medium text-neutral-900">
+                  {cart.find((l) => l.id === confirmRemoveId)?.itemName}
+                </span>{" "}
+                from your cart?
+              </p>
+              <div className="mt-5 flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setConfirmRemoveId(null)}
+                  className="flex-1 rounded-full border border-neutral-300 px-4 py-2.5 text-sm text-neutral-700 hover:bg-neutral-100"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    removeFromCart(confirmRemoveId);
+                    setConfirmRemoveId(null);
+                  }}
+                  className="flex-1 rounded-full bg-neutral-900 px-4 py-2.5 text-sm font-medium text-cream hover:bg-neutral-800"
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     </div>

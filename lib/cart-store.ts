@@ -49,12 +49,10 @@ export function removeFromCart(id: string): void {
 }
 
 export function updateLineQuantity(id: string, quantity: number): void {
-  if (quantity <= 0) {
-    removeFromCart(id);
-    return;
-  }
+  // Floor at 1 — explicit removal must go through removeFromCart
+  const next = Math.max(1, quantity);
   saveCart(
-    getCart().map((l) => (l.id === id ? { ...l, quantity } : l)),
+    getCart().map((l) => (l.id === id ? { ...l, quantity: next } : l)),
   );
 }
 
