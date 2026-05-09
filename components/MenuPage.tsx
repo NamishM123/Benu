@@ -279,44 +279,45 @@ export default function MenuPage({ menu }: Props) {
                   >
                     <div className="relative aspect-square w-full bg-gradient-to-br from-cream-light to-neutral-200/60">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      {(() => {
-                        const wasLoaded = loadedImages.has(d.image);
-                        return (
-                          /* eslint-disable-next-line @next/next/no-img-element */
-                          <img
-                            src={d.image}
-                            alt={d.name}
-                            loading="eager"
-                            decoding="async"
-                            ref={(img) => {
-                              if (img && img.complete && img.naturalWidth > 0) {
-                                loadedImages.add(d.image);
-                                img.style.opacity = "1";
-                                img.style.filter = "blur(0px)";
-                              }
-                            }}
-                            style={{
-                              filter: wasLoaded ? "blur(0px)" : "blur(8px)",
-                              opacity: wasLoaded ? 1 : 0,
-                            }}
-                            className="menu-img h-full w-full object-cover transition-[opacity,filter] duration-500 ease-out"
-                            onLoad={(e) => {
-                              loadedImages.add(d.image);
-                              e.currentTarget.style.opacity = "1";
-                              e.currentTarget.style.filter = "blur(0px)";
-                            }}
-                            onError={(e) => {
-                              const img = e.currentTarget;
-                              if (img.dataset.fallback) return;
-                              img.dataset.fallback = "1";
-                              img.src =
-                                "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%23FBF7EE'%2F%3E%3Cg transform='translate(100 110)' stroke='%23B8A88E' stroke-width='4' fill='none' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M-50 -10 a50 50 0 0 0 100 0 z' fill='%23E5D8C3'%2F%3E%3Cline x1='-30' y1='-25' x2='-15' y2='-40'%2F%3E%3Cline x1='-10' y1='-30' x2='5' y2='-50'%2F%3E%3Cline x1='15' y1='-25' x2='30' y2='-45'%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E";
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={d.image}
+                        alt={d.name}
+                        loading="eager"
+                        decoding="async"
+                        ref={(img) => {
+                          if (!img) return;
+                          // Image already finished loading (cached) before React attached onLoad.
+                          // Schedule the reveal in the next frame so the browser commits the
+                          // opacity-0 / blur initial state first and the transition actually plays.
+                          if (img.complete && img.naturalWidth > 0) {
+                            loadedImages.add(d.image);
+                            requestAnimationFrame(() => {
                               img.style.opacity = "1";
                               img.style.filter = "blur(0px)";
-                            }}
-                          />
-                        );
-                      })()}
+                            });
+                          }
+                        }}
+                        style={{ filter: "blur(8px)" }}
+                        className="menu-img h-full w-full object-cover opacity-0 transition-[opacity,filter] duration-500 ease-out"
+                        onLoad={(e) => {
+                          loadedImages.add(d.image);
+                          const img = e.currentTarget;
+                          requestAnimationFrame(() => {
+                            img.style.opacity = "1";
+                            img.style.filter = "blur(0px)";
+                          });
+                        }}
+                        onError={(e) => {
+                          const img = e.currentTarget;
+                          if (img.dataset.fallback) return;
+                          img.dataset.fallback = "1";
+                          img.src =
+                            "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%23FBF7EE'%2F%3E%3Cg transform='translate(100 110)' stroke='%23B8A88E' stroke-width='4' fill='none' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M-50 -10 a50 50 0 0 0 100 0 z' fill='%23E5D8C3'%2F%3E%3Cline x1='-30' y1='-25' x2='-15' y2='-40'%2F%3E%3Cline x1='-10' y1='-30' x2='5' y2='-50'%2F%3E%3Cline x1='15' y1='-25' x2='30' y2='-45'%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E";
+                          img.style.opacity = "1";
+                          img.style.filter = "blur(0px)";
+                        }}
+                      />
                       {d.spiceLevel >= 1 && (
                         <span
                           className={[
