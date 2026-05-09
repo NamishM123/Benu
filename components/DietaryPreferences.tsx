@@ -86,8 +86,9 @@ export default function DietaryPreferences({
                   onClick={() => togglePreference(opt)}
                   className={[
                     "rounded-2xl py-5 text-lg text-neutral-900",
-                    "transition-colors duration-150 ease-out",
+                    "transition-all duration-150 ease-out",
                     "focus:outline-none focus:ring-2 focus:ring-neutral-700/30",
+                    "hover:ring-2 hover:ring-neutral-900/40 hover:shadow-md",
                     isSelected
                       ? "bg-sage-dark shadow-inner ring-1 ring-inset ring-neutral-900/15"
                       : "bg-sage",
