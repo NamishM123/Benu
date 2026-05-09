@@ -48,9 +48,13 @@ const TRANSLATIONS = {
 
   // Cart
   yourCart: { en: "Your cart", zh: "您的购物车" },
+  yourCartEmpty: {
+    en: "Your cart is safe... Cause it's empty",
+    zh: "您的购物车很安全…因为是空的",
+  },
   emptyCart: {
-    en: "Your cart is empty. Pick something tasty from the menu.",
-    zh: "购物车是空的。请从菜单中选购美味菜品。",
+    en: "Add something tasty",
+    zh: "来点好吃的吧",
   },
   subtotal: { en: "Subtotal", zh: "小计" },
   checkout: { en: "Checkout", zh: "结账" },

@@ -147,7 +147,9 @@ export default function CartDrawer({
           onTouchCancel={handleTouchEnd}
           className="sticky top-6 z-10 flex items-center justify-between border-b border-neutral-200 bg-cream/95 px-6 py-4 backdrop-blur"
         >
-          <h2 className="font-serif text-2xl text-neutral-900">{t("yourCart")}</h2>
+          <h2 className="font-serif text-2xl text-neutral-900">
+            {cart.length === 0 ? t("yourCartEmpty") : t("yourCart")}
+          </h2>
         </header>
 
         {cart.length === 0 ? (
