@@ -9,7 +9,7 @@ import {
   removeFromCart,
   type CartLine,
 } from "@/lib/cart-store";
-import { pairingReason, pickPairing } from "@/lib/cart-insights";
+import { pairingReason, pickPairings } from "@/lib/cart-insights";
 
 type Props = {
   open: boolean;
@@ -44,13 +44,9 @@ export default function CartDrawer({
     if (open) setDragOffset(0);
   }, [open]);
 
-  const pairing = useMemo(() => pickPairing(cart, preferences), [
-    cart,
-    preferences,
-  ]);
-  const pairReason = useMemo(
-    () => (pairing ? pairingReason(pairing, cart) : null),
-    [pairing, cart],
+  const pairings = useMemo(
+    () => pickPairings(cart, preferences),
+    [cart, preferences],
   );
 
   if (!open) return null;
@@ -162,46 +158,49 @@ export default function CartDrawer({
               ))}
             </ul>
 
-            <div className="space-y-3 px-6 pb-2 pt-4">
-              {pairing && (
-                <div className="rounded-2xl border border-neutral-200 bg-white p-4">
-                  <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
-                    Pairs well with your order
-                  </p>
-                  <div className="mt-2 flex items-baseline justify-between gap-3">
-                    <h3 className="font-medium text-neutral-900">
-                      {pairing.name}
-                    </h3>
-                    <p className="flex-none text-sm text-neutral-700">
-                      {formatPrice(pairing.price)}
-                    </p>
-                  </div>
-                  {pairReason && (
-                    <p className="mt-1 text-xs text-neutral-500">
-                      {pairReason}
-                    </p>
-                  )}
-                  <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-neutral-500">
-                    {pairing.description}
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      addToCart({
-                        itemName: pairing.name,
-                        basePrice: pairing.price,
-                        quantity: 1,
-                        unitPrice: pairing.price,
-                        selections: [],
-                      })
-                    }
-                    className="mt-3 inline-flex items-center gap-1 rounded-full border border-neutral-900 px-4 py-1.5 text-xs font-medium text-neutral-900 transition-colors hover:bg-neutral-900 hover:text-cream"
+            {pairings.length > 0 && (
+              <div className="space-y-3 px-6 pb-2 pt-4">
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
+                  {pairings.length === 1
+                    ? "Pair a drink with your bowl"
+                    : `Pair drinks with your ${pairings.length} bowls`}
+                </p>
+                {pairings.map((p) => (
+                  <div
+                    key={p.name}
+                    className="rounded-2xl border border-neutral-200 bg-white p-4"
                   >
-                    + Add to cart
-                  </button>
-                </div>
-              )}
-            </div>
+                    <div className="flex items-baseline justify-between gap-3">
+                      <h3 className="font-medium text-neutral-900">{p.name}</h3>
+                      <p className="flex-none text-sm text-neutral-700">
+                        {formatPrice(p.price)}
+                      </p>
+                    </div>
+                    <p className="mt-1 text-xs text-neutral-500">
+                      {pairingReason(p, cart)}
+                    </p>
+                    <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-neutral-500">
+                      {p.description}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        addToCart({
+                          itemName: p.name,
+                          basePrice: p.price,
+                          quantity: 1,
+                          unitPrice: p.price,
+                          selections: [],
+                        })
+                      }
+                      className="mt-3 inline-flex items-center gap-1 rounded-full border border-neutral-900 px-4 py-1.5 text-xs font-medium text-neutral-900 transition-colors hover:bg-neutral-900 hover:text-cream"
+                    >
+                      + Add to cart
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
 
             <div className="sticky bottom-0 mt-2 border-t border-neutral-200 bg-cream/95 px-6 py-5 backdrop-blur">
               <div className="mb-3 flex items-baseline justify-between">
