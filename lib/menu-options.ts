@@ -24,9 +24,9 @@ const SPICE_LEVELS: OptionGroup = {
   required: true,
   defaultChoiceId: "default",
   choices: [
-    { id: "mild", label: "Mild" },
-    { id: "default", label: "Regular" },
-    { id: "extra", label: "Extra Spicy" },
+    { id: "mild", label: "🌶️ Mild" },
+    { id: "default", label: "🌶️🌶️ Regular" },
+    { id: "extra", label: "🌶️🌶️🌶️ Extra Spicy" },
   ],
 };
 

@@ -130,11 +130,11 @@ export default function FilterSheet({ open, preferences, onClose }: Props) {
                     e.currentTarget.blur();
                   }}
                   className={[
-                    "rounded-2xl py-4 text-base transition-all",
+                    "rounded-2xl py-4 text-base transition-all border",
                     "focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30",
                     active
-                      ? "bg-cantaloupe text-neutral-900 shadow-inner ring-1 ring-inset ring-neutral-900/15"
-                      : "bg-sage text-neutral-900 hover:bg-sage-dark/40",
+                      ? "bg-cantaloupe text-neutral-900 shadow-inner border-neutral-900/15"
+                      : "bg-cream-light text-neutral-900 border-neutral-300/70 hover:bg-white",
                   ].join(" ")}
                 >
                   {opt}

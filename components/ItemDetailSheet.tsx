@@ -209,9 +209,12 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
                     </span>
                   )}
                 </div>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 items-stretch gap-2">
                   {g.choices.map((c) => {
                     const picked = (selections[g.id] ?? []).includes(c.id);
+                    const hasMeta =
+                      (c.priceModifier != null && c.priceModifier !== 0) ||
+                      Boolean(c.warning);
                     return (
                       <button
                         key={c.id}
@@ -221,7 +224,7 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
                           e.currentTarget.blur();
                         }}
                         className={[
-                          "rounded-2xl border px-3 py-3 text-left text-sm transition-all",
+                          "flex h-full flex-col rounded-2xl border px-3 py-3 text-left text-sm transition-all",
                           "focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30",
                           picked
                             ? "border-cantaloupe-deep bg-cantaloupe text-neutral-900 shadow-inner"
@@ -246,14 +249,14 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
                           </span>
                           <span className="font-medium">{c.label}</span>
                         </div>
-                        <div className="mt-1 ml-6 flex flex-wrap items-center gap-x-2 text-xs text-neutral-500">
-                          {c.priceModifier != null && c.priceModifier !== 0 && (
+                        <div className="mt-1 ml-6 flex min-h-[1rem] flex-wrap items-center gap-x-2 text-xs text-neutral-500">
+                          {hasMeta && c.priceModifier != null && c.priceModifier !== 0 && (
                             <span>
                               {c.priceModifier > 0 ? "+" : ""}
                               {formatPrice(c.priceModifier)}
                             </span>
                           )}
-                          {c.warning && (
+                          {hasMeta && c.warning && (
                             <span className="text-amber-700">
                               {c.warning} allergy
                             </span>
