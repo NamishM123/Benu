@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { DEFAULT_OPTIONS } from "@/lib/preferences";
 import { setStoredPreferences } from "@/lib/preferences-store";
+import { useTranslation } from "@/lib/i18n";
 
 type Props = {
   open: boolean;
@@ -13,6 +14,7 @@ type Props = {
 const SWIPE_DISMISS_THRESHOLD = 110;
 
 export default function FilterSheet({ open, preferences, onClose }: Props) {
+  const { t } = useTranslation();
   const [draft, setDraft] = useState<Set<string>>(() => new Set(preferences));
   const [dragOffset, setDragOffset] = useState(0);
   const startYRef = useRef<number | null>(null);
@@ -111,9 +113,11 @@ export default function FilterSheet({ open, preferences, onClose }: Props) {
           onTouchCancel={handleTouchEnd}
           className="bg-cream px-6 pt-2 pb-4"
         >
-          <h2 className="font-serif text-2xl text-neutral-900">Filter menu</h2>
+          <h2 className="font-serif text-2xl text-neutral-900">
+            {t("filterMenuTitle")}
+          </h2>
           <p className="mt-1 text-sm text-neutral-600">
-            Items containing what you avoid will be flagged.
+            {t("filterMenuSubtitle")}
           </p>
         </header>
 
@@ -137,7 +141,7 @@ export default function FilterSheet({ open, preferences, onClose }: Props) {
                       : "bg-cream-light text-neutral-900 border-neutral-300/70 hover:bg-[#FFFDF6] hover:border-neutral-400/70",
                   ].join(" ")}
                 >
-                  {opt}
+                  {t(opt)}
                 </button>
               );
             })}
@@ -151,14 +155,14 @@ export default function FilterSheet({ open, preferences, onClose }: Props) {
               onClick={handleClear}
               className="flex-none rounded-full border border-neutral-300 px-4 py-3 text-sm text-neutral-700 hover:bg-neutral-100"
             >
-              Clear
+              {t("clear")}
             </button>
             <button
               type="button"
               onClick={handleApply}
               className="flex-1 rounded-full bg-neutral-900 px-6 py-3 text-sm font-medium text-cream hover:bg-neutral-800"
             >
-              Apply{draft.size > 0 ? ` (${draft.size})` : ""}
+              {t("apply")}{draft.size > 0 ? ` (${draft.size})` : ""}
             </button>
           </div>
         </div>

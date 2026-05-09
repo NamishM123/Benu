@@ -11,6 +11,7 @@ import {
   type CartLine,
 } from "@/lib/cart-store";
 import { pairingReason, pickPairings } from "@/lib/cart-insights";
+import { useTranslation } from "@/lib/i18n";
 
 type Props = {
   open: boolean;
@@ -27,6 +28,7 @@ export default function CartDrawer({
   preferences = [],
   onClose,
 }: Props) {
+  const { t } = useTranslation();
   const [dragOffset, setDragOffset] = useState(0);
   const [confirmRemoveId, setConfirmRemoveId] = useState<string | null>(null);
   const startYRef = useRef<number | null>(null);
@@ -139,12 +141,12 @@ export default function CartDrawer({
           onTouchCancel={handleTouchEnd}
           className="sticky top-6 z-10 flex items-center justify-between border-b border-neutral-200 bg-cream/95 px-6 py-4 backdrop-blur"
         >
-          <h2 className="font-serif text-2xl text-neutral-900">Your cart</h2>
+          <h2 className="font-serif text-2xl text-neutral-900">{t("yourCart")}</h2>
         </header>
 
         {cart.length === 0 ? (
           <div className="px-6 py-16 text-center text-sm text-neutral-600">
-            Your cart is empty. Pick something tasty from the menu.
+            {t("emptyCart")}
           </div>
         ) : (
           <>
@@ -177,7 +179,7 @@ export default function CartDrawer({
                     <div className="inline-flex items-center gap-2 rounded-full border border-neutral-300 bg-white px-2 py-1 select-none">
                       <button
                         type="button"
-                        aria-label="Decrease quantity"
+                        aria-label={t("decreaseQty")}
                         onPointerDown={(e) => {
                           e.preventDefault();
                           startHold(() =>
@@ -200,7 +202,7 @@ export default function CartDrawer({
                       </span>
                       <button
                         type="button"
-                        aria-label="Increase quantity"
+                        aria-label={t("increaseQty")}
                         onPointerDown={(e) => {
                           e.preventDefault();
                           startHold(() =>
@@ -220,7 +222,7 @@ export default function CartDrawer({
                       onClick={() => setConfirmRemoveId(line.id)}
                       className="text-xs text-neutral-500 underline-offset-2 hover:text-neutral-800 hover:underline"
                     >
-                      Remove
+                      {t("remove")}
                     </button>
                   </div>
                 </li>
@@ -273,7 +275,7 @@ export default function CartDrawer({
 
             <div className="sticky bottom-0 mt-2 border-t border-neutral-200 bg-cream/95 px-6 py-5 backdrop-blur">
               <div className="mb-3 flex items-baseline justify-between">
-                <span className="text-sm text-neutral-600">Subtotal</span>
+                <span className="text-sm text-neutral-600">{t("subtotal")}</span>
                 <span className="text-lg font-medium text-neutral-900">
                   {formatPrice(total)}
                 </span>
@@ -286,16 +288,16 @@ export default function CartDrawer({
                   }}
                   className="flex-none rounded-full border border-neutral-300 px-4 py-3 text-sm text-neutral-700 hover:bg-neutral-100"
                 >
-                  Clear
+                  {t("clear")}
                 </button>
                 <button
                   type="button"
                   className="flex-1 rounded-full bg-neutral-900 px-6 py-3 text-sm font-medium text-cream hover:bg-neutral-800"
                   onClick={() => {
-                    alert("Checkout flow coming soon.");
+                    alert(t("checkoutComingSoon"));
                   }}
                 >
-                  Checkout
+                  {t("checkout")}
                 </button>
               </div>
             </div>
@@ -318,14 +320,14 @@ export default function CartDrawer({
               className="mx-6 w-full max-w-[340px] rounded-2xl bg-cream p-5 shadow-xl"
             >
               <h3 className="font-serif text-xl text-neutral-900">
-                Remove this item?
+                {t("removeTitle")}
               </h3>
               <p className="mt-2 text-sm text-neutral-600">
-                Are you sure you want to remove{" "}
+                {t("removeQuestion")}{" "}
                 <span className="font-medium text-neutral-900">
                   {cart.find((l) => l.id === confirmRemoveId)?.itemName}
                 </span>{" "}
-                from your cart?
+                {t("fromCart")}
               </p>
               <div className="mt-5 flex gap-3">
                 <button
@@ -333,7 +335,7 @@ export default function CartDrawer({
                   onClick={() => setConfirmRemoveId(null)}
                   className="flex-1 rounded-full border border-neutral-300 px-4 py-2.5 text-sm text-neutral-700 hover:bg-neutral-100"
                 >
-                  Cancel
+                  {t("cancel")}
                 </button>
                 <button
                   type="button"
@@ -343,7 +345,7 @@ export default function CartDrawer({
                   }}
                   className="flex-1 rounded-full bg-neutral-900 px-4 py-2.5 text-sm font-medium text-cream hover:bg-neutral-800"
                 >
-                  Remove
+                  {t("remove")}
                 </button>
               </div>
             </div>
