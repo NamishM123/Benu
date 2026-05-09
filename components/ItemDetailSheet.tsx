@@ -233,7 +233,15 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
             <img
               src={item.image}
               alt={item.name}
-              className="h-full w-full object-cover"
+              decoding="async"
+              fetchPriority="high"
+              className="h-full w-full object-cover opacity-0 transition-opacity duration-200"
+              onLoad={(e) => {
+                e.currentTarget.style.opacity = "1";
+              }}
+              onError={(e) => {
+                e.currentTarget.style.opacity = "1";
+              }}
             />
           </div>
 
