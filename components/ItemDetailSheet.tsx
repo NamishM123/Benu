@@ -164,8 +164,12 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
         {/* Soft fade strip at top: image scrolls into this instead of being cut sharply */}
         <div
           aria-hidden="true"
-          style={{ opacity: fadeOpacity }}
-          className="pointer-events-none sticky top-0 z-10 -mb-12 h-12 bg-gradient-to-b from-cream via-cream/80 to-transparent transition-opacity duration-150 sm:rounded-t-3xl"
+          style={{
+            opacity: fadeOpacity,
+            background:
+              "linear-gradient(to bottom, #FBF7EE 0%, rgba(251,247,238,0.95) 25%, rgba(251,247,238,0.75) 50%, rgba(251,247,238,0.4) 75%, rgba(251,247,238,0) 100%)",
+          }}
+          className="pointer-events-none sticky top-0 z-10 -mb-24 h-24 transition-opacity duration-150 sm:rounded-t-3xl"
         />
 
         <div className="px-6 pt-6">
