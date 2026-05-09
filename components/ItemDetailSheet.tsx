@@ -261,7 +261,14 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
           }}
         >
           <div>
-            <h2 className="font-serif text-3xl tracking-tight text-neutral-900">
+            <h2
+              className={[
+                "text-2xl font-semibold uppercase text-neutral-900",
+                lang === "zh"
+                  ? "tracking-normal"
+                  : "tracking-[0.08em]",
+              ].join(" ")}
+            >
               {localName(item, lang, autoMap)}
             </h2>
             <div className="mt-1 flex items-baseline gap-3 text-sm text-neutral-700">
