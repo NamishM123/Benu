@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { formatPrice, type MenuItem } from "@/lib/menu";
 import { getOptionGroupsForItem, type OptionGroup } from "@/lib/menu-options";
 import { findFlaggedPreferences } from "@/lib/preferences";
@@ -37,6 +37,32 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
   const [quantity, setQuantity] = useState(1);
   const [justAdded, setJustAdded] = useState(false);
   const [fadeOpacity, setFadeOpacity] = useState(0);
+
+  // Hold-to-repeat for quantity buttons
+  const holdTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const holdIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  function clearHold() {
+    if (holdTimeoutRef.current) {
+      clearTimeout(holdTimeoutRef.current);
+      holdTimeoutRef.current = null;
+    }
+    if (holdIntervalRef.current) {
+      clearInterval(holdIntervalRef.current);
+      holdIntervalRef.current = null;
+    }
+  }
+
+  function startHold(step: () => void) {
+    step(); // immediate change on press
+    // After 400ms hold, start repeating every 80ms
+    holdTimeoutRef.current = setTimeout(() => {
+      holdIntervalRef.current = setInterval(step, 80);
+    }, 400);
+  }
+
+  // Always clear any active hold when popup unmounts
+  useEffect(() => clearHold, []);
 
   // Reset when a new item opens
   useEffect(() => {
@@ -273,12 +299,18 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
               <h3 className="mb-2 text-sm font-semibold uppercase tracking-wider text-neutral-700">
                 Quantity
               </h3>
-              <div className="inline-flex items-center gap-3 rounded-full border border-neutral-300 bg-white px-3 py-2">
+              <div className="inline-flex items-center gap-3 rounded-full border border-neutral-300 bg-white px-3 py-2 select-none">
                 <button
                   type="button"
                   aria-label="Decrease quantity"
-                  onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-cantaloupe text-neutral-900 hover:bg-cantaloupe-soft"
+                  onPointerDown={(e) => {
+                    e.preventDefault();
+                    startHold(() => setQuantity((q) => Math.max(1, q - 1)));
+                  }}
+                  onPointerUp={clearHold}
+                  onPointerLeave={clearHold}
+                  onPointerCancel={clearHold}
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-cantaloupe text-neutral-900 hover:bg-cantaloupe-soft active:bg-cantaloupe-deep touch-none"
                 >
                   −
                 </button>
@@ -288,8 +320,14 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
                 <button
                   type="button"
                   aria-label="Increase quantity"
-                  onClick={() => setQuantity((q) => q + 1)}
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-cantaloupe text-neutral-900 hover:bg-cantaloupe-soft"
+                  onPointerDown={(e) => {
+                    e.preventDefault();
+                    startHold(() => setQuantity((q) => q + 1));
+                  }}
+                  onPointerUp={clearHold}
+                  onPointerLeave={clearHold}
+                  onPointerCancel={clearHold}
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-cantaloupe text-neutral-900 hover:bg-cantaloupe-soft active:bg-cantaloupe-deep touch-none"
                 >
                   +
                 </button>
