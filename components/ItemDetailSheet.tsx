@@ -207,7 +207,7 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
           className="pointer-events-none sticky top-0 z-10 -mb-24 h-24 transition-opacity duration-150 sm:rounded-t-3xl"
         />
 
-        {/* Hero: image on cream background with a circular backdrop */}
+        {/* Hero: image on cream background */}
         <div className="relative">
           <button
             type="button"
@@ -218,11 +218,6 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
             ×
           </button>
           <div className="relative aspect-square w-full overflow-hidden sm:rounded-t-3xl">
-            {/* Circular backdrop behind the product */}
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute left-1/2 top-1/2 aspect-square h-[72%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-cantaloupe-soft/45"
-            />
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={item.image}
@@ -236,7 +231,7 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
                 }
               }}
               style={{ filter: "blur(8px)" }}
-              className="relative z-10 h-full w-full object-contain p-8 opacity-0 transition-[opacity,filter] duration-500 ease-out sm:p-10"
+              className="relative z-10 h-full w-full object-contain p-6 opacity-0 transition-[opacity,filter] duration-500 ease-out sm:p-10"
               onLoad={(e) => {
                 e.currentTarget.style.opacity = "1";
                 e.currentTarget.style.filter = "blur(0px)";
@@ -254,8 +249,14 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
           </div>
         </div>
 
-        {/* Lighter content card with rounded top */}
-        <div className="relative -mt-6 rounded-t-[2rem] bg-cream-light px-6 pt-8 pb-6 shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.05)]">
+        {/* Lighter content card with a wide arc top edge */}
+        <div
+          className="relative -mt-10 bg-cream-light px-6 pt-12 pb-6 shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.05)]"
+          style={{
+            borderTopLeftRadius: "50% 40px",
+            borderTopRightRadius: "50% 40px",
+          }}
+        >
           <div>
             <h2 className="font-serif text-3xl tracking-tight text-neutral-900">
               {localName(item, lang, autoMap)}
