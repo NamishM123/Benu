@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type MouseEvent } from "react";
 import { useRouter } from "next/navigation";
 import { DEFAULT_OPTIONS } from "@/lib/preferences";
 import {
@@ -33,7 +33,7 @@ export default function DietaryPreferences({
     if (stored.length > 0) setSelected(new Set(stored));
   }, [initialSelected]);
 
-  function togglePreference(pref: string, event: React.MouseEvent<HTMLButtonElement>) {
+  function togglePreference(pref: string, event: MouseEvent<HTMLButtonElement>) {
     setSelected((prev) => {
       const next = new Set(prev);
       if (next.has(pref)) next.delete(pref);
