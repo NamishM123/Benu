@@ -102,6 +102,7 @@ const TRANSLATIONS = {
   markReady: { en: "Mark ready", zh: "标记完成" },
   clearOrder: { en: "Clear", zh: "清除" },
   qty: { en: "Qty", zh: "数量" },
+  staffKitchen: { en: "Staff · Kitchen", zh: "员工 · 厨房" },
 
   // Customer order status page
   orderConfirmedTitle: { en: "Order received!", zh: "订单已收到！" },

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
   formatPrice,
@@ -386,6 +387,15 @@ export default function MenuPage({ menu }: Props) {
               );
             })}
           </section>
+
+          <footer className="mt-16 flex justify-center px-6 pb-6 sm:px-10">
+            <Link
+              href="/kitchen"
+              className="text-xs text-neutral-500 underline-offset-4 hover:text-neutral-800 hover:underline"
+            >
+              {t("staffKitchen")}
+            </Link>
+          </footer>
         </div>
       </main>
 
