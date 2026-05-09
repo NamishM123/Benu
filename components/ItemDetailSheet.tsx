@@ -205,7 +205,7 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
                           "rounded-2xl border px-3 py-3 text-left text-sm transition-all",
                           "focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30",
                           picked
-                            ? "border-neutral-900 bg-sage-dark text-neutral-900 shadow-inner"
+                            ? "border-cantaloupe-deep bg-cantaloupe text-neutral-900 shadow-inner"
                             : "border-neutral-300 bg-white text-neutral-800 hover:border-neutral-500 hover:shadow-sm",
                         ].join(" ")}
                       >
@@ -256,7 +256,7 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
                   type="button"
                   aria-label="Decrease quantity"
                   onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-sage-dark text-neutral-900 hover:bg-sage"
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-cantaloupe text-neutral-900 hover:bg-cantaloupe-soft"
                 >
                   −
                 </button>
@@ -267,7 +267,7 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
                   type="button"
                   aria-label="Increase quantity"
                   onClick={() => setQuantity((q) => q + 1)}
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-sage-dark text-neutral-900 hover:bg-sage"
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-cantaloupe text-neutral-900 hover:bg-cantaloupe-soft"
                 >
                   +
                 </button>
