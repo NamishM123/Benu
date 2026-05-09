@@ -21,6 +21,7 @@ import ItemDetailSheet from "./ItemDetailSheet";
 import CartDrawer from "./CartDrawer";
 import FilterSheet from "./FilterSheet";
 import LanguageSwitcher from "./LanguageSwitcher";
+import MobileHeaderControl from "./MobileHeaderControl";
 import { useTranslation } from "@/lib/i18n";
 import { useAutoTranslate } from "@/lib/auto-translate";
 
@@ -131,17 +132,28 @@ export default function MenuPage({ menu }: Props) {
                 fetchPriority="high"
                 decoding="sync"
                 loading="eager"
-                className="h-28 w-auto sm:h-36"
+                className="h-20 w-auto sm:h-32"
               />
             </button>
             <div className="flex items-center gap-2">
-              <LanguageSwitcher />
+              {/* Mobile: rotating swipe control (filters ↔ language) */}
+              <div className="sm:hidden">
+                <MobileHeaderControl
+                  onFiltersOpen={() => setFiltersOpen(true)}
+                  preferencesCount={preferences.length}
+                />
+              </div>
+
+              {/* Desktop: language switcher + filters as separate buttons */}
+              <div className="hidden sm:block">
+                <LanguageSwitcher />
+              </div>
               <button
               type="button"
               onClick={() => setFiltersOpen(true)}
               aria-label={t("filters")}
               className={[
-                "inline-flex items-center gap-2 rounded-full px-4 py-2 text-base font-medium transition-colors",
+                "hidden sm:inline-flex items-center gap-2 rounded-full px-4 py-2 text-base font-medium transition-colors",
                 "focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30",
                 preferences.length > 0
                   ? "bg-cantaloupe text-neutral-900 hover:bg-cantaloupe-soft"
