@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { formatPrice, spiceLabel, type MenuItem } from "@/lib/menu";
+import { formatPrice, type MenuItem } from "@/lib/menu";
 import { findFlaggedPreferences } from "@/lib/preferences";
 import { getStoredPreferences } from "@/lib/preferences-store";
 import {
@@ -175,7 +175,6 @@ export default function MenuPage({ menu }: Props) {
           <section className="grid grid-cols-1 gap-x-8 gap-y-12 px-6 pt-4 sm:grid-cols-2 sm:px-10 lg:grid-cols-3">
             {visibleItems.map((d) => {
               const flags = findFlaggedPreferences(d, preferences);
-              const isSpicy = d.spiceLevel >= 2;
               const isRestricted = flags.length > 0;
               return (
                 <button
@@ -213,9 +212,22 @@ export default function MenuPage({ menu }: Props) {
                         alt={d.name}
                         className="h-full w-full object-cover"
                       />
-                      {isSpicy && (
-                        <span className="absolute left-4 top-4 rounded-full bg-lime-300 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-neutral-900">
-                          {d.spiceLevel === 3 ? "Very Spicy" : "Spicy"}
+                      {d.spiceLevel >= 1 && (
+                        <span
+                          className={[
+                            "absolute left-4 top-4 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider",
+                            d.spiceLevel === 1
+                              ? "bg-yellow-200 text-neutral-900"
+                              : d.spiceLevel === 2
+                              ? "bg-orange-400 text-neutral-900"
+                              : "bg-rose-600 text-white",
+                          ].join(" ")}
+                        >
+                          {d.spiceLevel === 1
+                            ? "Mildly Spicy"
+                            : d.spiceLevel === 2
+                            ? "Spicy"
+                            : "Very Spicy"}
                         </span>
                       )}
                       {flags.length > 0 && (
@@ -243,13 +255,8 @@ export default function MenuPage({ menu }: Props) {
                     <p className="mt-2 text-sm leading-relaxed text-neutral-500">
                       {d.description}
                     </p>
-                    {(flags.length > 0 || d.spiceLevel >= 1) && (
+                    {flags.length > 0 && (
                       <div className="mt-2 flex flex-wrap gap-1.5">
-                        {d.spiceLevel >= 1 && (
-                          <span className="text-[11px] uppercase tracking-wider text-rose-700">
-                            {spiceLabel(d.spiceLevel)}
-                          </span>
-                        )}
                         {flags.map((f) => (
                           <span
                             key={f}
