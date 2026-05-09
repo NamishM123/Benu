@@ -19,6 +19,30 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Slim scrollbar that stays inside rounded popups instead of clipping the corners */
+.popup-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 0, 0, 0.25) transparent;
+}
+.popup-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+.popup-scroll::-webkit-scrollbar-track {
+  background: transparent;
+  /* Inset the track so the thumb never sits in the rounded corner */
+  margin-top: 24px;
+  margin-bottom: 24px;
+}
+.popup-scroll::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.25);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+.popup-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
 /* Prevent the browser's native ghost-image drag and selection flash on every image */
 img {
   -webkit-user-drag: none;
