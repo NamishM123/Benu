@@ -20,9 +20,9 @@ const config: Config = {
           deep: "#E88A5C",
         },
         butter: {
-          DEFAULT: "#FFEAA8",
-          soft: "#FFF3CC",
-          deep: "#E8C871",
+          DEFAULT: "#FFD93D",
+          soft: "#FFE970",
+          deep: "#D4A91A",
         },
       },
       fontFamily: {
