@@ -5,6 +5,7 @@ import { formatPrice, type MenuItem } from "@/lib/menu";
 import { getOptionGroupsForItem, type OptionGroup } from "@/lib/menu-options";
 import { findFlaggedPreferences } from "@/lib/preferences";
 import { addToCart } from "@/lib/cart-store";
+import { useTranslation } from "@/lib/i18n";
 
 type Props = {
   item: MenuItem | null;
@@ -27,6 +28,7 @@ function initialSelections(groups: OptionGroup[]): Selections {
 }
 
 export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
+  const { t } = useTranslation();
   const groups = useMemo(
     () => (item ? getOptionGroupsForItem(item) : []),
     [item],
@@ -191,7 +193,7 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
             <button
               type="button"
               onClick={onClose}
-              aria-label="Close"
+              aria-label={t("close")}
               className="absolute top-4 left-4 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-neutral-900/55 text-base leading-none text-white backdrop-blur-sm hover:bg-neutral-900/75 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
             >
               ×
@@ -216,8 +218,10 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
             </p>
             {flags.length > 0 && (
               <p className="mt-3 text-sm text-amber-700">
-                Heads up: this item contains {flags.join(", ").toLowerCase()},
-                which is in your preferences.
+                {t("headsUp")}{" "}
+                {flags.map((f) => t(f).toLowerCase()).join(", ")}
+                {", "}
+                {t("inYourPrefs")}
               </p>
             )}
           </div>
@@ -227,11 +231,11 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
               <section key={g.id}>
                 <div className="mb-2 flex items-baseline justify-between">
                   <h3 className="text-sm font-semibold uppercase tracking-wider text-neutral-700">
-                    {g.label}
+                    {t(`group_${g.id}`)}
                   </h3>
                   {g.required && (
                     <span className="text-[10px] uppercase tracking-wider text-neutral-500">
-                      Required
+                      {t("required")}
                     </span>
                   )}
                 </div>
@@ -273,7 +277,7 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
                               </span>
                             )}
                           </span>
-                          <span className="font-medium">{c.label}</span>
+                          <span className="font-medium">{t(`choice_${c.id}`) !== `choice_${c.id}` ? t(`choice_${c.id}`) : c.label}</span>
                         </div>
                         <div className="mt-1 ml-6 flex min-h-[1rem] flex-wrap items-center gap-x-2 text-xs text-neutral-500">
                           {hasMeta && c.priceModifier != null && c.priceModifier !== 0 && (
@@ -284,7 +288,7 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
                           )}
                           {hasMeta && c.warning && (
                             <span className="text-amber-700">
-                              {c.warning} allergy
+                              {t(c.warning.charAt(0).toUpperCase() + c.warning.slice(1))} {t("containsAllergen")}
                             </span>
                           )}
                         </div>
@@ -297,12 +301,12 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
 
             <section>
               <h3 className="mb-2 text-sm font-semibold uppercase tracking-wider text-neutral-700">
-                Quantity
+                {t("quantity")}
               </h3>
               <div className="inline-flex items-center gap-3 rounded-full border border-neutral-300 bg-white px-3 py-2 select-none">
                 <button
                   type="button"
-                  aria-label="Decrease quantity"
+                  aria-label={t("decreaseQty")}
                   onPointerDown={(e) => {
                     e.preventDefault();
                     startHold(() => setQuantity((q) => Math.max(1, q - 1)));
@@ -319,7 +323,7 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
                 </span>
                 <button
                   type="button"
-                  aria-label="Increase quantity"
+                  aria-label={t("increaseQty")}
                   onPointerDown={(e) => {
                     e.preventDefault();
                     startHold(() => setQuantity((q) => q + 1));
@@ -347,7 +351,7 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
                   : "bg-neutral-300 text-neutral-500",
               ].join(" ")}
             >
-              <span>{justAdded ? "Added ✓" : "Add to cart"}</span>
+              <span>{justAdded ? t("added") : t("addToCart")}</span>
               <span>{formatPrice(totalPrice)}</span>
             </button>
           </div>

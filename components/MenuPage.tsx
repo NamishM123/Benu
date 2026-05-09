@@ -14,6 +14,8 @@ import ChatWidget from "./ChatWidget";
 import ItemDetailSheet from "./ItemDetailSheet";
 import CartDrawer from "./CartDrawer";
 import FilterSheet from "./FilterSheet";
+import LanguageSwitcher from "./LanguageSwitcher";
+import { useTranslation } from "@/lib/i18n";
 
 const CATEGORY_ORDER = [
   "Appetizers",
@@ -28,6 +30,7 @@ type Props = {
 };
 
 export default function MenuPage({ menu }: Props) {
+  const { t } = useTranslation();
   const [preferences, setPreferences] = useState<string[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>(
     CATEGORY_ORDER[0],
@@ -82,7 +85,7 @@ export default function MenuPage({ menu }: Props) {
                   window.scrollTo({ top: 0, behavior: "smooth" });
                 }
               }}
-              aria-label="Back to start of menu"
+              aria-label={t("backToStart")}
               className="cursor-default rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -92,10 +95,12 @@ export default function MenuPage({ menu }: Props) {
                 className="h-28 w-auto sm:h-36"
               />
             </button>
-            <button
+            <div className="flex items-center gap-2">
+              <LanguageSwitcher />
+              <button
               type="button"
               onClick={() => setFiltersOpen(true)}
-              aria-label="Open dietary filters"
+              aria-label={t("filters")}
               className={[
                 "inline-flex items-center gap-2 rounded-full px-4 py-2 text-base font-medium transition-colors",
                 "focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30",
@@ -121,15 +126,16 @@ export default function MenuPage({ menu }: Props) {
                 <line x1="10" y1="18" x2="14" y2="18" />
               </svg>
               <span>
-                Filters
+                {t("filters")}
                 {preferences.length > 0 ? ` · ${preferences.length}` : ""}
               </span>
             </button>
+            </div>
           </div>
           {preferences.length > 0 && (
             <div className="px-6 pt-2 sm:px-10">
               <p className="text-xs text-neutral-600">
-                Flagging items containing: {preferences.join(", ")}
+                {t("flaggingItems")}: {preferences.map((p) => t(p)).join(", ")}
               </p>
             </div>
           )}
@@ -164,7 +170,7 @@ export default function MenuPage({ menu }: Props) {
                           : "text-neutral-600 hover:text-neutral-900",
                       ].join(" ")}
                     >
-                      {cat}
+                      {t(`cat_${cat}`)}
                     </button>
                   );
                 })}
@@ -224,15 +230,15 @@ export default function MenuPage({ menu }: Props) {
                           ].join(" ")}
                         >
                           {d.spiceLevel === 1
-                            ? "Mildly Spicy"
+                            ? t("mildlySpicy")
                             : d.spiceLevel === 2
-                            ? "Spicy"
-                            : "Very Spicy"}
+                            ? t("spicy")
+                            : t("verySpicy")}
                         </span>
                       )}
                       {flags.length > 0 && (
                         <span className="absolute right-4 top-4 rounded-full bg-amber-50/95 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-amber-800">
-                          Filtered
+                          {t("filteredBadge")}
                         </span>
                       )}
                     </div>
@@ -262,7 +268,7 @@ export default function MenuPage({ menu }: Props) {
                             key={f}
                             className="text-[11px] uppercase tracking-wider text-amber-700"
                           >
-                            contains {f.toLowerCase()}
+                            {t("headsUp")} {t(f).toLowerCase()}
                           </span>
                         ))}
                       </div>
