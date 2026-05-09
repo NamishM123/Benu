@@ -112,7 +112,7 @@ export default function MenuPage({ menu }: Props) {
     <>
       <main className="min-h-screen w-full bg-cream pb-28">
         <div className="mx-auto w-full max-w-6xl">
-          <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 px-6 pt-3 sm:px-10">
+          <div className="flex items-center justify-between gap-3 px-6 pt-3 sm:px-10">
             <button
               type="button"
               onClick={() => {
@@ -210,7 +210,7 @@ export default function MenuPage({ menu }: Props) {
 
           <nav
             aria-label="Menu categories"
-            className="sticky top-0 z-20 mt-1 bg-cream/95 backdrop-blur"
+            className="sticky top-0 z-20 bg-cream/95 backdrop-blur"
           >
             <div className="overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <div className="flex w-max min-w-full items-center justify-start gap-2 px-6 py-3 sm:justify-center sm:px-10">
@@ -246,7 +246,7 @@ export default function MenuPage({ menu }: Props) {
             </div>
           </nav>
 
-          <section className="grid grid-cols-1 gap-x-8 gap-y-12 px-6 pt-10 sm:grid-cols-2 sm:px-10 lg:grid-cols-3">
+          <section className="grid grid-cols-1 gap-x-8 gap-y-12 px-6 pt-2 sm:grid-cols-2 sm:px-10 lg:grid-cols-3">
             {visibleItems.map((d) => {
               const flags = findFlaggedPreferences(d, preferences);
               const isRestricted = flags.length > 0;
