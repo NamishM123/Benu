@@ -5,49 +5,55 @@ import { DEFAULT_OPTIONS } from "@/lib/preferences";
 import { setStoredPreferences } from "@/lib/preferences-store";
 import { useTranslation } from "@/lib/i18n";
 
+// Icon set: Lucide (https://lucide.dev) — milk, fish, wheat, beef, nut, bean.
 const OPTION_ICONS: Record<string, ReactNode> = {
   Dairy: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M8 3h8l1 4-1 12a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2L7 7l1-4z" />
-      <path d="M7 7h10" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M8 2h8" />
+      <path d="M9 2v2.789a4 4 0 0 1-.672 2.219l-.656.984A4 4 0 0 0 7 10.212V20a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-9.789a4 4 0 0 0-.672-2.219l-.656-.984A4 4 0 0 1 15 4.788V2" />
+      <path d="M7 15a6.472 6.472 0 0 1 5 0 6.47 6.47 0 0 0 5 0" />
     </svg>
   ),
   Fish: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 12c3-5 8-6 12-6 4 0 6 3 6 6s-2 6-6 6c-4 0-9-1-12-6z" />
-      <path d="M21 12l-3-2v4l3-2z" />
-      <circle cx="8" cy="11" r="0.8" fill="currentColor" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M6.5 12c.94-3.46 4.94-6 8.5-6 3.56 0 6.06 2.54 7 6-.94 3.47-3.44 6-7 6s-7.56-2.53-8.5-6Z" />
+      <path d="M18 12v.5" />
+      <path d="M16 17.93a9.77 9.77 0 0 1 0-11.86" />
+      <path d="M7 10.67C7 8 5.58 5.97 2.73 5.5c-1 1.5-1 5 .23 6.5-1.24 1.5-1.24 5-.23 6.5C5.58 18.03 7 16 7 13.33" />
+      <path d="M10.46 7.26C10.2 5.88 9.17 4.24 8 3h5.8a2 2 0 0 1 1.98 1.67l.23 1.4" />
+      <path d="m16.01 17.93-.23 1.4A2 2 0 0 1 13.8 21H9.5a5.96 5.96 0 0 0 1.49-3.98" />
     </svg>
   ),
   Gluten: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 3v18" />
-      <path d="M12 7c-2-1-4-1-5 1 1 2 3 2 5 1" />
-      <path d="M12 7c2-1 4-1 5 1-1 2-3 2-5 1" />
-      <path d="M12 12c-2-1-4-1-5 1 1 2 3 2 5 1" />
-      <path d="M12 12c2-1 4-1 5 1-1 2-3 2-5 1" />
-      <path d="M12 17c-2-1-4-1-5 1 1 2 3 2 5 1" />
-      <path d="M12 17c2-1 4-1 5 1-1 2-3 2-5 1" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2 22 16 8" />
+      <path d="M3.47 12.53 5 11l1.53 1.53a3.5 3.5 0 0 1 0 4.94L5 19l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z" />
+      <path d="M7.47 8.53 9 7l1.53 1.53a3.5 3.5 0 0 1 0 4.94L9 15l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z" />
+      <path d="M11.47 4.53 13 3l1.53 1.53a3.5 3.5 0 0 1 0 4.94L13 11l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z" />
+      <path d="M20 2h2v2a4 4 0 0 1-4 4h-2V6a4 4 0 0 1 4-4Z" />
+      <path d="M11.47 17.47 13 19l-1.53 1.53a3.5 3.5 0 0 1-4.94 0L5 19l1.53-1.53a3.5 3.5 0 0 1 4.94 0Z" />
+      <path d="M15.47 13.47 17 15l-1.53 1.53a3.5 3.5 0 0 1-4.94 0L9 15l1.53-1.53a3.5 3.5 0 0 1 4.94 0Z" />
+      <path d="M19.47 9.47 21 11l-1.53 1.53a3.5 3.5 0 0 1-4.94 0L13 11l1.53-1.53a3.5 3.5 0 0 1 4.94 0Z" />
     </svg>
   ),
   Meat: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M5 13a7 7 0 1 1 11 5l-3 3-2-2-3-2-3-2v-2z" />
-      <circle cx="9" cy="11" r="1.3" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M16.4 13.7A6.5 6.5 0 1 0 6.28 6.6c-1.1 3.13-.78 3.9-3.18 6.08A3 3 0 0 0 5 18c4 0 8.4-1.8 11.4-4.3" />
+      <path d="m18.5 6 2.19 4.5a6.48 6.48 0 0 1-2.29 7.2C15.4 20.2 11 22 7 22a3 3 0 0 1-2.68-1.66L2.4 16.5" />
+      <circle cx="12.5" cy="8.5" r="2.5" />
     </svg>
   ),
   Nuts: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-      <ellipse cx="12" cy="12" rx="5" ry="8" />
-      <path d="M9 7c1 2 1 8 0 10" />
-      <path d="M15 7c-1 2-1 8 0 10" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 4V2" />
+      <path d="M5 10v4a7.004 7.004 0 0 0 5.277 6.787c.412.104.802.292 1.102.592L12 22l.621-.621c.3-.3.69-.488 1.102-.592A7.003 7.003 0 0 0 19 14v-4" />
+      <path d="M12 4C8 4 4.5 6 4 8c-.243.97-.919 1.952-2 3 1.31-.082 1.972-.29 3-1 .54.92.982 1.356 2 2 1.452-.647 1.954-1.098 2.5-2 .595.995 1.151 1.427 2.5 2 1.31-.621 1.862-1.058 2.5-2 .629.977 1.162 1.423 2.5 2 1.209-.548 1.68-.967 2-2 1.032.916 1.683 1.157 3 1-1.297-1.036-1.758-2.03-2-3-.5-2-4-4-8-4Z" />
     </svg>
   ),
   Soy: (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
-      <ellipse cx="9" cy="9" rx="3.5" ry="3" transform="rotate(-30 9 9)" />
-      <ellipse cx="15" cy="15" rx="3.5" ry="3" transform="rotate(-30 15 15)" />
-      <path d="M5 14c4 0 6-2 6-6" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10.165 6.598C9.954 7.478 9.64 8.36 9 9c-.64.64-1.521.954-2.402 1.165A6 6 0 0 0 8 22c7.732 0 14-6.268 14-14a6 6 0 0 0-11.835-1.402Z" />
+      <path d="M5.341 10.62a4 4 0 1 0 5.279-5.28" />
     </svg>
   ),
 };
@@ -227,13 +233,13 @@ export default function FilterSheet({ open, preferences, onClose }: Props) {
                   <span
                     aria-hidden="true"
                     className={[
-                      "flex h-10 w-10 flex-none items-center justify-center rounded-full transition-colors",
+                      "flex h-11 w-11 flex-none items-center justify-center rounded-full transition-colors",
                       active
                         ? "bg-cantaloupe text-neutral-900"
                         : "bg-white text-neutral-700",
                     ].join(" ")}
                   >
-                    <span className="h-5 w-5">{OPTION_ICONS[opt]}</span>
+                    <span className="h-[22px] w-[22px]">{OPTION_ICONS[opt]}</span>
                   </span>
                   <span className="flex-1">
                     <span className="block text-base font-medium text-neutral-900">
