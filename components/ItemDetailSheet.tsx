@@ -130,7 +130,7 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
         aria-modal="true"
         aria-label={item.name}
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-[640px] h-[100dvh] overflow-y-auto bg-cream shadow-xl sm:h-auto sm:max-h-[92vh] sm:rounded-3xl"
+        className="relative w-full max-w-[480px] h-[100dvh] overflow-y-auto bg-cream shadow-xl sm:h-auto sm:max-h-[92vh] sm:rounded-3xl"
       >
         <div className="px-6 pt-6">
           <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-neutral-100">
@@ -138,7 +138,7 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
               type="button"
               onClick={onClose}
               aria-label="Close"
-              className="absolute top-3 left-3 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-neutral-900/55 text-lg leading-none text-white backdrop-blur-sm hover:bg-neutral-900/75 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+              className="absolute top-4 left-4 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-neutral-900/55 text-base leading-none text-white backdrop-blur-sm hover:bg-neutral-900/75 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
             >
               ×
             </button>
