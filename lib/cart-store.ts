@@ -9,6 +9,7 @@ export type CartLine = {
   unitPrice: number;
   selections: { groupLabel: string; choiceLabels: string[] }[];
   specialRequest?: string;
+  image?: string;
 };
 
 function sameSelections(
