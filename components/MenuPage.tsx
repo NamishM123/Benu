@@ -224,7 +224,7 @@ export default function MenuPage({ menu }: Props) {
         cart={cart}
         onClose={() => setCartOpen(false)}
       />
-      <ChatWidget />
+      <ChatWidget hidden={cartOpen || activeItem !== null} />
     </>
   );
 }
