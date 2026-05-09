@@ -230,7 +230,7 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
                 }
               }}
               style={{ filter: "blur(8px)" }}
-              className="h-full w-full object-cover opacity-0 transition-[opacity,filter] duration-500 ease-out"
+              className="h-full w-full object-contain opacity-0 transition-[opacity,filter] duration-500 ease-out"
               onLoad={(e) => {
                 e.currentTarget.style.opacity = "1";
                 e.currentTarget.style.filter = "blur(0px)";
