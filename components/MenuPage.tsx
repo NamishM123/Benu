@@ -197,7 +197,7 @@ export default function MenuPage({ menu }: Props) {
                       : undefined
                   }
                   className={[
-                    "group flex flex-col text-left rounded-[28px] transition-all duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30",
+                    "group flex flex-col text-left rounded-[28px] outline-none transition-all duration-150",
                     isRestricted
                       ? "cursor-not-allowed"
                       : "hover:-translate-y-0.5",
@@ -208,7 +208,7 @@ export default function MenuPage({ menu }: Props) {
                       "relative overflow-hidden rounded-[28px] bg-white shadow-sm ring-4 ring-transparent transition-all duration-150",
                       isRestricted
                         ? "opacity-50 grayscale"
-                        : "group-hover:bg-butter-soft group-hover:shadow-lg group-hover:ring-butter",
+                        : "group-hover:bg-butter-soft group-hover:shadow-lg group-hover:ring-butter group-focus-visible:ring-butter",
                     ].join(" ")}
                   >
                     <div className="relative aspect-square w-full bg-neutral-100">
