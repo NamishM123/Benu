@@ -142,6 +142,14 @@ export default function MenuPage({ menu }: Props) {
                         src={d.image}
                         alt={d.name}
                         className="h-full w-full object-cover"
+                        onError={(e) => {
+                          const el = e.currentTarget;
+                          if (!el.dataset.fallback) {
+                            el.dataset.fallback = "1";
+                            el.src =
+                              "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=800&q=80";
+                          }
+                        }}
                       />
                       {isSpicy && (
                         <span className="absolute left-4 top-4 rounded-full bg-lime-300 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-neutral-900">
