@@ -235,6 +235,11 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
               alt={item.name}
               decoding="async"
               fetchPriority="high"
+              ref={(img) => {
+                if (img && img.complete && img.naturalWidth > 0) {
+                  img.style.opacity = "1";
+                }
+              }}
               className="h-full w-full object-cover opacity-0 transition-opacity duration-200"
               onLoad={(e) => {
                 e.currentTarget.style.opacity = "1";
