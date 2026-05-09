@@ -9,6 +9,14 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overscroll-behavior-y: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Kill the brief default focus / tap highlight on every clickable element */
+*,
+*::before,
+*::after {
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Prevent the browser's native ghost-image drag and selection flash on every image */
