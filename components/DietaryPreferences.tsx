@@ -54,9 +54,11 @@ export default function DietaryPreferences({
     <>
       <main className="flex min-h-screen w-full justify-center bg-cream">
         <div className="flex w-full max-w-[420px] flex-col px-6 py-8">
-          <div
-            className="mx-auto mb-8 h-1 w-10 rounded-full bg-neutral-400/60"
-            aria-hidden="true"
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/shake-shake-logo.png"
+            alt="Shake Shake Fresh Noodle"
+            className="mx-auto mb-6 h-20 w-auto sm:h-24"
           />
 
           <header className="mb-6">

@@ -74,9 +74,12 @@ export default function MenuPage({ menu }: Props) {
       <main className="min-h-screen w-full bg-cream pb-28">
         <div className="mx-auto w-full max-w-6xl">
           <div className="flex items-center justify-between gap-3 px-6 pt-6 sm:px-10">
-            <h1 className="font-serif text-2xl tracking-tight text-neutral-900 sm:text-3xl">
-              Menu
-            </h1>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/shake-shake-logo.png"
+              alt="Shake Shake Fresh Noodle"
+              className="h-16 w-auto sm:h-20"
+            />
             <button
               type="button"
               onClick={() => setFiltersOpen(true)}
