@@ -132,16 +132,7 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
         onClick={(e) => e.stopPropagation()}
         className="relative w-full max-w-[480px] max-h-[92vh] overflow-y-auto rounded-t-3xl bg-cream shadow-xl sm:rounded-3xl"
       >
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close"
-          className="sticky top-3 left-3 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-neutral-200/90 text-neutral-700 hover:bg-neutral-300"
-        >
-          ×
-        </button>
-
-        <div className="-mt-12 px-6 pt-2">
+        <div className="px-6 pt-6">
           <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-neutral-100">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
