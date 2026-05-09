@@ -58,7 +58,7 @@ export default function DietaryPreferences({
           <img
             src="/shake-shake-logo.png"
             alt="Shake Shake Fresh Noodle"
-            className="mx-auto mb-6 h-20 w-auto sm:h-24"
+            className="mx-auto mb-6 h-40 w-auto sm:h-48"
           />
 
           <header className="mb-6">
