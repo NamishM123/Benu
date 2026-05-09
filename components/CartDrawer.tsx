@@ -12,6 +12,7 @@ import {
 } from "@/lib/cart-store";
 import { pairingReason, pickPairings } from "@/lib/cart-insights";
 import { useTranslation } from "@/lib/i18n";
+import { localName } from "@/lib/menu";
 
 type Props = {
   open: boolean;
@@ -28,7 +29,7 @@ export default function CartDrawer({
   preferences = [],
   onClose,
 }: Props) {
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const [dragOffset, setDragOffset] = useState(0);
   const [confirmRemoveId, setConfirmRemoveId] = useState<string | null>(null);
   const startYRef = useRef<number | null>(null);
@@ -164,7 +165,9 @@ export default function CartDrawer({
                   <div className="flex-1 min-w-0">
                     <div className="flex items-baseline justify-between gap-3">
                       <p className="font-medium text-neutral-900">
-                        {line.itemName}
+                        {lang === "zh" && line.itemNameZh
+                          ? line.itemNameZh
+                          : line.itemName}
                       </p>
                       <p className="text-sm text-neutral-700">
                         {formatPrice(line.unitPrice * line.quantity)}
@@ -252,7 +255,7 @@ export default function CartDrawer({
                     className="rounded-2xl border border-neutral-200 bg-white p-4"
                   >
                     <div className="flex items-baseline justify-between gap-3">
-                      <h3 className="font-medium text-neutral-900">{p.name}</h3>
+                      <h3 className="font-medium text-neutral-900">{localName(p, lang)}</h3>
                       <p className="flex-none text-sm text-neutral-700">
                         {formatPrice(p.price)}
                       </p>
@@ -261,13 +264,14 @@ export default function CartDrawer({
                       {pairingReason(p, cart)}
                     </p>
                     <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-neutral-500">
-                      {p.description}
+                      {lang === "zh" && p.descriptionZh ? p.descriptionZh : p.description}
                     </p>
                     <button
                       type="button"
                       onClick={() =>
                         addToCart({
                           itemName: p.name,
+                          itemNameZh: p.nameZh,
                           basePrice: p.price,
                           quantity: 1,
                           unitPrice: p.price,
@@ -277,7 +281,7 @@ export default function CartDrawer({
                       }
                       className="mt-3 inline-flex items-center gap-1 rounded-full border border-neutral-900 px-4 py-1.5 text-xs font-medium text-neutral-900 transition-colors hover:bg-neutral-900 hover:text-cream"
                     >
-                      + Add to cart
+                      + {t("addToCart")}
                     </button>
                   </div>
                 ))}
@@ -336,7 +340,13 @@ export default function CartDrawer({
               <p className="mt-2 text-sm text-neutral-600">
                 {t("removeQuestion")}{" "}
                 <span className="font-medium text-neutral-900">
-                  {cart.find((l) => l.id === confirmRemoveId)?.itemName}
+                  {(() => {
+                    const line = cart.find((l) => l.id === confirmRemoveId);
+                    if (!line) return "";
+                    return lang === "zh" && line.itemNameZh
+                      ? line.itemNameZh
+                      : line.itemName;
+                  })()}
                 </span>{" "}
                 {t("fromCart")}
               </p>

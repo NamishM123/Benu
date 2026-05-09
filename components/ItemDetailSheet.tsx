@@ -1,7 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { formatPrice, type MenuItem } from "@/lib/menu";
+import {
+  formatPrice,
+  localDescription,
+  localName,
+  type MenuItem,
+} from "@/lib/menu";
 import { getOptionGroupsForItem, type OptionGroup } from "@/lib/menu-options";
 import { findFlaggedPreferences } from "@/lib/preferences";
 import { addToCart } from "@/lib/cart-store";
@@ -28,7 +33,7 @@ function initialSelections(groups: OptionGroup[]): Selections {
 }
 
 export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const groups = useMemo(
     () => (item ? getOptionGroupsForItem(item) : []),
     [item],
@@ -139,6 +144,7 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
 
     addToCart({
       itemName: item!.name,
+      itemNameZh: item!.nameZh,
       basePrice: item!.price,
       quantity,
       unitPrice,
@@ -209,13 +215,13 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
 
           <div className="mt-5">
             <h2 className="font-serif text-3xl tracking-tight text-neutral-900">
-              {item.name}
+              {localName(item, lang)}
             </h2>
             <div className="mt-1 flex items-baseline gap-3 text-sm text-neutral-700">
               <span>{formatPrice(item.price)}</span>
             </div>
             <p className="mt-3 text-sm leading-relaxed text-neutral-700">
-              {item.description}
+              {localDescription(item, lang)}
             </p>
             {flags.length > 0 && (
               <p className="mt-3 text-sm text-amber-700">

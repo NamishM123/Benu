@@ -1,7 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { formatPrice, type MenuItem } from "@/lib/menu";
+import {
+  formatPrice,
+  localDescription,
+  localName,
+  type MenuItem,
+} from "@/lib/menu";
 import { findFlaggedPreferences } from "@/lib/preferences";
 import { getStoredPreferences } from "@/lib/preferences-store";
 import {
@@ -30,7 +35,7 @@ type Props = {
 };
 
 export default function MenuPage({ menu }: Props) {
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const [preferences, setPreferences] = useState<string[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>(
     CATEGORY_ORDER[0],
@@ -130,6 +135,34 @@ export default function MenuPage({ menu }: Props) {
                 {preferences.length > 0 ? ` · ${preferences.length}` : ""}
               </span>
             </button>
+              <button
+                type="button"
+                onClick={() => setCartOpen(true)}
+                aria-label={t("yourCart")}
+                className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-neutral-300 bg-white text-neutral-800 transition-colors hover:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <circle cx="9" cy="21" r="1" />
+                  <circle cx="20" cy="21" r="1" />
+                  <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+                </svg>
+                {totalCount > 0 && (
+                  <span className="absolute -top-1 -right-1 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-cantaloupe px-1 text-[11px] font-semibold text-neutral-900">
+                    {totalCount}
+                  </span>
+                )}
+              </button>
             </div>
           </div>
           {preferences.length > 0 && (
@@ -252,14 +285,14 @@ export default function MenuPage({ menu }: Props) {
                   >
                     <div className="flex items-baseline justify-between gap-3">
                       <h3 className="text-base font-semibold uppercase tracking-[0.08em] text-neutral-900">
-                        {d.name}
+                        {localName(d, lang)}
                       </h3>
                       <p className="flex-none text-sm text-neutral-700">
                         {formatPrice(d.price)}
                       </p>
                     </div>
                     <p className="mt-2 text-sm leading-relaxed text-neutral-500">
-                      {d.description}
+                      {localDescription(d, lang)}
                     </p>
                     {flags.length > 0 && (
                       <div className="mt-2 flex flex-wrap gap-1.5">
