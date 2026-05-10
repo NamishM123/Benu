@@ -243,7 +243,7 @@ export default function MenuPage({ menu }: Props) {
             </div>
           </nav>
 
-          <section className="grid grid-cols-1 gap-x-8 gap-y-12 px-6 pt-2 sm:grid-cols-2 sm:px-10 lg:grid-cols-3">
+          <section className="grid grid-cols-1 gap-x-8 gap-y-6 px-6 pt-2 sm:grid-cols-2 sm:px-10 lg:grid-cols-3">
             {visibleItems.map((d) => {
               const flags = findFlaggedPreferences(d, preferences);
               const isRestricted = flags.length > 0;
