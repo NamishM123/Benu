@@ -4,18 +4,26 @@ import { answerMenuQuestion } from "@/lib/chatbot";
 import { findFlaggedPreferences } from "@/lib/preferences";
 import { searchPhoto } from "@/lib/unsplash";
 import { listMenuItems } from "@/lib/server-menu";
+import { extractAllergensFromText } from "@/lib/allergen-detect";
 import type { MenuItem } from "@/lib/menu";
 
 export const runtime = "nodejs";
 
 function buildSystemPrompt(menu: MenuItem[]): string {
-  return `You are the friendly menu assistant for Benu, a modern noodle restaurant. Your job is to help guests pick dishes, explain flavors, and flag allergens.
+  return `You are the menu assistant for Benu, a noodle restaurant. Your job is to help guests pick dishes, explain flavors, and — most importantly — keep them safe from allergens.
 
-Guidelines:
+CRITICAL ALLERGEN SAFETY RULES (these override everything else):
+- The "ALLERGENS TO AVOID" list at the start of the user message is a HARD constraint, not a preference. Treat every entry as a life-threatening allergy.
+- NEVER, under any circumstances, recommend / suggest / list / surface / mention as a good option / describe positively any dish whose tags include an allergen on that list. Do not put it in dish_names. Do not say "you might enjoy it anyway." Do not call it "delicious" or "popular" while warning about it. Just exclude it.
+- If the guest asks specifically about a dish that contains one of their allergens, your text reply must LEAD with a clear warning, e.g. "⚠️ Heads up — Braised Pork over White Rice contains soy, which you said you can't have. I'd skip it." Do not put the dish in dish_names.
+- If every dish that fits the request contains an allergen, say so honestly ("Nothing on our menu fits — every option contains soy.") rather than recommending an unsafe dish.
+- Allergens in scope: Dairy, Fish (incl. shellfish), Gluten, Meat (incl. beef/pork/lamb/chicken), Nuts (incl. peanuts), Soy.
+
+General guidelines:
 - Only recommend dishes from the MENU below. Never invent dishes, prices, or ingredients.
 - Keep replies short and warm — 1 to 3 sentences of text.
-- When the guest has selected dietary preferences (allergens or things to avoid), prefer dishes that do NOT contain them. If a relevant dish does contain them, mention which preference it conflicts with.
-- When recommending or naming dishes, return their exact names in the "dish_names" array so the UI can render rich cards. Pick at most 6.
+- Return exact dish names in "dish_names" so the UI can render rich cards. Pick at most 6.
+- Each dish in the MENU has a "tags" array; an item with tag "soy" contains soy, "dairy" contains dairy, etc.
 - If the guest asks something the menu can't answer, say so briefly and steer them back to the menu.
 
 MENU (JSON):
@@ -32,7 +40,7 @@ const RESPONSE_SCHEMA = {
     dish_names: {
       type: "array",
       description:
-        "Exact names of dishes from the menu to surface as cards. Empty array if none apply.",
+        "Exact names of dishes from the menu to surface as cards. Empty array if none apply. NEVER include dishes containing the guest's allergens.",
       items: { type: "string" },
     },
   },
@@ -45,11 +53,20 @@ type ChatPayload = {
   preferences?: unknown;
 };
 
-function localFallback(question: string, preferences: string[]) {
+function localFallback(
+  question: string,
+  preferences: string[],
+  detectedAllergens: string[],
+) {
   const reply = answerMenuQuestion(question, preferences);
+  // Hard-filter the local fallback's dishes too
+  const safeDishes = (reply.dishes ?? []).filter(
+    (d) => findFlaggedPreferences(d, preferences).length === 0,
+  );
   return {
     text: reply.text,
-    dishes: reply.dishes ?? [],
+    dishes: safeDishes,
+    detectedAllergens,
   };
 }
 
@@ -62,27 +79,38 @@ export async function POST(req: Request) {
   }
 
   const question = typeof body.question === "string" ? body.question : "";
-  const preferences = Array.isArray(body.preferences)
+  const explicitPreferences = Array.isArray(body.preferences)
     ? body.preferences.filter((p): p is string => typeof p === "string")
     : [];
 
   if (!question.trim()) {
-    return NextResponse.json({ text: "", dishes: [] });
+    return NextResponse.json({ text: "", dishes: [], detectedAllergens: [] });
   }
+
+  // SAFETY: extract any allergies stated in the chat message itself and
+  // merge them with the user's existing preferences for this turn. The
+  // detected list is also returned so the client can persist them as
+  // proper dietary preferences (toggle the filter on for them).
+  const detectedAllergens = extractAllergensFromText(question);
+  const preferences = Array.from(
+    new Set([...explicitPreferences, ...detectedAllergens]),
+  );
 
   const apiKey = process.env.OPENAI_API_KEY;
   const menu = await listMenuItems();
   if (!apiKey) {
-    return NextResponse.json(localFallback(question, preferences));
+    return NextResponse.json(
+      localFallback(question, preferences, detectedAllergens),
+    );
   }
 
   try {
     const client = new OpenAI({ apiKey });
 
-    const userContext =
+    const allergenLine =
       preferences.length > 0
-        ? `Selected dietary preferences to avoid: ${preferences.join(", ")}.`
-        : "No dietary preferences selected.";
+        ? `ALLERGENS TO AVOID (HARD CONSTRAINT — never recommend a dish containing any of these): ${preferences.join(", ")}.`
+        : "ALLERGENS TO AVOID: none stated.";
 
     const response = await client.chat.completions.create({
       model: "gpt-4o-mini",
@@ -91,7 +119,7 @@ export async function POST(req: Request) {
         { role: "system", content: buildSystemPrompt(menu) },
         {
           role: "user",
-          content: `${userContext}\n\nGuest question: ${question}`,
+          content: `${allergenLine}\n\nGuest question: ${question}`,
         },
       ],
       response_format: {
@@ -106,7 +134,9 @@ export async function POST(req: Request) {
 
     const text = response.choices[0]?.message?.content;
     if (!text) {
-      return NextResponse.json(localFallback(question, preferences));
+      return NextResponse.json(
+        localFallback(question, preferences, detectedAllergens),
+      );
     }
 
     const parsed = JSON.parse(text) as {
@@ -117,12 +147,42 @@ export async function POST(req: Request) {
     const dishMap = new Map<string, MenuItem>(
       menu.map((m) => [m.name.toLowerCase(), m]),
     );
-    const dishes: MenuItem[] = parsed.dish_names
+    const llmDishes: MenuItem[] = parsed.dish_names
       .map((name) => dishMap.get(name.toLowerCase()))
       .filter((d): d is MenuItem => Boolean(d));
 
+    // SAFETY: hard-filter the LLM's dish list. If the model ignored the
+    // allergen instruction (it does, sometimes), drop those dishes here so
+    // they never reach the customer.
+    const unsafeDishes = preferences.length
+      ? llmDishes.filter(
+          (d) => findFlaggedPreferences(d, preferences).length > 0,
+        )
+      : [];
+    const safeDishes = preferences.length
+      ? llmDishes.filter(
+          (d) => findFlaggedPreferences(d, preferences).length === 0,
+        )
+      : llmDishes;
+
+    // SAFETY: if the LLM tried to recommend an unsafe dish, override the
+    // chat text with an explicit warning so the customer is not encouraged
+    // to try one of the dropped dishes.
+    let finalText = parsed.text;
+    if (unsafeDishes.length > 0) {
+      const allergens = Array.from(
+        new Set(
+          unsafeDishes.flatMap((d) => findFlaggedPreferences(d, preferences)),
+        ),
+      );
+      const dishList = unsafeDishes.map((d) => d.name).join(", ");
+      finalText =
+        `⚠️ Heads up — ${dishList} contains ${allergens.join(", ")}, which you said you can't have, so I've removed ${unsafeDishes.length === 1 ? "it" : "them"} from the suggestions.` +
+        (safeDishes.length > 0 ? ` Here ${safeDishes.length === 1 ? "is" : "are"} safer ${safeDishes.length === 1 ? "option" : "options"} instead:` : "");
+    }
+
     const enrichedDishes = await Promise.all(
-      dishes.map(async (d) => ({
+      safeDishes.map(async (d) => ({
         ...d,
         image: await searchPhoto(`${d.name} dish`, d.image),
         flaggedPreferences: findFlaggedPreferences(d, preferences),
@@ -130,11 +190,14 @@ export async function POST(req: Request) {
     );
 
     return NextResponse.json({
-      text: parsed.text,
+      text: finalText,
       dishes: enrichedDishes,
+      detectedAllergens,
     });
   } catch (error) {
     console.error("chat api error:", error);
-    return NextResponse.json(localFallback(question, preferences));
+    return NextResponse.json(
+      localFallback(question, preferences, detectedAllergens),
+    );
   }
 }

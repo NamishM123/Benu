@@ -9,7 +9,11 @@ import {
 } from "@/lib/menu";
 import { findFlaggedPreferences } from "@/lib/preferences";
 import { answerMenuQuestion } from "@/lib/chatbot";
-import { getStoredPreferences } from "@/lib/preferences-store";
+import {
+  getStoredPreferences,
+  setStoredPreferences,
+} from "@/lib/preferences-store";
+import { extractAllergensFromText } from "@/lib/allergen-detect";
 import { containsOffensiveLanguage } from "@/lib/profanity";
 import { useTranslation } from "@/lib/i18n";
 
@@ -35,6 +39,7 @@ type ApiDish = {
 type ApiResponse = {
   text: string;
   dishes?: ApiDish[];
+  detectedAllergens?: string[];
 };
 
 type ChatWidgetProps = {
@@ -235,37 +240,75 @@ export default function ChatWidget({
       return;
     }
 
+    // SAFETY: pre-detect allergens client-side and merge into preferences
+    // before sending. The server will also re-detect, but doing this here
+    // means the request payload itself carries the user's full allergen
+    // set — so even if the server's detection is bypassed, the LLM and
+    // the post-LLM hard filter still see every allergy.
+    const detectedNow = extractAllergensFromText(text);
+    const mergedPrefs = Array.from(
+      new Set([...preferences, ...detectedNow]),
+    );
+
     const userMsg: ChatMessage = { id: Date.now(), role: "user", text };
     setMessages((m) => [...m, userMsg]);
     setInput("");
     setIsSending(true);
 
+    function persistDetected(extra: string[] | undefined) {
+      const all = Array.from(
+        new Set([...preferences, ...detectedNow, ...(extra ?? [])]),
+      );
+      if (all.length > preferences.length) {
+        // Saving fires the benu:preferences-changed event, which updates
+        // the dietary filter pill in the header AND this component's own
+        // `preferences` state — so the user sees the filter has been
+        // toggled on for them.
+        setStoredPreferences(all);
+      }
+    }
+
+    // SAFETY: even after the server's hard filter, do a final pass on the
+    // client to be absolutely sure no dish containing a user allergen
+    // ever renders in a chat card.
+    function safeDishes(dishes: ApiDish[] | undefined): ApiDish[] {
+      if (!dishes || mergedPrefs.length === 0) return dishes ?? [];
+      return dishes.filter(
+        (d) =>
+          findFlaggedPreferences(d as MenuItem, mergedPrefs).length === 0,
+      );
+    }
+
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: text, preferences }),
+        body: JSON.stringify({ question: text, preferences: mergedPrefs }),
       });
       if (!res.ok) throw new Error("api error");
       const data: ApiResponse = await res.json();
+      persistDetected(data.detectedAllergens);
       setMessages((m) => [
         ...m,
         {
           id: Date.now() + 1,
           role: "bot",
           text: data.text,
-          dishes: data.dishes,
+          dishes: safeDishes(data.dishes) as MenuItem[] | undefined,
         },
       ]);
     } catch {
-      const local = answerMenuQuestion(text, preferences);
+      persistDetected(undefined);
+      const local = answerMenuQuestion(text, mergedPrefs);
       setMessages((m) => [
         ...m,
         {
           id: Date.now() + 1,
           role: "bot",
           text: local.text,
-          dishes: local.dishes,
+          dishes: safeDishes(local.dishes as ApiDish[] | undefined) as
+            | MenuItem[]
+            | undefined,
         },
       ]);
     } finally {
