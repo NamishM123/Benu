@@ -475,6 +475,10 @@ export default function MenuPage({ menu }: Props) {
       />
       <ChatWidget
         hidden={cartOpen || activeItem !== null || filtersOpen}
+        onSelectDish={(name) => {
+          const found = menu.find((m) => m.name === name);
+          if (found) setActiveItem(found);
+        }}
       />
     </>
   );
