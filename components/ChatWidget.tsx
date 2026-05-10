@@ -194,7 +194,9 @@ export default function ChatWidget({
     if (!window.matchMedia("(max-width: 639px)").matches) return;
 
     const scrollY = window.scrollY;
+    const html = document.documentElement;
     const body = document.body;
+    const origHtml = { overflow: html.style.overflow };
     const orig = {
       overflow: body.style.overflow,
       position: body.style.position,
@@ -204,6 +206,7 @@ export default function ChatWidget({
       width: body.style.width,
     };
 
+    html.style.overflow = "hidden";
     body.style.overflow = "hidden";
     body.style.position = "fixed";
     body.style.top = `-${scrollY}px`;
@@ -213,6 +216,7 @@ export default function ChatWidget({
 
     return () => {
       Object.assign(body.style, orig);
+      Object.assign(html.style, origHtml);
       window.scrollTo(0, scrollY);
     };
   }, [open]);
@@ -524,7 +528,7 @@ export default function ChatWidget({
                   ? "none"
                   : "transform 200ms ease-out",
               }}
-              className="mx-3 mb-2 flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-neutral-300/70 bg-white sm:fixed sm:bottom-5 sm:right-5 sm:left-auto sm:m-0 sm:h-[min(720px,82dvh)] sm:w-[min(420px,calc(100vw-2.5rem))] sm:max-w-none sm:flex-none sm:shadow-2xl"
+              className="mx-3 mt-3 mb-2 flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-neutral-300/70 bg-white sm:fixed sm:bottom-5 sm:right-5 sm:left-auto sm:m-0 sm:h-[min(720px,82dvh)] sm:w-[min(420px,calc(100vw-2.5rem))] sm:max-w-none sm:flex-none sm:shadow-2xl"
             >
           <div
             onTouchStart={handleTouchStart}

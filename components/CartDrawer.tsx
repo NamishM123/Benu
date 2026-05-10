@@ -69,12 +69,35 @@ export default function CartDrawer({
 
   useEffect(() => clearHold, []);
 
+  // Robust scroll lock: overflow:hidden alone isn't enough on iOS Safari —
+  // overscroll inside the cart can still propagate to the body, exposing
+  // the menu page underneath. Freeze the body in place with position:fixed
+  // and restore the scroll position on close.
   useEffect(() => {
     if (!open) return;
-    const orig = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    if (typeof window === "undefined") return;
+
+    const scrollY = window.scrollY;
+    const body = document.body;
+    const orig = {
+      overflow: body.style.overflow,
+      position: body.style.position,
+      top: body.style.top,
+      left: body.style.left,
+      right: body.style.right,
+      width: body.style.width,
+    };
+
+    body.style.overflow = "hidden";
+    body.style.position = "fixed";
+    body.style.top = `-${scrollY}px`;
+    body.style.left = "0";
+    body.style.right = "0";
+    body.style.width = "100%";
+
     return () => {
-      document.body.style.overflow = orig;
+      Object.assign(body.style, orig);
+      window.scrollTo(0, scrollY);
     };
   }, [open]);
 
@@ -116,7 +139,7 @@ export default function CartDrawer({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm sm:items-center"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-cream sm:items-center sm:bg-black/40 sm:backdrop-blur-sm"
       onClick={onClose}
       style={{
         transition: draggingRef.current ? "none" : "background-color 150ms",
@@ -131,7 +154,7 @@ export default function CartDrawer({
           transform: `translateY(${dragOffset}px)`,
           transition: draggingRef.current ? "none" : "transform 200ms ease-out",
         }}
-        className="relative flex w-full max-w-[480px] flex-col h-[92dvh] overflow-y-auto overscroll-none rounded-t-3xl bg-cream shadow-xl sm:h-auto sm:max-h-[88vh] sm:rounded-3xl"
+        className="relative flex w-full max-w-[480px] flex-col h-auto max-h-[100dvh] min-h-0 overflow-y-auto overscroll-none bg-cream sm:h-auto sm:max-h-[88vh] sm:rounded-3xl"
       >
         {/* Drag handle — touch this region to swipe down */}
         <div
@@ -163,15 +186,15 @@ export default function CartDrawer({
         </header>
 
         {cart.length === 0 ? (
-          <div className="flex flex-1 flex-col items-center justify-center px-6 py-6 text-center sm:flex-none sm:py-12">
+          <div className="flex flex-col items-center px-6 pt-6 pb-10 text-center sm:py-12">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/cart-empty.webp"
               alt=""
               aria-hidden="true"
-              className="h-64 w-64 object-contain sm:h-56 sm:w-56"
+              className="h-48 w-48 object-contain sm:h-56 sm:w-56"
             />
-            <p className="mt-3 text-2xl text-neutral-600">{t("emptyCart")}</p>
+            <p className="mt-4 text-2xl text-neutral-600">{t("emptyCart")}</p>
           </div>
         ) : (
           <>
@@ -185,7 +208,7 @@ export default function CartDrawer({
                       alt=""
                       loading="lazy"
                       decoding="async"
-                      className="h-16 w-16 flex-none rounded-lg bg-neutral-100 object-cover"
+                      className="h-24 w-24 flex-none rounded-xl bg-neutral-100 object-cover sm:h-20 sm:w-20"
                     />
                   )}
                   <div className="flex-1 min-w-0">
