@@ -148,6 +148,17 @@ export default function ChatWidget({
     if (open) setDragOffset(0);
   }, [open]);
 
+  // Lock page scroll while the chat is open so the menu underneath can't
+  // drift (and never expose dish photos above the sticky category tabs).
+  useEffect(() => {
+    if (!open) return;
+    const orig = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = orig;
+    };
+  }, [open]);
+
   useEffect(() => {
     setPreferences(getStoredPreferences());
     function onChange(e: Event) {
@@ -304,10 +315,12 @@ export default function ChatWidget({
 
       {open && (
         <>
-          {/* Transparent backdrop — clicking the menu (anywhere outside the
-              panel) collapses the chat back to the launcher. */}
+          {/* Cream-tinted, blurred backdrop. Hides the menu cards behind the
+              chat (the user shouldn't see dish photos peeking above the
+              category tabs) and clicks dismiss the panel back to the
+              launcher. */}
           <div
-            className="fixed inset-0 z-30"
+            className="fixed inset-0 z-30 bg-cream/85 backdrop-blur-md"
             onClick={() => setOpen(false)}
             aria-hidden="true"
           />
