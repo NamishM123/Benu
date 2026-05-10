@@ -322,12 +322,8 @@ export default function CartDrawer({
                       return;
                     }
                     clearCart();
-                    setSentFlash(true);
-                    setTimeout(() => {
-                      setSentFlash(false);
-                      onClose();
-                      router.push(`/order/${order.id}`);
-                    }, 900);
+                    onClose();
+                    router.push(`/order/${order.id}`);
                   }}
                 >
                   {sentFlash ? t("orderSent") : t("sendToKitchen")}
