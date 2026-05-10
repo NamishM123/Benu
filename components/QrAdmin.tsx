@@ -14,7 +14,16 @@ export default function QrAdmin() {
   const [cards, setCards] = useState<Card[]>([]);
 
   useEffect(() => {
-    setOrigin(window.location.origin);
+    // Prefer the customer host (where the QR-scanning phones should land)
+    // over the host the admin is browsing from — staff might be using the
+    // staff subdomain and would otherwise generate codes pointing back at
+    // the wrong place.
+    const customer = process.env.NEXT_PUBLIC_CUSTOMER_HOST;
+    if (customer) {
+      setOrigin(`https://${customer}`);
+    } else {
+      setOrigin(window.location.origin);
+    }
   }, []);
 
   const effectiveOrigin = overrideOrigin.trim() || origin;
