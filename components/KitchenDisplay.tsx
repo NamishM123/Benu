@@ -151,7 +151,6 @@ export default function KitchenDisplay() {
                         : "border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-100",
                     ].join(" ")}
                   >
-                    {soldOut ? "🚫 " : "✓ "}
                     {item.name}
                   </button>
                 );
