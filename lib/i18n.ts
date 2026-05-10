@@ -187,6 +187,11 @@ const TRANSLATIONS = {
     en: "Allergies, sauce on the side, less salt, etc.",
     zh: "过敏、酱汁单独装、少盐等。",
   },
+  inappropriateLanguage: {
+    en: "Please remove inappropriate language before adding to cart.",
+    zh: "请移除不当用语后再加入购物车。",
+  },
+  viewCart: { en: "View cart →", zh: "查看购物车 →" },
 
   // Spice level badges
   mildlySpicy: { en: "Mildly Spicy", zh: "微辣" },

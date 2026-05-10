@@ -10,6 +10,7 @@ import {
 import { findFlaggedPreferences } from "@/lib/preferences";
 import { answerMenuQuestion } from "@/lib/chatbot";
 import { getStoredPreferences } from "@/lib/preferences-store";
+import { containsOffensiveLanguage } from "@/lib/profanity";
 
 type ChatMessage = {
   id: number;
@@ -36,34 +37,6 @@ type ApiResponse = {
 type ChatWidgetProps = {
   hidden?: boolean;
 };
-
-/**
- * Lightweight slur / profanity guard. Normalises the input (lowercased,
- * non-letters stripped) so common obfuscations like "n!gga" or "n.i.g.g.a"
- * still match. This isn't comprehensive — it's just a first line of
- * defence against the most blatant offensive language in a customer-facing
- * chat. The list intentionally stays short and explicit.
- */
-const OFFENSIVE_TERMS = [
-  "nigga",
-  "nigger",
-  "faggot",
-  "fag",
-  "tranny",
-  "retard",
-  "kike",
-  "spic",
-  "chink",
-  "gook",
-  "dyke",
-  "wetback",
-  "cunt",
-];
-
-function containsOffensiveLanguage(input: string): boolean {
-  const normalised = input.toLowerCase().replace(/[^a-z]/g, "");
-  return OFFENSIVE_TERMS.some((term) => normalised.includes(term));
-}
 
 // Render `**bold**` segments as <strong>; everything else passes through.
 function renderInlineMarkdown(text: string) {

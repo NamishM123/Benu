@@ -16,6 +16,7 @@ import { findFlaggedPreferences } from "@/lib/preferences";
 import { addToCart } from "@/lib/cart-store";
 import { useTranslation } from "@/lib/i18n";
 import { useAutoTranslate } from "@/lib/auto-translate";
+import { containsOffensiveLanguage } from "@/lib/profanity";
 
 type Props = {
   item: MenuItem | null;
@@ -132,6 +133,10 @@ export default function ItemDetailSheet({ item, preferences, onClose, onCartOpen
     return true;
   });
 
+  const hasInappropriateRequest =
+    supportsSpecialRequest && containsOffensiveLanguage(specialRequest);
+  const canAdd = allRequiredMet && !hasInappropriateRequest;
+
   function toggleChoice(g: OptionGroup, choiceId: string) {
     setSelections((prev) => {
       const cur = prev[g.id] ?? [];
@@ -148,7 +153,7 @@ export default function ItemDetailSheet({ item, preferences, onClose, onCartOpen
   }
 
   function handleAdd() {
-    if (!allRequiredMet) return;
+    if (!canAdd) return;
     const lineSelections = groups
       .map((g) => {
         const picked = selections[g.id] ?? [];
@@ -396,8 +401,19 @@ export default function ItemDetailSheet({ item, preferences, onClose, onCartOpen
                   placeholder={t("specialRequestPlaceholder")}
                   rows={3}
                   maxLength={250}
-                  className="w-full resize-none rounded-2xl border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-800 placeholder:text-neutral-400 focus:border-neutral-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
+                  aria-invalid={hasInappropriateRequest}
+                  className={[
+                    "w-full resize-none rounded-2xl border bg-white px-3 py-2 text-sm text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus-visible:ring-2",
+                    hasInappropriateRequest
+                      ? "border-red-400 focus:border-red-500 focus-visible:ring-red-500/30"
+                      : "border-neutral-300 focus:border-neutral-500 focus-visible:ring-neutral-700/30",
+                  ].join(" ")}
                 />
+                {hasInappropriateRequest && (
+                  <p className="mt-2 text-xs text-red-600" role="alert">
+                    {t("inappropriateLanguage")}
+                  </p>
+                )}
               </section>
             )}
 
@@ -445,15 +461,15 @@ export default function ItemDetailSheet({ item, preferences, onClose, onCartOpen
             <button
               type="button"
               onClick={justAdded ? () => { onClose(); onCartOpen?.(); } : handleAdd}
-              disabled={!allRequiredMet && !justAdded}
+              disabled={!canAdd && !justAdded}
               className={[
                 "flex w-full items-center justify-between rounded-full px-6 py-4 text-base font-medium shadow-md transition-colors",
-                allRequiredMet || justAdded
+                canAdd || justAdded
                   ? "bg-neutral-900 text-cream hover:bg-neutral-800"
                   : "bg-neutral-300 text-neutral-500",
               ].join(" ")}
             >
-              <span>{justAdded ? `View cart →` : t("addToCart")}</span>
+              <span>{justAdded ? t("viewCart") : t("addToCart")}</span>
               <span>{formatPrice(totalPrice)}</span>
             </button>
           </div>
