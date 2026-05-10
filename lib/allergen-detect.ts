@@ -239,25 +239,88 @@ export function dishMatchesCustomAllergen(
   return hits;
 }
 
+// Look for the bot proposing to filter an ingredient ("without X" /
+// "no X" / "skip the X" / "without potatoes" / "без картошки"). When
+// the bot's previous turn says this AND the user's reply is an
+// affirmative ("yes" / "да" / "sí" / "oui" / "sure"), that ingredient
+// becomes a permanent constraint — even if the LLM forgets to add it
+// to identified_specific_ingredients on the next turn.
+//
+// Multilingual: covers a few common ingredient roots in non-English
+// scripts (Russian potato/picked-up via "without"/"без" pattern, etc.)
+// plus the LLM's own English paraphrase if it's there.
+const BOT_OFFER_PATTERNS: RegExp[] = [
+  /\bwithout\s+(?:any\s+|the\s+)?([a-z][a-z\-]{2,25})\b/gi,
+  /\bno\s+(?:more\s+)?([a-z][a-z\-]{2,25})\b/gi,
+  /\bskip(?:\s+the)?\s+([a-z][a-z\-]{2,25})\b/gi,
+  /\bavoid(?:\s+the)?\s+([a-z][a-z\-]{2,25})\b/gi,
+  // Russian "без X" — very common phrasing in the LLM's translated reply
+  /без\s+(\S{3,25})/gi,
+  // Spanish "sin X"
+  /\bsin\s+([a-z][a-záéíóúñ\-]{2,25})\b/gi,
+  // French "sans X"
+  /\bsans\s+([a-z][a-záàâçéèêëîïôûùüÿñ\-]{2,25})\b/gi,
+];
+
+const AFFIRMATIVE_RE =
+  /^\s*(?:yes|yeah|yep|yup|sure|ok|okay|please|do it|go ahead|sounds good|that works|да|конечно|хорошо|пожалуйста|sí|si|claro|por favor|oui|d'accord|bien sûr|s'il te plaît|s'il vous plaît|はい|좋아요|네|نعم|sim|ja|ok\.?)\b[\s.!?]*$/i;
+
+export function isAffirmative(text: string): boolean {
+  return AFFIRMATIVE_RE.test(text.trim());
+}
+
+export function extractBotOfferedIngredients(botText: string): string[] {
+  if (!botText) return [];
+  const out = new Set<string>();
+  for (const pat of BOT_OFFER_PATTERNS) {
+    pat.lastIndex = 0;
+    let m: RegExpExecArray | null;
+    while ((m = pat.exec(botText)) !== null) {
+      const raw = m[1].toLowerCase().trim();
+      if (raw.length < 3 || raw.length > 25) continue;
+      if (STOP_WORDS.has(raw)) continue;
+      // Only English-letter results survive — the dish names are in
+      // English, so non-English captures from the bot's translated
+      // reply won't help the filter anyway.
+      if (!/^[a-z][a-z\-]+$/.test(raw)) continue;
+      out.add(raw);
+    }
+  }
+  return Array.from(out);
+}
+
 // Pull every allergen the user has stated across the whole conversation.
 // Scans both the user's messages AND the bot's prior warnings — when
 // the bot says "you mentioned being allergic to potato and tofu", we
 // extract "potato" and "tofu" too, so a typo in the user's original
 // message ("alergic") doesn't cost us the constraint.
+//
+// Also handles the bot-offer / user-agrees pattern: if the bot's last
+// turn said "want me to suggest without potatoes?" and the user's
+// next turn was an affirmative, "potatoes" becomes a constraint.
 export function extractAllergensFromConversation(
   history: { role: "user" | "bot"; text: string }[],
 ): { categories: string[]; ingredients: string[] } {
   const categories = new Set<string>();
   const ingredients = new Set<string>();
 
-  for (const msg of history) {
+  for (let i = 0; i < history.length; i++) {
+    const msg = history[i];
     if (!msg.text) continue;
-    // User messages: full detection (vegan, X-free, "no X", avoidance verbs).
-    // Bot messages: also scan, because the bot often paraphrases the
-    // user's allergy ("since you said you're allergic to potato"), and
-    // that paraphrase is sometimes cleaner than the original (no typos).
     for (const c of extractAllergensFromText(msg.text)) categories.add(c);
-    for (const i of extractCustomAllergens(msg.text)) ingredients.add(i);
+    for (const ing of extractCustomAllergens(msg.text)) ingredients.add(ing);
+
+    // Bot-offer follow-up: if THIS message is the user agreeing to a
+    // filter the bot proposed in the PREVIOUS message, lift those
+    // ingredients into the constraint set.
+    if (msg.role === "user" && isAffirmative(msg.text) && i > 0) {
+      const prev = history[i - 1];
+      if (prev.role === "bot") {
+        for (const ing of extractBotOfferedIngredients(prev.text)) {
+          ingredients.add(ing);
+        }
+      }
+    }
   }
 
   return {
