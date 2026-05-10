@@ -223,7 +223,7 @@ export default function ItemDetailSheet({ item, preferences, onClose, onCartOpen
             type="button"
             onClick={onClose}
             aria-label={t("close")}
-            className="absolute top-4 left-4 z-30 flex h-9 w-9 items-center justify-center rounded-full bg-neutral-900 text-white shadow-sm hover:bg-neutral-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+            className="absolute top-4 left-6 z-30 flex h-9 w-9 items-center justify-center rounded-full bg-neutral-900 text-white shadow-sm hover:bg-neutral-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -384,16 +384,16 @@ export default function ItemDetailSheet({ item, preferences, onClose, onCartOpen
               <section>
                 <div className="mb-2 flex items-baseline justify-between">
                   <h3 className="text-sm font-semibold uppercase tracking-wider text-neutral-700">
-                    Special Request
+                    {t("specialRequest")}
                   </h3>
                   <span className="text-[10px] uppercase tracking-wider text-neutral-500">
-                    Optional
+                    {t("optional")}
                   </span>
                 </div>
                 <textarea
                   value={specialRequest}
                   onChange={(e) => setSpecialRequest(e.target.value)}
-                  placeholder="Allergies, sauce on the side, less salt, etc."
+                  placeholder={t("specialRequestPlaceholder")}
                   rows={3}
                   maxLength={250}
                   className="w-full resize-none rounded-2xl border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-800 placeholder:text-neutral-400 focus:border-neutral-500 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"

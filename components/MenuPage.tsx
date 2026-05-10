@@ -228,7 +228,12 @@ export default function MenuPage({ menu }: Props) {
             className="sticky top-0 z-20 bg-cream"
           >
             <div className="overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <div className="flex w-max min-w-full items-center justify-start gap-2 px-6 py-3 sm:justify-center sm:px-10">
+              <div
+                className={[
+                  "flex w-max min-w-full items-center justify-start px-6 py-3 sm:justify-center sm:px-10",
+                  lang === "zh" ? "gap-5 sm:gap-6" : "gap-2",
+                ].join(" ")}
+              >
                 {categories.map((cat) => {
                   const isActive = cat === activeCategory;
                   return (

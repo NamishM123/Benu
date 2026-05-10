@@ -181,6 +181,12 @@ const TRANSLATIONS = {
   },
   containsAllergen: { en: "allergy", zh: "过敏" },
   filteredBadge: { en: "Filtered", zh: "已过滤" },
+  specialRequest: { en: "Special Request", zh: "特别要求" },
+  optional: { en: "Optional", zh: "选填" },
+  specialRequestPlaceholder: {
+    en: "Allergies, sauce on the side, less salt, etc.",
+    zh: "过敏、酱汁单独装、少盐等。",
+  },
 
   // Spice level badges
   mildlySpicy: { en: "Mildly Spicy", zh: "微辣" },
