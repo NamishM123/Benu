@@ -315,15 +315,30 @@ export default function ChatWidget({
 
       {open && (
         <>
-          {/* Cream-tinted, blurred backdrop. Hides the menu cards behind the
-              chat (the user shouldn't see dish photos peeking above the
-              category tabs) and clicks dismiss the panel back to the
-              launcher. */}
+          {/* Backdrop. Mobile: fully opaque cream so the menu cards are
+              completely hidden behind the chat. Desktop: keeps the soft
+              translucent feel. Clicks dismiss the panel. */}
           <div
-            className="fixed inset-0 z-30 bg-cream/85 backdrop-blur-md"
+            className="fixed inset-0 z-30 bg-cream sm:bg-cream/85 sm:backdrop-blur-md"
             onClick={() => setOpen(false)}
             aria-hidden="true"
-          />
+          >
+            {/* Big logo filling the empty space above the chat panel —
+                mobile only. PNG has ~43% transparent whitespace below the
+                artwork; clip it. */}
+            <div className="pointer-events-none absolute top-6 left-1/2 -translate-x-1/2 sm:hidden">
+              <div className="block overflow-hidden h-[100px]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/shake-shake-logo.png"
+                  alt=""
+                  width={1536}
+                  height={831}
+                  className="block h-[174px] w-auto max-w-none -mt-1"
+                />
+              </div>
+            </div>
+          </div>
           <section
             aria-label={t("chatPanelAria")}
             onClick={(e) => e.stopPropagation()}
@@ -337,7 +352,7 @@ export default function ChatWidget({
                 ? "none"
                 : "transform 200ms ease-out",
             }}
-            className="fixed left-1/2 z-40 flex h-[82dvh] w-[calc(100vw-2rem)] max-w-6xl flex-col overflow-hidden rounded-2xl border border-neutral-300/70 bg-white shadow-2xl sm:left-auto sm:right-5 sm:h-[min(720px,82dvh)] sm:w-[min(420px,calc(100vw-2.5rem))] sm:max-w-none sm:[--chat-x:0]"
+            className="fixed left-1/2 z-40 flex h-[82dvh] w-[calc(100vw-2rem)] max-w-6xl flex-col overflow-hidden rounded-2xl border border-neutral-300/70 bg-white sm:left-auto sm:right-5 sm:h-[min(720px,82dvh)] sm:w-[min(420px,calc(100vw-2.5rem))] sm:max-w-none sm:shadow-2xl sm:[--chat-x:0]"
           >
           <div
             onTouchStart={handleTouchStart}
