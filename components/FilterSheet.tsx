@@ -186,10 +186,10 @@ export default function FilterSheet({ open, preferences, onClose }: Props) {
               ×
             </button>
           </div>
-          <p className="mt-1 text-sm text-neutral-600">
+          <p className="mt-1 text-base text-neutral-600">
             {t("filterMenuSubtitle")}
           </p>
-          <div className="mt-3 flex items-center gap-3 text-sm">
+          <div className="mt-3 flex items-center gap-3 text-base">
             <button
               type="button"
               onClick={() => setDraft(new Set(DEFAULT_OPTIONS))}
@@ -248,32 +248,6 @@ export default function FilterSheet({ open, preferences, onClose }: Props) {
                     <span className="block text-xs text-neutral-500">
                       {t(`${opt}_desc`)}
                     </span>
-                  </span>
-                  <span
-                    aria-hidden="true"
-                    className={[
-                      "flex h-5 w-5 flex-none items-center justify-center rounded-md border-2 transition-colors",
-                      active
-                        ? "border-cantaloupe-deep bg-cantaloupe"
-                        : "border-neutral-400 bg-white",
-                    ].join(" ")}
-                  >
-                    {active && (
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="3"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        className="text-neutral-900"
-                      >
-                        <polyline points="5 12 10 17 19 7" />
-                      </svg>
-                    )}
                   </span>
                 </button>
               </li>
