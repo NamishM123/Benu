@@ -40,17 +40,25 @@ function statusLabel(status: OrderStatusValue, lang: Lang): string {
   return translate("statusReady", lang);
 }
 
-function TestBotButton() {
+function TestBotButton({ order }: { order: Order }) {
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
 
   const handleTest = useCallback(async () => {
     setLoading(true);
-    await fetch("/api/test-notify", { method: "POST" });
+    await fetch("/api/test-notify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        tableNumber: order.tableNumber,
+        etaMinutes: order.etaMinutes,
+        items: order.lines.map((l) => ({ name: l.itemName, quantity: l.quantity })),
+      }),
+    });
     setLoading(false);
     setSent(true);
     setTimeout(() => setSent(false), 4000);
-  }, []);
+  }, [order]);
 
   return (
     <button
@@ -257,7 +265,7 @@ export default function OrderStatus({ id }: Props) {
         </div>
 
         <div className="mt-4">
-          <TestBotButton />
+          <TestBotButton order={order} />
         </div>
       </main>
     </div>
