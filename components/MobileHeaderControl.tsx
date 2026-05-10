@@ -31,36 +31,20 @@ export default function MobileHeaderControl({
         {lang === "en" ? "EN" : "中"}
       </button>
 
-      {/* Filter: short label + three-line icon */}
+      {/* Filter: full-width text label, D and R hugging button edges */}
       <button
         type="button"
         onClick={onFiltersOpen}
-        aria-label={t("filters")}
+        aria-label={t("dietaryFilter")}
         className={[
-          "relative inline-flex h-11 w-[6.5rem] items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-3 text-base font-medium shadow-sm transition-colors",
+          "relative inline-flex h-11 w-[8.5rem] items-center justify-center whitespace-nowrap rounded-full px-2 text-base font-medium shadow-sm transition-colors",
           "focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30",
           preferencesCount > 0
             ? "bg-cantaloupe text-neutral-900 hover:bg-cantaloupe-soft"
             : "border border-neutral-300 bg-white text-neutral-800 hover:bg-neutral-100",
         ].join(" ")}
       >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          <line x1="4" y1="6" x2="20" y2="6" />
-          <line x1="7" y1="12" x2="17" y2="12" />
-          <line x1="10" y1="18" x2="14" y2="18" />
-        </svg>
-        <span>{t("filters")}</span>
+        <span>{t("dietaryFilter")}</span>
         {preferencesCount > 0 && (
           <span className="absolute -top-1 -right-1 inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-neutral-900 px-1 text-[10px] font-semibold text-cream">
             {preferencesCount}

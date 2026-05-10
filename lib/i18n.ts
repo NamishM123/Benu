@@ -10,6 +10,7 @@ const EVENT_NAME = "benu:lang-changed";
 const TRANSLATIONS = {
   // App shell / header
   filters: { en: "Filter", zh: "筛选" },
+  dietaryFilter: { en: "Dietary Filter", zh: "饮食筛选" },
   flaggingItems: { en: "Flagging items containing", zh: "标记含有" },
   backToStart: { en: "Back to start of menu", zh: "返回菜单开头" },
   language: { en: "Language", zh: "语言" },

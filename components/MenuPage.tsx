@@ -130,7 +130,7 @@ export default function MenuPage({ menu }: Props) {
               className="flex-none cursor-default rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
             >
               {/* PNG has ~43% transparent whitespace below the artwork; clip it. */}
-              <div className="block overflow-hidden h-[46px] sm:h-[78px] flex-none">
+              <div className="block overflow-hidden h-[60px] sm:h-[101px] flex-none">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/shake-shake-logo.png"
@@ -140,7 +140,7 @@ export default function MenuPage({ menu }: Props) {
                   fetchPriority="high"
                   decoding="sync"
                   loading="eager"
-                  className="block h-20 w-auto max-w-none sm:h-36 -mt-0.5 sm:-mt-2 flex-none"
+                  className="block h-[104px] w-auto max-w-none sm:h-[187px] -mt-0.5 sm:-mt-2 flex-none"
                 />
               </div>
             </button>
@@ -325,7 +325,10 @@ export default function MenuPage({ menu }: Props) {
                           }
                         }}
                         style={{ filter: "blur(8px)" }}
-                        className="menu-img h-full w-full object-cover opacity-0 transition-[opacity,filter] duration-500 ease-out"
+                        className={[
+                          "menu-img h-full w-full opacity-0 transition-[opacity,filter] duration-500 ease-out",
+                          d.category === "Beverages" ? "object-contain p-4" : "object-cover",
+                        ].join(" ")}
                         onLoad={(e) => {
                           loadedImages.add(d.image);
                           const img = e.currentTarget;

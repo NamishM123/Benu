@@ -181,8 +181,7 @@ export function getOptionGroupsForItem(item: MenuItem): OptionGroup[] {
       const hasMilk =
         name.includes("milk") || name.includes("latte") || name.includes("matcha");
       if (isSoda) {
-        // sodas: just size
-        groups.push(DRINK_SIZE);
+        // sodas: no options — single can/bottle, fixed price
       } else {
         groups.push(DRINK_SIZE);
         groups.push(TEA_ICE);

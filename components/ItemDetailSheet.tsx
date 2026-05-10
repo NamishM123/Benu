@@ -256,7 +256,10 @@ export default function ItemDetailSheet({ item, preferences, onClose, onCartOpen
                   }
                 }}
                 style={{ filter: "blur(8px)" }}
-                className="h-full w-full object-cover opacity-0 transition-[opacity,filter] duration-500 ease-out"
+                className={[
+                  "h-full w-full opacity-0 transition-[opacity,filter] duration-500 ease-out",
+                  item.category === "Beverages" ? "object-contain p-4" : "object-cover",
+                ].join(" ")}
                 onLoad={(e) => {
                   e.currentTarget.style.opacity = "1";
                   e.currentTarget.style.filter = "blur(0px)";
