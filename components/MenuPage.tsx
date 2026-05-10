@@ -369,14 +369,6 @@ export default function MenuPage({ menu }: Props) {
             >
               {t("viewMyOrders")}
             </Link>
-            <a
-              href="/kitchen"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs text-neutral-500 underline-offset-4 hover:text-neutral-800 hover:underline"
-            >
-              {t("staffKitchen")}
-            </a>
           </footer>
         </div>
       </main>

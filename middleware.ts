@@ -92,8 +92,13 @@ export async function middleware(req: NextRequest) {
         return redirectToHost(req, customerHost, pathname);
       }
     }
-    if (onCustomerHost && isStaffPage(pathname) && staffHost) {
-      return redirectToHost(req, staffHost, pathname);
+    if (onCustomerHost && isStaffPage(pathname)) {
+      // Customers should never see staff routes — and shouldn't even be
+      // told the staff host exists. Return a 404 instead of redirecting.
+      return new NextResponse("Not Found", {
+        status: 404,
+        headers: { "content-type": "text/plain" },
+      });
     }
   }
 
