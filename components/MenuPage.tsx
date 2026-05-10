@@ -127,15 +127,17 @@ export default function MenuPage({ menu }: Props) {
               className="flex-none cursor-default rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
             >
               {/* PNG has ~43% transparent whitespace below the artwork; clip it. */}
-              <div className="block overflow-hidden h-[52px] sm:h-[68px] mt-6 sm:mt-0">
+              <div className="block overflow-hidden h-[52px] sm:h-[68px] mt-6 sm:mt-0 flex-none">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/shake-shake-logo.png"
                   alt="Shake Shake Fresh Noodle"
+                  width={1536}
+                  height={831}
                   fetchPriority="high"
                   decoding="sync"
                   loading="eager"
-                  className="h-24 w-auto max-w-none sm:h-32 -mt-1 sm:-mt-1.5"
+                  className="block h-24 w-auto max-w-none sm:h-32 -mt-1 sm:-mt-1.5 flex-none"
                 />
               </div>
             </button>
@@ -157,7 +159,7 @@ export default function MenuPage({ menu }: Props) {
               onClick={() => setFiltersOpen(true)}
               aria-label={t("filters")}
               className={[
-                "hidden sm:inline-flex h-11 min-w-[9.5rem] items-center justify-center whitespace-nowrap rounded-full px-4 text-base font-medium shadow-sm transition-colors",
+                "hidden sm:inline-flex h-11 w-[12rem] items-center justify-center whitespace-nowrap rounded-full px-4 text-base font-medium shadow-sm transition-colors",
                 "focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30",
                 preferences.length > 0
                   ? "bg-cantaloupe text-neutral-900 hover:bg-cantaloupe-soft"
