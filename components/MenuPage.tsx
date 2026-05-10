@@ -154,7 +154,7 @@ export default function MenuPage({ menu }: Props) {
               onClick={() => setFiltersOpen(true)}
               aria-label={t("filters")}
               className={[
-                "hidden sm:inline-flex h-10 items-center whitespace-nowrap rounded-full px-4 text-base font-bold shadow-sm transition-colors",
+                "hidden sm:inline-flex h-10 items-center whitespace-nowrap rounded-full px-4 text-base font-medium shadow-sm transition-colors",
                 "focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30",
                 preferences.length > 0
                   ? "bg-cantaloupe text-neutral-900 hover:bg-cantaloupe-soft"
