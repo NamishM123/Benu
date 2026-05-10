@@ -94,7 +94,7 @@ export default function MenuPage({ menu }: Props) {
   }, [menu]);
 
   const visibleItems = useMemo(
-    () => menu.filter((m) => m.category === activeCategory),
+    () => menu.filter((m) => m.category === activeCategory && m.available !== false),
     [menu, activeCategory],
   );
 
@@ -269,7 +269,6 @@ export default function MenuPage({ menu }: Props) {
             {visibleItems.map((d) => {
               const flags = findFlaggedPreferences(d, preferences);
               const isRestricted = flags.length > 0;
-              const isSoldOut = d.available === false;
               const hasRequiredOptions = getOptionGroupsForItem(d).some(
                 (g) => g.type === "single" && g.required,
               );
@@ -278,20 +277,18 @@ export default function MenuPage({ menu }: Props) {
                   key={d.name}
                   type="button"
                   onClick={() => {
-                    if (!isRestricted && !isSoldOut) setActiveItem(d);
+                    if (!isRestricted) setActiveItem(d);
                   }}
-                  disabled={isRestricted || isSoldOut}
-                  aria-disabled={isRestricted || isSoldOut}
+                  disabled={isRestricted}
+                  aria-disabled={isRestricted}
                   title={
-                    isSoldOut
-                      ? t("soldOutBadge")
-                      : isRestricted
+                    isRestricted
                       ? `${t("hiddenByFilter")} ${flags.map((f) => t(f)).join(", ")}`
                       : undefined
                   }
                   className={[
                     "group flex flex-col text-left rounded-[28px] outline-none transition-all duration-150",
-                    isRestricted || isSoldOut
+                    isRestricted
                       ? "cursor-not-allowed"
                       : "hover:-translate-y-0.5",
                   ].join(" ")}
@@ -301,8 +298,6 @@ export default function MenuPage({ menu }: Props) {
                       "relative overflow-hidden rounded-[28px] bg-white shadow-sm ring-4 ring-transparent transition-all duration-150",
                       isRestricted
                         ? "opacity-50 grayscale"
-                        : isSoldOut
-                        ? "opacity-60 grayscale"
                         : "group-hover:bg-butter-soft group-hover:shadow-lg group-hover:ring-butter group-focus-visible:ring-butter",
                     ].join(" ")}
                   >
@@ -347,17 +342,12 @@ export default function MenuPage({ menu }: Props) {
                           img.style.filter = "blur(0px)";
                         }}
                       />
-                      {isSoldOut && (
-                        <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-neutral-900/75 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-white backdrop-blur-sm">
-                          {t("soldOutBadge")}
-                        </span>
-                      )}
                       {flags.length > 0 && (
                         <span className="absolute right-4 top-4 rounded-full bg-amber-50/95 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-amber-800">
                           {t("filteredBadge")}
                         </span>
                       )}
-                      {!isRestricted && !isSoldOut && !hasRequiredOptions && (
+                      {!isRestricted && !hasRequiredOptions && (
                         <button
                           type="button"
                           aria-label={`Add ${d.name} to cart`}
@@ -384,7 +374,7 @@ export default function MenuPage({ menu }: Props) {
                   <div
                     className={[
                       "mt-3 px-1 transition-opacity",
-                      isRestricted || isSoldOut ? "opacity-50" : "",
+                      isRestricted ? "opacity-50" : "",
                     ].join(" ")}
                   >
                     <h3
