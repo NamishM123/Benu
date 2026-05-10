@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { deleteOrder, getOrder, patchOrder } from "@/lib/server-orders";
 import type { OrderStatus } from "@/lib/order-store";
+import { notifyOrderCooking, notifyOrderReady } from "@/lib/telegram";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -52,6 +53,15 @@ export async function PATCH(req: Request, { params }: Ctx) {
   if (!updated) {
     return NextResponse.json({ error: "not found" }, { status: 404 });
   }
+
+  if (patch.status && updated.clientId) {
+    if (patch.status === "cooking") {
+      notifyOrderCooking(updated.clientId, updated.tableNumber).catch(() => {});
+    } else if (patch.status === "ready") {
+      notifyOrderReady(updated.clientId, updated.tableNumber).catch(() => {});
+    }
+  }
+
   return NextResponse.json({ order: updated });
 }
 
