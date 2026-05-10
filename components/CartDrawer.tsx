@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { formatPrice, type MenuItem } from "@/lib/menu";
 import {
@@ -37,11 +38,11 @@ export default function CartDrawer({
   onClose,
 }: Props) {
   const { t, lang } = useTranslation();
+  const router = useRouter();
   const [dragOffset, setDragOffset] = useState(0);
   const [confirmRemoveId, setConfirmRemoveId] = useState<string | null>(null);
   const [confirmClear, setConfirmClear] = useState(false);
   const [sentFlash, setSentFlash] = useState(false);
-  const [orderId, setOrderId] = useState<string | null>(null);
   const [orderError, setOrderError] = useState<string | null>(null);
   const startYRef = useRef<number | null>(null);
   const draggingRef = useRef(false);
@@ -163,21 +164,7 @@ export default function CartDrawer({
           </h2>
         </header>
 
-        {orderId ? (
-          <div className="flex flex-col items-center justify-center px-6 py-20 text-center">
-            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-sage-dark text-3xl">
-              ✓
-            </div>
-            <h3 className="font-serif text-2xl text-neutral-900">{t("orderPlacedTitle")}</h3>
-            <p className="mt-2 text-sm text-neutral-600">{t("orderPlacedSubtitle")}</p>
-            <div className="mt-5 rounded-2xl border border-neutral-200 bg-white px-8 py-4">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{t("orderIdLabel")}</p>
-              <p className="mt-1 font-mono text-3xl font-bold tracking-widest text-neutral-900">
-                #{orderId.slice(0, 6).toUpperCase()}
-              </p>
-            </div>
-          </div>
-        ) : cart.length === 0 ? (
+        {cart.length === 0 ? (
           <div className="flex flex-1 flex-col items-center justify-center px-6 py-6 text-center sm:flex-none sm:py-12">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -378,11 +365,8 @@ export default function CartDrawer({
                       return;
                     }
                     clearCart();
-                    setOrderId(order.id);
-                    setTimeout(() => {
-                      setOrderId(null);
-                      onClose();
-                    }, 4000);
+                    onClose();
+                    router.push(`/order/${order.id}`);
                   }}
                 >
                   {sentFlash ? t("orderSent") : t("sendToKitchen")}
