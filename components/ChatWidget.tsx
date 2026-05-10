@@ -316,13 +316,13 @@ export default function ChatWidget({
             onClick={(e) => e.stopPropagation()}
             style={{
               bottom: `${20 + keyboardInset}px`,
-              maxHeight: vvHeight != null ? `${vvHeight - 40}px` : "65dvh",
+              maxHeight: vvHeight != null ? `${vvHeight - 40}px` : "82dvh",
               transform: `translateX(-50%) translateY(${dragOffset}px)`,
               transition: draggingRef.current
                 ? "none"
                 : "transform 200ms ease-out",
             }}
-            className="fixed left-1/2 z-40 flex h-[65dvh] w-[calc(100vw-2rem)] max-w-6xl flex-col overflow-hidden rounded-2xl border border-neutral-300/70 bg-white shadow-2xl sm:h-[min(620px,65dvh)]"
+            className="fixed left-1/2 z-40 flex h-[82dvh] w-[calc(100vw-2rem)] max-w-6xl flex-col overflow-hidden rounded-2xl border border-neutral-300/70 bg-white shadow-2xl sm:h-[min(720px,82dvh)]"
           >
           <div
             onTouchStart={handleTouchStart}
@@ -338,7 +338,9 @@ export default function ChatWidget({
                 ) : (
                   <>
                     {t("chatHeaderPrefix")}{" "}
-                    <em>{t("chatHeaderHighlight")}</em>
+                    <em className="benu-text-glow">
+                      {t("chatHeaderHighlight")}
+                    </em>
                   </>
                 )}
               </h2>

@@ -286,7 +286,7 @@ const TRANSLATIONS = {
   chatAvoiding: { en: "Avoiding", zh: "忌口" },
   chatContains: { en: "contains", zh: "含有" },
   chatPlaceholder: {
-    en: "Let's find something you'll love",
+    en: "Let's Find Something You'll Love",
     zh: "为您找到喜爱的菜品",
   },
   chatThinking: { en: "Thinking…", zh: "思考中…" },
