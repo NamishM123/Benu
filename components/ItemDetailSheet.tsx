@@ -255,7 +255,7 @@ export default function ItemDetailSheet({ item, preferences, onClose, onCartOpen
               <polyline points="15 18 9 12 15 6" />
             </svg>
           </button>
-          <div className="relative z-10 px-6 pt-14 pb-6 sm:pt-12 sm:pb-2">
+          <div className="relative z-10 px-6 pt-20 pb-2 sm:pt-12">
             <div className="relative aspect-square w-full overflow-hidden rounded-3xl bg-white shadow-md sm:aspect-[4/3]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img

@@ -22,9 +22,11 @@ type ChatMessage = {
 
 type ApiDish = {
   name: string;
+  nameZh?: string;
   price: number;
   category: string;
   description: string;
+  descriptionZh?: string;
   spiceLevel: SpiceLevel;
   tags: string[];
   image: string;
@@ -37,6 +39,10 @@ type ApiResponse = {
 
 type ChatWidgetProps = {
   hidden?: boolean;
+  // Called when the diner taps the "+" button on a suggested dish. The
+  // parent looks up the full MenuItem by name and opens the item detail
+  // sheet so the customer can pick options / quantity before adding.
+  onSelectDish?: (itemName: string) => void;
 };
 
 // Render `**bold**` segments as <strong>; everything else passes through.
@@ -48,7 +54,10 @@ function renderInlineMarkdown(text: string) {
 
 const SWIPE_DISMISS_THRESHOLD = 80; // px to drag header down before closing
 
-export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
+export default function ChatWidget({
+  hidden = false,
+  onSelectDish,
+}: ChatWidgetProps = {}) {
   const { t, lang } = useTranslation();
   const [open, setOpen] = useState(false);
   const [preferences, setPreferences] = useState<string[]>([]);
@@ -344,16 +353,16 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
               type="button"
               onClick={() => setOpen(false)}
               aria-label={t("chatHideAria")}
-              className="-mt-1 flex h-9 w-9 flex-none items-center justify-center rounded-full text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
+              className="-mt-1 flex h-10 w-10 flex-none items-center justify-center rounded-full text-neutral-900 hover:bg-neutral-100 hover:text-neutral-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
+                width="28"
+                height="28"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                strokeWidth="2.5"
+                strokeWidth="3"
                 strokeLinecap="round"
                 aria-hidden="true"
               >
@@ -420,7 +429,7 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
                       return (
                         <li
                           key={d.name}
-                          className="flex gap-3 rounded-xl border border-neutral-200 bg-white p-2"
+                          className="flex items-stretch gap-3 rounded-xl border border-neutral-200 bg-white p-2"
                         >
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
@@ -439,14 +448,18 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
                           <div className="min-w-0 flex-1">
                             <div className="flex items-baseline justify-between gap-2">
                               <p className="truncate text-sm font-medium text-neutral-900">
-                                {d.name}
+                                {lang === "zh" && d.nameZh
+                                  ? d.nameZh
+                                  : d.name}
                               </p>
                               <p className="text-xs text-neutral-600">
                                 {formatPrice(d.price)}
                               </p>
                             </div>
                             <p className="line-clamp-2 text-xs text-neutral-500">
-                              {d.description}
+                              {lang === "zh" && d.descriptionZh
+                                ? d.descriptionZh
+                                : d.description}
                             </p>
                             <div className="mt-1 flex flex-wrap gap-1">
                               {d.spiceLevel > 0 && (
@@ -465,6 +478,34 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
                               ))}
                             </div>
                           </div>
+                          {onSelectDish && (
+                            <button
+                              type="button"
+                              onClick={() => onSelectDish(d.name)}
+                              aria-label={`${t("addToCart")} — ${
+                                lang === "zh" && d.nameZh
+                                  ? d.nameZh
+                                  : d.name
+                              }`}
+                              className="flex h-9 w-9 flex-none items-center justify-center self-center rounded-full bg-cantaloupe text-neutral-900 shadow-sm transition-colors hover:bg-cantaloupe-soft active:bg-cantaloupe-deep focus:outline-none focus-visible:ring-2 focus-visible:ring-cantaloupe-deep/40"
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="18"
+                                height="18"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                aria-hidden="true"
+                              >
+                                <line x1="12" y1="5" x2="12" y2="19" />
+                                <line x1="5" y1="12" x2="19" y2="12" />
+                              </svg>
+                            </button>
+                          )}
                         </li>
                       );
                     })}
