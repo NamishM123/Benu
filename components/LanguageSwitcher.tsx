@@ -20,7 +20,7 @@ export default function LanguageSwitcher() {
         onClick={() => pick("en")}
         aria-pressed={lang === "en"}
         className={[
-          "h-11 w-[4.5rem] rounded-full text-base font-medium transition-colors",
+          "w-[4rem] rounded-full px-4 py-2 text-base font-medium transition-colors",
           lang === "en"
             ? "bg-neutral-900 text-cream"
             : "text-neutral-900 hover:text-neutral-700",
@@ -33,7 +33,7 @@ export default function LanguageSwitcher() {
         onClick={() => pick("zh")}
         aria-pressed={lang === "zh"}
         className={[
-          "h-11 w-[4.5rem] rounded-full text-base font-medium transition-colors",
+          "w-[4rem] rounded-full px-4 py-2 text-base font-medium transition-colors",
           lang === "zh"
             ? "bg-neutral-900 text-cream"
             : "text-neutral-900 hover:text-neutral-700",

@@ -26,7 +26,7 @@ export default function MobileHeaderControl({
         type="button"
         onClick={() => setLang(lang === "en" ? "zh" : "en")}
         aria-label="Toggle language"
-        className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-neutral-300 bg-white text-sm font-semibold text-neutral-900 shadow-sm transition-colors hover:bg-neutral-100"
+        className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-neutral-300 bg-white text-sm font-semibold text-neutral-900 shadow-sm transition-colors hover:bg-neutral-100"
       >
         {lang === "en" ? "EN" : "中"}
       </button>
@@ -37,7 +37,7 @@ export default function MobileHeaderControl({
         onClick={onFiltersOpen}
         aria-label={t("filters")}
         className={[
-          "relative inline-flex h-11 w-[10rem] items-center justify-center whitespace-nowrap rounded-full px-3.5 text-sm font-medium shadow-sm transition-colors",
+          "relative inline-flex w-[9rem] items-center justify-center whitespace-nowrap rounded-full px-3.5 py-2 text-sm font-medium shadow-sm transition-colors",
           "focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30",
           preferencesCount > 0
             ? "bg-cantaloupe text-neutral-900 hover:bg-cantaloupe-soft"
