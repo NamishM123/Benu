@@ -14,6 +14,7 @@ import {
   setStoredPreferences,
 } from "@/lib/preferences-store";
 import { extractAllergensFromText } from "@/lib/allergen-detect";
+import { isMedicalEmergency } from "@/lib/emergency-detect";
 import { containsOffensiveLanguage } from "@/lib/profanity";
 import { useTranslation } from "@/lib/i18n";
 
@@ -22,6 +23,7 @@ type ChatMessage = {
   role: "user" | "bot";
   text: string;
   dishes?: MenuItem[];
+  emergency?: boolean;
 };
 
 type ApiDish = {
@@ -40,6 +42,7 @@ type ApiResponse = {
   text: string;
   dishes?: ApiDish[];
   detectedAllergens?: string[];
+  isEmergency?: boolean;
 };
 
 type ChatWidgetProps = {
@@ -227,6 +230,27 @@ export default function ChatWidget({
     const text = input.trim();
     if (!text || isSending) return;
 
+    // SAFETY: medical-emergency intercept (highest priority). If the
+    // message looks like an emergency, render the emergency banner
+    // immediately and DO NOT call the LLM. The LLM has previously
+    // responded "what flavors are you in the mood for?" to "I'm dying
+    // could you help me" — never trust it for this case.
+    if (isMedicalEmergency(text)) {
+      const userMsg: ChatMessage = { id: Date.now(), role: "user", text };
+      setInput("");
+      setMessages((m) => [
+        ...m,
+        userMsg,
+        {
+          id: Date.now() + 1,
+          role: "bot",
+          text: t("emergencyMessage"),
+          emergency: true,
+        },
+      ]);
+      return;
+    }
+
     // Basic profanity / slur guard. Doesn't aim to catch everything —
     // just stops the most common offensive terms from being sent or
     // showing up in the chat history.
@@ -291,13 +315,21 @@ export default function ChatWidget({
       if (!res.ok) throw new Error("api error");
       const data: ApiResponse = await res.json();
       persistDetected(data.detectedAllergens);
+      const isEmergency = Boolean(data.isEmergency);
       setMessages((m) => [
         ...m,
         {
           id: Date.now() + 1,
           role: "bot",
-          text: data.text,
-          dishes: safeDishes(data.dishes) as MenuItem[] | undefined,
+          // The server ships an English emergency string; if the user is
+          // on the Chinese view, prefer the localized i18n version.
+          text: isEmergency ? t("emergencyMessage") : data.text,
+          // Suppress dish cards entirely on emergency replies — no menu
+          // suggestions while someone might be in anaphylaxis.
+          dishes: isEmergency
+            ? undefined
+            : (safeDishes(data.dishes) as MenuItem[] | undefined),
+          emergency: isEmergency || undefined,
         },
       ]);
     } catch {
@@ -492,11 +524,16 @@ export default function ChatWidget({
                 <div className="flex flex-col gap-1">
                 <div
                   className={[
-                    "rounded-3xl px-4 py-2 text-sm leading-relaxed shadow-sm",
-                    isUser
+                    "px-4 py-2 text-sm leading-relaxed shadow-sm whitespace-pre-line",
+                    m.emergency
+                      ? "rounded-xl border-2 border-red-600 bg-red-50 text-red-900 font-medium"
+                      : "rounded-3xl",
+                    !m.emergency && (isUser
                       ? "bg-cantaloupe text-neutral-900"
-                      : "bg-white text-neutral-900",
-                  ].join(" ")}
+                      : "bg-white text-neutral-900"),
+                  ]
+                    .filter(Boolean)
+                    .join(" ")}
                 >
                   {renderInlineMarkdown(m.text)}
                 </div>
