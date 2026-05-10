@@ -14,6 +14,7 @@ import Link from "next/link";
 import { useTranslation, t as translate, type Lang } from "@/lib/i18n";
 import LanguageSwitcher from "./LanguageSwitcher";
 import SignOutButton from "./SignOutButton";
+import { type MenuItem } from "@/lib/menu";
 
 function formatTime(ts: number): string {
   const d = new Date(ts);
@@ -36,6 +37,15 @@ export default function KitchenDisplay() {
   const { t, lang } = useTranslation();
   const [orders, setOrders] = useState<Order[]>([]);
   const [etaDrafts, setEtaDrafts] = useState<Record<string, string>>({});
+  const [menuItems, setMenuItems] = useState<(MenuItem & { id: string })[]>([]);
+  const [show86Panel, setShow86Panel] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/menu/items")
+      .then((r) => r.json())
+      .then((j) => setMenuItems(j.items ?? []))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     setOrders(getOrders());
@@ -72,12 +82,13 @@ export default function KitchenDisplay() {
             {t("kitchenTitle")}
           </h1>
           <div className="flex items-center gap-3">
-            <Link
-              href="/admin/menu"
+            <button
+              type="button"
+              onClick={() => setShow86Panel((v) => !v)}
               className="rounded-full border border-neutral-300 bg-white px-3 py-1.5 text-xs text-neutral-700 hover:bg-neutral-100"
             >
-              Edit menu
-            </Link>
+              86 items
+            </button>
             <Link
               href="/admin/qr"
               className="rounded-full border border-neutral-300 bg-white px-3 py-1.5 text-xs text-neutral-700 hover:bg-neutral-100"
@@ -89,6 +100,49 @@ export default function KitchenDisplay() {
           </div>
         </div>
       </header>
+
+      {show86Panel && (
+        <div className="border-b border-neutral-200 bg-white">
+          <div className="mx-auto max-w-6xl px-6 py-4">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-neutral-500">
+              Toggle item availability
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {menuItems.map((item) => {
+                const soldOut = item.available === false;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={async () => {
+                      const res = await fetch(`/api/menu/items/${encodeURIComponent(item.id)}`, {
+                        method: "PATCH",
+                        headers: { "content-type": "application/json" },
+                        body: JSON.stringify({ available: soldOut ? true : false }),
+                      });
+                      if (res.ok) {
+                        const { item: updated } = await res.json();
+                        setMenuItems((prev) =>
+                          prev.map((p) => (p.id === updated.id ? updated : p))
+                        );
+                      }
+                    }}
+                    className={[
+                      "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+                      soldOut
+                        ? "border-red-200 bg-red-50 text-red-700 hover:bg-red-100"
+                        : "border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-100",
+                    ].join(" ")}
+                  >
+                    {soldOut ? "🚫 " : "✓ "}
+                    {item.name}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
 
       <main className="mx-auto max-w-6xl px-6 py-6">
         {orders.length === 0 ? (
