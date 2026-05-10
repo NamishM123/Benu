@@ -101,11 +101,20 @@ export default function ItemDetailSheet({ item, preferences, onClose, onCartOpen
     setFadeOpacity(0);
   }, [item, groups]);
 
-  // Lock body scroll while open + match iOS status bar to the dialog bg
+  // Lock body scroll + match the iOS safe-area / status bar to the dialog bg.
+  // theme-color alone is unreliable in mobile Safari (the status bar often
+  // shows the underlying html/body bg), so we also paint the root elements.
   useEffect(() => {
     if (!item) return;
-    const orig = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    const html = document.documentElement;
+    const body = document.body;
+
+    const origOverflow = body.style.overflow;
+    const origHtmlBg = html.style.backgroundColor;
+    const origBodyBg = body.style.backgroundColor;
+    body.style.overflow = "hidden";
+    html.style.backgroundColor = "#F7EFDE";
+    body.style.backgroundColor = "#F7EFDE";
 
     const themeMeta = document.querySelector<HTMLMetaElement>(
       'meta[name="theme-color"]',
@@ -114,7 +123,9 @@ export default function ItemDetailSheet({ item, preferences, onClose, onCartOpen
     themeMeta?.setAttribute("content", "#F7EFDE");
 
     return () => {
-      document.body.style.overflow = orig;
+      body.style.overflow = origOverflow;
+      html.style.backgroundColor = origHtmlBg;
+      body.style.backgroundColor = origBodyBg;
       if (themeMeta && origTheme !== null)
         themeMeta.setAttribute("content", origTheme);
     };
@@ -255,7 +266,7 @@ export default function ItemDetailSheet({ item, preferences, onClose, onCartOpen
               <polyline points="15 18 9 12 15 6" />
             </svg>
           </button>
-          <div className="relative z-10 px-6 pt-20 pb-2 sm:pt-12">
+          <div className="relative z-10 px-6 pt-14 pb-2 sm:pt-12">
             <div className="relative aspect-square w-full overflow-hidden rounded-3xl bg-white shadow-md sm:aspect-[4/3]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
