@@ -317,12 +317,14 @@ export default function ChatWidget({
             style={{
               bottom: `${20 + keyboardInset}px`,
               maxHeight: vvHeight != null ? `${vvHeight - 40}px` : "82dvh",
-              transform: `translateX(-50%) translateY(${dragOffset}px)`,
+              // --chat-x flips to 0 on desktop (sm:) so the panel pins to the
+              // right instead of centering full-width — see className below.
+              transform: `translateX(var(--chat-x,-50%)) translateY(${dragOffset}px)`,
               transition: draggingRef.current
                 ? "none"
                 : "transform 200ms ease-out",
             }}
-            className="fixed left-1/2 z-40 flex h-[82dvh] w-[calc(100vw-2rem)] max-w-6xl flex-col overflow-hidden rounded-2xl border border-neutral-300/70 bg-white shadow-2xl sm:h-[min(720px,82dvh)]"
+            className="fixed left-1/2 z-40 flex h-[82dvh] w-[calc(100vw-2rem)] max-w-6xl flex-col overflow-hidden rounded-2xl border border-neutral-300/70 bg-white shadow-2xl sm:left-auto sm:right-5 sm:h-[min(720px,82dvh)] sm:w-[min(420px,calc(100vw-2.5rem))] sm:max-w-none sm:[--chat-x:0]"
           >
           <div
             onTouchStart={handleTouchStart}
