@@ -101,13 +101,22 @@ export default function ItemDetailSheet({ item, preferences, onClose, onCartOpen
     setFadeOpacity(0);
   }, [item, groups]);
 
-  // Lock body scroll while open
+  // Lock body scroll while open + match iOS status bar to the dialog bg
   useEffect(() => {
     if (!item) return;
     const orig = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+
+    const themeMeta = document.querySelector<HTMLMetaElement>(
+      'meta[name="theme-color"]',
+    );
+    const origTheme = themeMeta?.getAttribute("content") ?? null;
+    themeMeta?.setAttribute("content", "#F7EFDE");
+
     return () => {
       document.body.style.overflow = orig;
+      if (themeMeta && origTheme !== null)
+        themeMeta.setAttribute("content", origTheme);
     };
   }, [item]);
 
