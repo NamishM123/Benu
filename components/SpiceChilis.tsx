@@ -28,11 +28,10 @@ export default function SpiceChilis({ level, size = 20 }: Props) {
           alt=""
           width={size}
           height={size}
-          className={
-            i === 0
-              ? "ml-1 inline-block align-middle"
-              : "-ml-2 inline-block align-middle"
-          }
+          className={[
+            "relative -top-1 inline-block align-middle",
+            i === 0 ? "ml-0.5" : "-ml-2",
+          ].join(" ")}
           aria-hidden="true"
         />
       ))}
