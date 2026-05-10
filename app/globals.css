@@ -59,19 +59,23 @@ body {
   inset: -2px;
   border-radius: 9999px;
   padding: 2px;
+  /* Soft, wide orange highlight that fades smoothly in and out as it
+     rotates around the border — no hard edges. */
   background: conic-gradient(
     from var(--benu-angle),
-    transparent 0deg,
-    transparent 250deg,
-    #FFB892 285deg,
-    #FDA172 305deg,
-    #E88A5C 325deg,
-    transparent 360deg
+    rgba(253, 161, 114, 0.25) 0deg,
+    rgba(253, 161, 114, 0.25) 200deg,
+    rgba(255, 184, 146, 0.6) 250deg,
+    #FDA172 290deg,
+    #E88A5C 310deg,
+    #FDA172 330deg,
+    rgba(255, 184, 146, 0.6) 350deg,
+    rgba(253, 161, 114, 0.25) 360deg
   );
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
-  animation: benu-rotate-glow 2.6s linear infinite;
+  animation: benu-rotate-glow 1.8s linear infinite;
   pointer-events: none;
   z-index: 1;
 }
