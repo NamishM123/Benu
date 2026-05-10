@@ -297,8 +297,10 @@ export default function MenuPage({ menu }: Props) {
                   <div
                     className={[
                       "relative overflow-hidden rounded-[28px] bg-white shadow-sm ring-4 ring-transparent transition-all duration-150",
-                      isRestricted || isSoldOut
+                      isRestricted
                         ? "opacity-50 grayscale"
+                        : isSoldOut
+                        ? ""
                         : "group-hover:bg-butter-soft group-hover:shadow-lg group-hover:ring-butter group-focus-visible:ring-butter",
                     ].join(" ")}
                   >
@@ -380,7 +382,7 @@ export default function MenuPage({ menu }: Props) {
                   <div
                     className={[
                       "mt-3 px-1 transition-opacity",
-                      isRestricted || isSoldOut ? "opacity-50" : "",
+                      isRestricted ? "opacity-50" : "",
                     ].join(" ")}
                   >
                     <h3
