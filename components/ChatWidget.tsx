@@ -284,12 +284,12 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
             onClick={(e) => e.stopPropagation()}
             style={{
               maxHeight: "65dvh",
-              transform: `translateY(${dragOffset}px)`,
+              transform: `translateX(-50%) translateY(${dragOffset}px)`,
               transition: draggingRef.current
                 ? "none"
                 : "transform 200ms ease-out",
             }}
-            className="fixed bottom-5 left-1/2 z-40 flex h-[65dvh] w-[calc(100vw-2rem)] max-w-6xl -translate-x-1/2 flex-col overflow-hidden rounded-2xl border border-neutral-300/70 bg-white shadow-2xl sm:bottom-5 sm:h-[min(620px,65dvh)]"
+            className="fixed bottom-5 left-1/2 z-40 flex h-[65dvh] w-[calc(100vw-2rem)] max-w-6xl flex-col overflow-hidden rounded-2xl border border-neutral-300/70 bg-white shadow-2xl sm:bottom-5 sm:h-[min(620px,65dvh)]"
           >
           <div
             onTouchStart={handleTouchStart}
