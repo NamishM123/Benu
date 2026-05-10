@@ -174,16 +174,11 @@ export default function CartDrawer({
                     />
                   )}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-baseline justify-between gap-3">
-                      <p className="font-medium text-neutral-900">
-                        {lang === "zh" && line.itemNameZh
-                          ? line.itemNameZh
-                          : line.itemName}
-                      </p>
-                      <p className="text-sm text-neutral-700">
-                        {formatPrice(line.unitPrice * line.quantity)}
-                      </p>
-                    </div>
+                    <p className="font-medium text-neutral-900">
+                      {lang === "zh" && line.itemNameZh
+                        ? line.itemNameZh
+                        : line.itemName}
+                    </p>
                     {line.selections.length > 0 && (
                       <ul className="mt-1 space-y-0.5 text-xs text-neutral-500">
                         {line.selections.map((s) => (
