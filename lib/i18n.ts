@@ -233,6 +233,69 @@ const TRANSLATIONS = {
   choice_boba: { en: "Tapioca Pearls", zh: "珍珠" },
   "choice_lychee-jelly": { en: "Lychee Jelly", zh: "荔枝果冻" },
   "choice_extra-shot": { en: "Extra Espresso Shot", zh: "加浓缩咖啡" },
+
+  // Cart drawer — pairing suggestions
+  pairOneBowl: { en: "Pair a drink with your bowl", zh: "为您的餐点搭配一杯饮品" },
+  pairManyBowls: {
+    en: "Pair drinks with your {n} bowls",
+    zh: "为您的 {n} 份餐点搭配饮品",
+  },
+  pairCoolsHeat: {
+    en: "Cools the heat in your noodles.",
+    zh: "为您的辣味餐点降温解辣。",
+  },
+  pairCrispRefreshing: {
+    en: "Crisp and refreshing alongside the meal.",
+    zh: "清爽宜人，搭配餐点正合适。",
+  },
+  pairRoundsOut: {
+    en: "Rounds out the meal nicely.",
+    zh: "圆满地搭配整顿餐。",
+  },
+  pairGoesWell: {
+    en: "Goes well with what you've picked.",
+    zh: "与您所选的菜品很相配。",
+  },
+
+  // Cart drawer — totals & errors
+  taxLabel: { en: "Tax (9.25%)", zh: "税费 (9.25%)" },
+  notePrefix: { en: "Note", zh: "备注" },
+  orderSendError: {
+    en: "Couldn't reach the kitchen — please try again.",
+    zh: "无法连接到厨房 — 请重试。",
+  },
+
+  // Menu cards
+  soldOutBadge: { en: "Sold out today", zh: "今日售罄" },
+  hiddenByFilter: {
+    en: "Hidden by your filter: contains",
+    zh: "已被您的筛选隐藏：含有",
+  },
+
+  // Chat widget
+  chatHeaderPrefix: { en: "Ask Benu In", zh: "用任何语言询问 Benu" },
+  chatHeaderHighlight: { en: "Any Language", zh: "" },
+  chatGreeting: {
+    en: "Hi, I'm Benu. Tell me what you are craving, what you avoid, or how hungry you are. I'll help you find the right dish.",
+    zh: "您好，我是 Benu。请告诉我您想吃什么、忌口什么、或是有多饿，我会帮您找到合适的菜品。",
+  },
+  chatProfanity: {
+    en: "Let's keep things respectful. Please rephrase your question without slurs or offensive language.",
+    zh: "请文明用语。请去除不当或冒犯性语言后重新提问。",
+  },
+  chatAvoiding: { en: "Avoiding", zh: "忌口" },
+  chatContains: { en: "contains", zh: "含有" },
+  chatPlaceholder: {
+    en: "Let's find something you'll love",
+    zh: "为您找到喜爱的菜品",
+  },
+  chatThinking: { en: "Thinking…", zh: "思考中…" },
+  chatSend: { en: "Send", zh: "发送" },
+  chatOpenAria: { en: "Open menu assistant", zh: "打开菜单助手" },
+  chatHideAria: { en: "Hide chat", zh: "隐藏聊天" },
+  chatPanelAria: { en: "Menu assistant", zh: "菜单助手" },
+  chatInputAria: { en: "Ask the menu assistant", zh: "向菜单助手提问" },
+  chatSendAria: { en: "Send message", zh: "发送消息" },
 } as const satisfies Record<string, { en: string; zh: string }>;
 
 type TranslationKey = keyof typeof TRANSLATIONS;
@@ -270,6 +333,60 @@ export function t(key: TranslationKey | string, lang?: Lang): string {
   ];
   if (!entry) return key;
   return entry[useLang];
+}
+
+const GROUP_LABEL_KEYS: Record<string, string> = {
+  "Spice Level": "group_spice",
+  Portion: "group_portion",
+  "Add-ons": "group_addons",
+  Sweetness: "group_sweetness",
+  "Ice Level": "group_ice",
+  Milk: "group_milk",
+  Size: "group_size",
+};
+
+const CHOICE_LABEL_KEYS: Record<string, string> = {
+  Mild: "choice_mild",
+  "Extra Spicy": "choice_extra",
+  Large: "choice_large",
+  "Extra Noodles": "choice_extra-noodles",
+  "Bok Choy": "choice_bok-choy",
+  "Soft-Boiled Egg": "choice_soft-egg",
+  "Extra Scallion": "choice_scallion",
+  "Fried Egg": "choice_fried-egg",
+  "Extra Rice": "choice_extra-rice",
+  "No Sugar": "choice_sweetNone",
+  "Less Sweet": "choice_sweetLess",
+  "Extra Sweet": "choice_sweetExtra",
+  "No Ice": "choice_iceNone",
+  "Less Ice": "choice_iceLess",
+  "Regular Ice": "choice_iceRegular",
+  "Whole Milk": "choice_whole",
+  "Oat Milk": "choice_oat",
+  "Almond Milk": "choice_almond",
+  "Skim Milk": "choice_skim",
+  "Tapioca Pearls": "choice_boba",
+  "Lychee Jelly": "choice_lychee-jelly",
+  "Extra Espresso Shot": "choice_extra-shot",
+};
+
+export function translateGroupLabel(label: string, lang?: Lang): string {
+  const key = GROUP_LABEL_KEYS[label];
+  return key ? t(key, lang) : label;
+}
+
+export function translateChoiceLabel(
+  label: string,
+  groupLabel: string,
+  lang?: Lang,
+): string {
+  if (label === "Regular") {
+    return groupLabel === "Sweetness"
+      ? t("choice_sweetRegular", lang)
+      : t("choice_regular", lang);
+  }
+  const key = CHOICE_LABEL_KEYS[label];
+  return key ? t(key, lang) : label;
 }
 
 /** React hook — returns { t, lang, setLang } and re-renders on language change. */

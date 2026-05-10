@@ -9,7 +9,13 @@ import {
   type Order,
   type OrderStatus as OrderStatusValue,
 } from "@/lib/order-store";
-import { useTranslation, t as translate, type Lang } from "@/lib/i18n";
+import {
+  useTranslation,
+  t as translate,
+  translateChoiceLabel,
+  translateGroupLabel,
+  type Lang,
+} from "@/lib/i18n";
 import { formatPrice } from "@/lib/menu";
 import LanguageSwitcher from "./LanguageSwitcher";
 
@@ -192,7 +198,12 @@ export default function OrderStatus({ id }: Props) {
                   <ul className="mt-1 space-y-0.5 text-xs text-neutral-500">
                     {line.selections.map((s) => (
                       <li key={s.groupLabel}>
-                        {s.groupLabel}: {s.choiceLabels.join(", ")}
+                        {translateGroupLabel(s.groupLabel, lang)}:{" "}
+                        {s.choiceLabels
+                          .map((c) =>
+                            translateChoiceLabel(c, s.groupLabel, lang),
+                          )
+                          .join(", ")}
                       </li>
                     ))}
                   </ul>

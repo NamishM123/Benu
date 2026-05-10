@@ -12,7 +12,11 @@ import {
 } from "@/lib/cart-store";
 import { getCurrentTableNumber, placeOrder } from "@/lib/order-store";
 import { pairingReason, pickPairings } from "@/lib/cart-insights";
-import { useTranslation } from "@/lib/i18n";
+import {
+  translateChoiceLabel,
+  translateGroupLabel,
+  useTranslation,
+} from "@/lib/i18n";
 import { localName } from "@/lib/menu";
 
 type Props = {
@@ -187,14 +191,19 @@ export default function CartDrawer({
                       <ul className="mt-1 space-y-0.5 text-xs text-neutral-500">
                         {line.selections.map((s) => (
                           <li key={s.groupLabel}>
-                            {s.groupLabel}: {s.choiceLabels.join(", ")}
+                            {translateGroupLabel(s.groupLabel, lang)}:{" "}
+                            {s.choiceLabels
+                              .map((c) =>
+                                translateChoiceLabel(c, s.groupLabel, lang),
+                              )
+                              .join(", ")}
                           </li>
                         ))}
                       </ul>
                     )}
                     {line.specialRequest && (
                       <p className="mt-1 text-xs italic text-neutral-500">
-                        Note: {line.specialRequest}
+                        {t("notePrefix")}: {line.specialRequest}
                       </p>
                     )}
                   <div className="mt-3 flex items-center justify-between gap-3">
@@ -256,8 +265,11 @@ export default function CartDrawer({
               <div className="space-y-3 px-6 pb-2 pt-4">
                 <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
                   {pairings.length === 1
-                    ? "Pair a drink with your bowl"
-                    : `Pair drinks with your ${pairings.length} bowls`}
+                    ? t("pairOneBowl")
+                    : t("pairManyBowls").replace(
+                        "{n}",
+                        String(pairings.length),
+                      )}
                 </p>
                 {pairings.map((p) => (
                   <div
@@ -271,7 +283,7 @@ export default function CartDrawer({
                       </p>
                     </div>
                     <p className="mt-1 text-xs text-neutral-500">
-                      {pairingReason(p, cart, menu)}
+                      {t(pairingReason(p, cart, menu))}
                     </p>
                     <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-neutral-500">
                       {lang === "zh" && p.descriptionZh ? p.descriptionZh : p.description}
@@ -304,11 +316,11 @@ export default function CartDrawer({
                 <span className="text-sm text-neutral-900">{formatPrice(total)}</span>
               </div>
               <div className="mb-3 flex items-baseline justify-between">
-                <span className="text-sm text-neutral-600">Tax (9.25%)</span>
+                <span className="text-sm text-neutral-600">{t("taxLabel")}</span>
                 <span className="text-sm text-neutral-900">{formatPrice(Math.round(total * 0.0925))}</span>
               </div>
               <div className="mb-3 flex items-baseline justify-between border-t border-neutral-200 pt-2">
-                <span className="text-sm font-semibold text-neutral-900">Total</span>
+                <span className="text-sm font-semibold text-neutral-900">{t("total")}</span>
                 <span className="text-lg font-medium text-neutral-900">{formatPrice(Math.round(total * 1.0925))}</span>
               </div>
               {orderError && (
@@ -335,7 +347,7 @@ export default function CartDrawer({
                     try {
                       order = await placeOrder(cart, preferences, getCurrentTableNumber());
                     } catch {
-                      setOrderError("Couldn't reach the kitchen — please try again.");
+                      setOrderError(t("orderSendError"));
                       return;
                     }
                     clearCart();

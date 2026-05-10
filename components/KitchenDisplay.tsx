@@ -11,7 +11,13 @@ import {
   type OrderStatus,
 } from "@/lib/order-store";
 import Link from "next/link";
-import { useTranslation, t as translate, type Lang } from "@/lib/i18n";
+import {
+  useTranslation,
+  t as translate,
+  translateChoiceLabel,
+  translateGroupLabel,
+  type Lang,
+} from "@/lib/i18n";
 import LanguageSwitcher from "./LanguageSwitcher";
 import SignOutButton from "./SignOutButton";
 import { type MenuItem } from "@/lib/menu";
@@ -255,7 +261,12 @@ export default function KitchenDisplay() {
                           <ul className="mt-1 space-y-0.5 text-xs text-neutral-600">
                             {line.selections.map((s) => (
                               <li key={s.groupLabel}>
-                                {s.groupLabel}: {s.choiceLabels.join(", ")}
+                                {translateGroupLabel(s.groupLabel, lang)}:{" "}
+                                {s.choiceLabels
+                                  .map((c) =>
+                                    translateChoiceLabel(c, s.groupLabel, lang),
+                                  )
+                                  .join(", ")}
                               </li>
                             ))}
                           </ul>

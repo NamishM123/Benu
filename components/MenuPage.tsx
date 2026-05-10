@@ -284,9 +284,9 @@ export default function MenuPage({ menu }: Props) {
                   aria-disabled={isRestricted || isSoldOut}
                   title={
                     isSoldOut
-                      ? "Sold out today"
+                      ? t("soldOutBadge")
                       : isRestricted
-                      ? `Hidden by your filter: contains ${flags.join(", ").toLowerCase()}`
+                      ? `${t("hiddenByFilter")} ${flags.map((f) => t(f)).join(", ")}`
                       : undefined
                   }
                   className={[
@@ -349,7 +349,7 @@ export default function MenuPage({ menu }: Props) {
                       />
                       {isSoldOut && (
                         <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-neutral-900/75 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-white backdrop-blur-sm">
-                          Sold out today
+                          {t("soldOutBadge")}
                         </span>
                       )}
                       {flags.length > 0 && (

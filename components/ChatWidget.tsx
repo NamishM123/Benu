@@ -11,6 +11,7 @@ import { findFlaggedPreferences } from "@/lib/preferences";
 import { answerMenuQuestion } from "@/lib/chatbot";
 import { getStoredPreferences } from "@/lib/preferences-store";
 import { containsOffensiveLanguage } from "@/lib/profanity";
+import { useTranslation } from "@/lib/i18n";
 
 type ChatMessage = {
   id: number;
@@ -48,15 +49,26 @@ function renderInlineMarkdown(text: string) {
 const SWIPE_DISMISS_THRESHOLD = 80; // px to drag header down before closing
 
 export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
+  const { t, lang } = useTranslation();
   const [open, setOpen] = useState(false);
   const [preferences, setPreferences] = useState<string[]>([]);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 0,
       role: "bot",
-      text: "Hi, I'm Benu. Tell me what you are craving, what you avoid, or how hungry you are. I'll help you find the right dish.",
+      text: t("chatGreeting"),
     },
   ]);
+
+  // Refresh greeting when language changes (only if it's still the only message)
+  useEffect(() => {
+    setMessages((m) => {
+      if (m.length === 1 && m[0].role === "bot" && m[0].id === 0) {
+        return [{ id: 0, role: "bot", text: t("chatGreeting") }];
+      }
+      return m;
+    });
+  }, [lang, t]);
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [dragOffset, setDragOffset] = useState(0);
@@ -197,7 +209,7 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
         {
           id: Date.now() + 1,
           role: "bot",
-          text: "Let's keep things respectful. Please rephrase your question without slurs or offensive language.",
+          text: t("chatProfanity"),
         },
       ]);
       return;
@@ -252,7 +264,7 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
       {!open && (
         <button
           type="button"
-          aria-label="Open menu assistant"
+          aria-label={t("chatOpenAria")}
           aria-expanded={false}
           aria-hidden={scrollHidden}
           tabIndex={scrollHidden ? -1 : 0}
@@ -291,7 +303,7 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
             aria-hidden="true"
           />
           <section
-            aria-label="Menu assistant"
+            aria-label={t("chatPanelAria")}
             onClick={(e) => e.stopPropagation()}
             style={{
               bottom: `${20 + keyboardInset}px`,
@@ -312,11 +324,18 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
           >
             <div className="min-w-0">
               <h2 className="font-serif text-2xl leading-tight tracking-tight text-neutral-900">
-                Ask Benu In <em>Any Language</em>
+                {lang === "zh" ? (
+                  t("chatHeaderPrefix")
+                ) : (
+                  <>
+                    {t("chatHeaderPrefix")}{" "}
+                    <em>{t("chatHeaderHighlight")}</em>
+                  </>
+                )}
               </h2>
               {preferences.length > 0 && (
                 <p className="mt-0.5 text-xs text-neutral-500">
-                  Avoiding: {preferences.join(", ")}
+                  {t("chatAvoiding")}: {preferences.join(", ")}
                 </p>
               )}
             </div>
@@ -324,7 +343,7 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
             <button
               type="button"
               onClick={() => setOpen(false)}
-              aria-label="Hide chat"
+              aria-label={t("chatHideAria")}
               className="-mt-1 flex h-9 w-9 flex-none items-center justify-center rounded-full text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
             >
               <svg
@@ -440,7 +459,8 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
                                   key={f}
                                   className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] text-amber-800"
                                 >
-                                  contains {f.toLowerCase()}
+                                  {t("chatContains")}{" "}
+                                  {lang === "zh" ? t(f) : f.toLowerCase()}
                                 </span>
                               ))}
                             </div>
@@ -465,7 +485,7 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
             }}
           >
             <label htmlFor="chat-widget-input" className="sr-only">
-              Ask the menu assistant
+              {t("chatInputAria")}
             </label>
             <div className="benu-input-glow flex-1 rounded-full">
               <input
@@ -473,7 +493,7 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder={isSending ? "Thinking…" : "Let's find something you'll love"}
+                placeholder={isSending ? t("chatThinking") : t("chatPlaceholder")}
                 disabled={isSending}
                 className="relative z-[2] block w-full rounded-full border border-cantaloupe-soft bg-white px-4 py-2 text-base text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-cantaloupe/40 disabled:opacity-60 sm:text-sm"
               />
@@ -487,9 +507,9 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
                   ? "bg-neutral-900 text-neutral-50 hover:bg-neutral-800"
                   : "cursor-not-allowed bg-neutral-200 text-neutral-400",
               ].join(" ")}
-              aria-label="Send message"
+              aria-label={t("chatSendAria")}
             >
-              Send
+              {t("chatSend")}
             </button>
           </form>
           </section>

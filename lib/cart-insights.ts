@@ -83,12 +83,10 @@ export function pairingReason(
       Math.ceil(mainsCount / 2);
 
   if (isCooling(item)) {
-    return spicyHeavy
-      ? "Cools the heat in your noodles."
-      : "Crisp and refreshing alongside the meal.";
+    return spicyHeavy ? "pairCoolsHeat" : "pairCrispRefreshing";
   }
   if (isTea(item)) {
-    return "Rounds out the meal nicely.";
+    return "pairRoundsOut";
   }
-  return "Goes well with what you've picked.";
+  return "pairGoesWell";
 }
