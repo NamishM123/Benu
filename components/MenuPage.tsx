@@ -294,13 +294,14 @@ export default function MenuPage({ menu }: Props) {
                       : "hover:-translate-y-0.5",
                   ].join(" ")}
                 >
+                  <div className="relative">
                   <div
                     className={[
                       "relative overflow-hidden rounded-[28px] bg-white shadow-sm ring-4 ring-transparent transition-all duration-150",
                       isRestricted
                         ? "opacity-50 grayscale"
                         : isSoldOut
-                        ? ""
+                        ? "opacity-50 grayscale"
                         : "group-hover:bg-butter-soft group-hover:shadow-lg group-hover:ring-butter group-focus-visible:ring-butter",
                     ].join(" ")}
                   >
@@ -345,11 +346,6 @@ export default function MenuPage({ menu }: Props) {
                           img.style.filter = "blur(0px)";
                         }}
                       />
-                      {isSoldOut && (
-                        <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-red-600 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-white">
-                          Sold out
-                        </span>
-                      )}
                       {flags.length > 0 && (
                         <span className="absolute right-4 top-4 rounded-full bg-amber-50/95 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-amber-800">
                           {t("filteredBadge")}
@@ -377,6 +373,12 @@ export default function MenuPage({ menu }: Props) {
                         </button>
                       )}
                     </div>
+                  </div>
+                  {isSoldOut && (
+                    <span className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-red-600 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-white">
+                      Sold out
+                    </span>
+                  )}
                   </div>
 
                   <div
