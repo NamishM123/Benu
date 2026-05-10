@@ -181,12 +181,12 @@ export default function CartDrawer({
           <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/cart-empty.gif"
+              src="/cart-empty.webp"
               alt=""
               aria-hidden="true"
               className="h-64 w-64 object-contain sm:h-56 sm:w-56"
             />
-            <p className="mt-6 text-lg text-neutral-600">{t("emptyCart")}</p>
+            <p className="mt-6 text-2xl text-neutral-600">{t("emptyCart")}</p>
           </div>
         ) : (
           <>
