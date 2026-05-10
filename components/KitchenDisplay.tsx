@@ -45,6 +45,7 @@ export default function KitchenDisplay() {
   const [etaDrafts, setEtaDrafts] = useState<Record<string, string>>({});
   const [menuItems, setMenuItems] = useState<(MenuItem & { id: string })[]>([]);
   const [show86Panel, setShow86Panel] = useState(false);
+  const [itemSearch, setItemSearch] = useState("");
   const [tab, setTab] = useState<"active" | "completed">("active");
 
   useEffect(() => {
@@ -94,7 +95,7 @@ export default function KitchenDisplay() {
               onClick={() => setShow86Panel((v) => !v)}
               className="rounded-full border border-neutral-300 bg-white px-3 py-1.5 text-xs text-neutral-700 hover:bg-neutral-100"
             >
-              86 items
+              Toggle
             </button>
             <Link
               href="/admin/qr"
@@ -114,8 +115,17 @@ export default function KitchenDisplay() {
             <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-neutral-500">
               Toggle item availability
             </p>
+            <input
+              type="search"
+              placeholder="Search items…"
+              value={itemSearch}
+              onChange={(e) => setItemSearch(e.target.value)}
+              className="mb-3 w-full rounded-full border border-neutral-300 bg-white px-4 py-2 text-sm text-neutral-900 placeholder-neutral-400 focus:border-neutral-900 focus:outline-none"
+            />
             <div className="flex flex-wrap gap-2">
-              {menuItems.map((item) => {
+              {menuItems.filter((item) =>
+                item.name.toLowerCase().includes(itemSearch.toLowerCase())
+              ).map((item) => {
                 const soldOut = item.available === false;
                 return (
                   <button
