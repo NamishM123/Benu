@@ -272,7 +272,7 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
               type="button"
               onClick={() => setOpen(false)}
               aria-label="Hide chat"
-              className="mt-1 flex h-9 w-9 flex-none items-center justify-center rounded-full text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
+              className="-mt-1 flex h-9 w-9 flex-none items-center justify-center rounded-full text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
