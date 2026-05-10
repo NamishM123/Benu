@@ -331,11 +331,11 @@ export default function CartDrawer({
               </div>
               <div className="mb-3 flex items-baseline justify-between">
                 <span className="text-sm text-neutral-600">{t("taxLabel")}</span>
-                <span className="text-sm text-neutral-900">{formatPrice(Math.round(total * 0.0925))}</span>
+                <span className="text-sm text-neutral-900">{formatPrice(Math.round(total * 9.25) / 100)}</span>
               </div>
               <div className="mb-3 flex items-baseline justify-between border-t border-neutral-200 pt-2">
                 <span className="text-sm font-semibold text-neutral-900">{t("total")}</span>
-                <span className="text-lg font-medium text-neutral-900">{formatPrice(Math.round(total * 1.0925))}</span>
+                <span className="text-lg font-medium text-neutral-900">{formatPrice(Math.round(total * 109.25) / 100)}</span>
               </div>
               {orderError && (
                 <p className="mb-3 rounded-xl bg-red-50 px-4 py-2 text-sm text-red-600 border border-red-200">
@@ -365,8 +365,8 @@ export default function CartDrawer({
                       return;
                     }
                     clearCart();
-                    onClose();
                     router.push(`/order/${order.id}`);
+                    onClose();
                   }}
                 >
                   {sentFlash ? t("orderSent") : t("sendToKitchen")}
