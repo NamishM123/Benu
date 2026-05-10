@@ -57,6 +57,7 @@ const TRANSLATIONS = {
     zh: "来点好吃的吧",
   },
   subtotal: { en: "Subtotal", zh: "小计" },
+  total: { en: "Total", zh: "总计" },
   checkout: { en: "Checkout", zh: "结账" },
   remove: { en: "Remove", zh: "移除" },
   cancel: { en: "Cancel", zh: "取消" },

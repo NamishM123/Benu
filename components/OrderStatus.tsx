@@ -10,6 +10,7 @@ import {
   type OrderStatus as OrderStatusValue,
 } from "@/lib/order-store";
 import { useTranslation, t as translate, type Lang } from "@/lib/i18n";
+import { formatPrice } from "@/lib/menu";
 import LanguageSwitcher from "./LanguageSwitcher";
 
 type Props = { id: string };
@@ -178,9 +179,12 @@ export default function OrderStatus({ id }: Props) {
                       ? line.itemNameZh
                       : line.itemName}
                   </p>
-                  <p className="text-sm tabular-nums text-neutral-700">
-                    ×{line.quantity}
-                  </p>
+                  <div className="flex items-baseline gap-3 text-sm tabular-nums text-neutral-700">
+                    <span>×{line.quantity}</span>
+                    <span className="w-16 text-right text-neutral-900">
+                      {formatPrice(line.unitPrice * line.quantity)}
+                    </span>
+                  </div>
                 </div>
                 {line.selections.length > 0 && (
                   <ul className="mt-1 space-y-0.5 text-xs text-neutral-500">
@@ -199,6 +203,19 @@ export default function OrderStatus({ id }: Props) {
               </li>
             ))}
           </ul>
+          <div className="mt-3 flex items-baseline justify-between border-t border-neutral-200 pt-3">
+            <p className="text-sm font-semibold uppercase tracking-wider text-neutral-700">
+              {t("total")}
+            </p>
+            <p className="font-serif text-2xl tabular-nums text-neutral-900">
+              {formatPrice(
+                order.lines.reduce(
+                  (sum, l) => sum + l.unitPrice * l.quantity,
+                  0,
+                ),
+              )}
+            </p>
+          </div>
         </section>
 
         <div className="mt-6 flex flex-wrap justify-center gap-3">
