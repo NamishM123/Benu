@@ -208,8 +208,8 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
       {open && (
         <section
           aria-label="Menu assistant"
-          className="fixed bottom-24 right-4 z-40 flex w-[calc(100vw-2rem)] max-w-[420px] flex-col overflow-hidden rounded-2xl border border-neutral-300/70 bg-white shadow-2xl sm:h-[min(760px,calc(100vh-7rem))]"
-          style={{ maxHeight: "min(760px, calc(100vh - 7rem))" }}
+          className="fixed bottom-24 right-4 z-40 flex w-[calc(100vw-2rem)] max-w-[360px] flex-col overflow-hidden rounded-2xl border border-neutral-300/70 bg-white shadow-2xl sm:h-[min(520px,calc(100vh-10rem))]"
+          style={{ maxHeight: "min(520px, calc(100vh - 10rem))" }}
         >
           <div className="flex items-center justify-between border-b border-neutral-200 px-4 pt-4 pb-3">
             <div>
