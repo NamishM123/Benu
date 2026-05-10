@@ -146,25 +146,14 @@ export default function FilterSheet({ open, preferences, onClose }: Props) {
           transform: `translateY(${dragOffset}px)`,
           transition: draggingRef.current ? "none" : "transform 200ms ease-out",
         }}
-        className="relative w-full max-w-[480px] max-h-[88vh] overflow-y-auto overscroll-none rounded-t-3xl bg-cream shadow-xl sm:rounded-3xl"
+        className="relative w-full max-w-[480px] h-[92vh] overflow-y-auto overscroll-none bg-cream shadow-xl sm:h-auto sm:max-h-[88vh] sm:rounded-3xl"
       >
-        <div
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          onTouchCancel={handleTouchEnd}
-          className="sticky top-0 z-10 flex cursor-grab touch-none flex-col items-center justify-center bg-cream/95 pt-3 pb-1 backdrop-blur active:cursor-grabbing"
-          aria-hidden="true"
-        >
-          <span className="h-1.5 w-12 rounded-full bg-neutral-300" />
-        </div>
-
         <header
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
           onTouchCancel={handleTouchEnd}
-          className="bg-cream px-6 pt-2 pb-3"
+          className="sticky top-0 z-10 cursor-grab touch-none bg-cream px-6 pt-5 pb-3 backdrop-blur active:cursor-grabbing sm:pt-4"
         >
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">

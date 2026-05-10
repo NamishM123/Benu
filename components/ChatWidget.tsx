@@ -329,18 +329,17 @@ export default function ChatWidget({
             onClick={() => setOpen(false)}
             aria-hidden="true"
           >
-            {/* Big logo filling the empty space above the chat panel —
-                mobile only. PNG has ~43% transparent whitespace below the
-                artwork; clip it. */}
-            <div className="pointer-events-none absolute top-6 left-1/2 -translate-x-1/2 sm:hidden">
-              <div className="block overflow-hidden h-[100px]">
+            {/* Logo at the top of the cream backdrop, mobile only. PNG has
+                ~43% transparent whitespace below the artwork; clip it. */}
+            <div className="pointer-events-none absolute top-2 left-1/2 -translate-x-1/2 sm:hidden">
+              <div className="block overflow-hidden h-[64px]">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/shake-shake-logo.png"
                   alt=""
                   width={1536}
                   height={831}
-                  className="block h-[174px] w-auto max-w-none -mt-1"
+                  className="block h-[112px] w-auto max-w-none"
                 />
               </div>
             </div>
@@ -349,8 +348,13 @@ export default function ChatWidget({
             aria-label={t("chatPanelAria")}
             onClick={(e) => e.stopPropagation()}
             style={{
-              bottom: `${20 + keyboardInset}px`,
-              maxHeight: vvHeight != null ? `${vvHeight - 40}px` : "82dvh",
+              // When the keyboard is up, sit flush with its top edge so no
+              // strip of menu page peeks between the chat input and the
+              // keyboard. When it's down, just an 8px gap from the bottom.
+              bottom:
+                keyboardInset > 0 ? `${keyboardInset}px` : "8px",
+              maxHeight:
+                vvHeight != null ? `${vvHeight - 16}px` : "88dvh",
               // --chat-x flips to 0 on desktop (sm:) so the panel pins to the
               // right instead of centering full-width — see className below.
               transform: `translateX(var(--chat-x,-50%)) translateY(${dragOffset}px)`,
@@ -358,7 +362,7 @@ export default function ChatWidget({
                 ? "none"
                 : "transform 200ms ease-out",
             }}
-            className="fixed left-1/2 z-40 flex h-[82dvh] w-[calc(100vw-2rem)] max-w-6xl flex-col overflow-hidden rounded-2xl border border-neutral-300/70 bg-white sm:left-auto sm:right-5 sm:h-[min(720px,82dvh)] sm:w-[min(420px,calc(100vw-2.5rem))] sm:max-w-none sm:shadow-2xl sm:[--chat-x:0]"
+            className="fixed left-1/2 z-40 flex h-[88dvh] w-[calc(100vw-2rem)] max-w-6xl flex-col overflow-hidden rounded-2xl border border-neutral-300/70 bg-white sm:left-auto sm:right-5 sm:h-[min(720px,82dvh)] sm:w-[min(420px,calc(100vw-2.5rem))] sm:max-w-none sm:shadow-2xl sm:[--chat-x:0]"
           >
           <div
             onTouchStart={handleTouchStart}
