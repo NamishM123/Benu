@@ -231,9 +231,9 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
           <div
             className="flex flex-1 flex-col overflow-y-auto px-4 py-4"
             style={{
-              backgroundImage: "url(/chat-bg.svg)",
+              backgroundImage: "url(/chat-bg.png)",
               backgroundRepeat: "repeat",
-              backgroundSize: "80px 40px",
+              backgroundSize: "260px auto",
             }}
           >
             {messages.map((m, i) => {
