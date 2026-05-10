@@ -13,7 +13,6 @@ import { getStoredPreferences } from "@/lib/preferences-store";
 import {
   CART_EVENT,
   cartCount,
-  cartTotal,
   getCart,
   type CartLine,
 } from "@/lib/cart-store";
@@ -110,7 +109,6 @@ export default function MenuPage({ menu }: Props) {
   const autoMap = useAutoTranslate(stringsToAutoTranslate, lang);
 
   const totalCount = cartCount(cart);
-  const totalAmount = cartTotal(cart);
 
   return (
     <>
@@ -175,12 +173,7 @@ export default function MenuPage({ menu }: Props) {
                 type="button"
                 onClick={() => setCartOpen(true)}
                 aria-label={t("yourCart")}
-                className={[
-                  "relative inline-flex h-11 items-center justify-center rounded-full border shadow-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30",
-                  totalCount > 0
-                    ? "gap-1.5 border-transparent bg-neutral-900 px-3.5 text-cream hover:bg-neutral-800"
-                    : "w-11 border-neutral-300 bg-white text-neutral-800 hover:bg-neutral-100",
-                ].join(" ")}
+                className="relative inline-flex h-11 w-11 items-center justify-center rounded-full border border-neutral-300 bg-white text-neutral-800 shadow-sm transition-colors hover:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -193,17 +186,12 @@ export default function MenuPage({ menu }: Props) {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   aria-hidden="true"
-                  className={totalCount > 0 ? "" : "-translate-x-[2px]"}
+                  className="-translate-x-[2px]"
                 >
                   <circle cx="9" cy="21" r="1" />
                   <circle cx="20" cy="21" r="1" />
                   <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
                 </svg>
-                {totalCount > 0 && (
-                  <span className="text-sm font-semibold tabular-nums">
-                    {formatPrice(totalAmount)}
-                  </span>
-                )}
               </button>
             </div>
           </div>
