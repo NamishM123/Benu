@@ -213,18 +213,14 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
         >
           <div className="flex items-center justify-between border-b border-neutral-200 px-4 pt-4 pb-3">
             <div>
-              <h2 className="font-serif text-lg tracking-tight text-neutral-900">
-                Ask Benu
+              <h2 className="font-serif text-2xl tracking-tight text-neutral-900">
+                Ask Benu In Any Language
               </h2>
-              <p className="mt-0.5 text-xs text-neutral-500">
-                {preferences.length > 0 ? (
-                  <>Avoiding: {preferences.join(", ")}</>
-                ) : (
-                  <>
-                    Ask in <span className="font-bold text-neutral-700">any language</span>
-                  </>
-                )}
-              </p>
+              {preferences.length > 0 && (
+                <p className="mt-0.5 text-xs text-neutral-500">
+                  Avoiding: {preferences.join(", ")}
+                </p>
+              )}
             </div>
           </div>
 
@@ -265,10 +261,10 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
                 <div className="flex flex-col gap-1">
                 <div
                   className={[
-                    "rounded-3xl px-4 py-2 text-sm leading-relaxed",
+                    "rounded-3xl px-4 py-2 text-sm leading-relaxed shadow-sm",
                     isUser
-                      ? "bg-[#0095F6] text-white"
-                      : "bg-neutral-100 text-neutral-900",
+                      ? "bg-cantaloupe text-neutral-900"
+                      : "bg-white text-neutral-900",
                   ].join(" ")}
                 >
                   {m.text}
