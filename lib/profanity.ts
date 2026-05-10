@@ -25,6 +25,23 @@ const ENGLISH_OFFENSIVE = [
   "dyke",
   "wetback",
   "cunt",
+  // Explicit sexual / off-topic terms — the chatbot should refuse, not engage
+  "dick",
+  "cock",
+  "penis",
+  "vagina",
+  "pussy",
+  "blowjob",
+  "handjob",
+  "horny",
+  "porn",
+  "boner",
+  "fuck",
+  "fucker",
+  "fucking",
+  "motherfucker",
+  "asshole",
+  "bitch",
 ];
 
 const CHINESE_OFFENSIVE = [

@@ -302,13 +302,13 @@ export default function ChatWidget({
             onClick={(e) => e.stopPropagation()}
             style={{
               bottom: `${20 + keyboardInset}px`,
-              maxHeight: vvHeight != null ? `${vvHeight - 40}px` : "65dvh",
+              maxHeight: vvHeight != null ? `${vvHeight - 40}px` : "82dvh",
               transform: `translateX(-50%) translateY(${dragOffset}px)`,
               transition: draggingRef.current
                 ? "none"
                 : "transform 200ms ease-out",
             }}
-            className="fixed left-1/2 z-40 flex h-[65dvh] w-[calc(100vw-2rem)] max-w-6xl flex-col overflow-hidden rounded-2xl border border-neutral-300/70 bg-white shadow-2xl sm:h-[min(620px,65dvh)]"
+            className="fixed left-1/2 z-40 flex h-[82dvh] w-[calc(100vw-2rem)] max-w-6xl flex-col overflow-hidden rounded-2xl border border-neutral-300/70 bg-white shadow-2xl sm:h-[min(720px,82dvh)]"
           >
           <div
             onTouchStart={handleTouchStart}
@@ -319,7 +319,7 @@ export default function ChatWidget({
           >
             <div className="min-w-0">
               <h2 className="font-serif text-2xl leading-tight tracking-tight text-neutral-900">
-                Ask Benu In <em>Any Language</em>
+                Ask Benu In <em className="benu-text-glow">Any Language</em>
               </h2>
               {preferences.length > 0 && (
                 <p className="mt-0.5 text-xs text-neutral-500">
@@ -504,7 +504,7 @@ export default function ChatWidget({
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder={isSending ? "Thinking…" : "Let's find something you'll love"}
+                placeholder={isSending ? "Thinking…" : "Let's Find Something You'll Love"}
                 disabled={isSending}
                 className="relative z-[2] block w-full rounded-full border border-cantaloupe-soft bg-white px-4 py-2 text-base text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-cantaloupe/40 disabled:opacity-60 sm:text-sm"
               />
