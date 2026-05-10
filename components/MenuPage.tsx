@@ -114,7 +114,7 @@ export default function MenuPage({ menu }: Props) {
     <>
       <main className="min-h-screen w-full bg-cream pb-28">
         <div className="mx-auto w-full max-w-6xl">
-          <div className="flex items-center justify-between gap-3 px-3 pt-4 sm:px-10 sm:pt-3">
+          <div className="flex flex-col items-stretch gap-2 px-4 pt-4 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-10 sm:pt-3">
             <button
               type="button"
               onClick={() => {
@@ -124,7 +124,7 @@ export default function MenuPage({ menu }: Props) {
                 }
               }}
               aria-label={t("backToStart")}
-              className="flex-none cursor-default rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
+              className="flex-none self-start cursor-default rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
             >
               {/* PNG has ~43% transparent whitespace below the artwork; clip it. */}
               <div className="block overflow-hidden h-[68px] sm:h-[78px] flex-none">
