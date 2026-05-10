@@ -116,7 +116,7 @@ export default function MenuPage({ menu }: Props) {
     <>
       <main className="min-h-screen w-full bg-cream pb-28">
         <div className="mx-auto w-full max-w-6xl">
-          <div className="flex items-center justify-between gap-2 px-3 pt-4 sm:gap-3 sm:px-10 sm:pt-3">
+          <div className="flex items-center justify-between gap-2 pl-3 pr-6 pt-4 sm:gap-3 sm:px-10 sm:pt-3">
             <button
               type="button"
               onClick={() => {
