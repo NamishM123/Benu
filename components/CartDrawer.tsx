@@ -316,13 +316,18 @@ export default function CartDrawer({
                   type="button"
                   disabled={sentFlash}
                   className="flex-1 rounded-full bg-neutral-900 px-6 py-3 text-sm font-medium text-cream hover:bg-neutral-800 disabled:opacity-70"
-                  onClick={() => {
+                  onClick={async () => {
                     if (cart.length === 0) return;
-                    const order = placeOrder(
-                      cart,
-                      preferences,
-                      getCurrentTableNumber(),
-                    );
+                    let order;
+                    try {
+                      order = await placeOrder(
+                        cart,
+                        preferences,
+                        getCurrentTableNumber(),
+                      );
+                    } catch {
+                      return;
+                    }
                     clearCart();
                     setSentFlash(true);
                     setTimeout(() => {

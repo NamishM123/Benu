@@ -5,6 +5,7 @@ import {
   getOrders,
   ORDERS_EVENT,
   removeOrder,
+  subscribeToOrders,
   updateOrder,
   type Order,
   type OrderStatus,
@@ -40,14 +41,11 @@ export default function KitchenDisplay() {
       const detail = (e as CustomEvent<Order[]>).detail;
       if (Array.isArray(detail)) setOrders(detail);
     }
-    function onStorage(e: StorageEvent) {
-      if (e.key === "benu.orders") setOrders(getOrders());
-    }
     window.addEventListener(ORDERS_EVENT, onChange);
-    window.addEventListener("storage", onStorage);
+    const unsubscribe = subscribeToOrders({ scope: "all" });
     return () => {
       window.removeEventListener(ORDERS_EVENT, onChange);
-      window.removeEventListener("storage", onStorage);
+      unsubscribe();
     };
   }, []);
 

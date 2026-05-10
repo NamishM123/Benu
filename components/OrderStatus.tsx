@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import {
   getOrders,
   ORDERS_EVENT,
+  subscribeToOrders,
   type Order,
   type OrderStatus as OrderStatusValue,
 } from "@/lib/order-store";
@@ -54,14 +55,11 @@ export default function OrderStatus({ id }: Props) {
     function onChange() {
       refresh();
     }
-    function onStorage(e: StorageEvent) {
-      if (e.key === "benu.orders") refresh();
-    }
     window.addEventListener(ORDERS_EVENT, onChange);
-    window.addEventListener("storage", onStorage);
+    const unsubscribe = subscribeToOrders({ scope: "client" });
     return () => {
       window.removeEventListener(ORDERS_EVENT, onChange);
-      window.removeEventListener("storage", onStorage);
+      unsubscribe();
     };
   }, [id]);
 
