@@ -111,6 +111,8 @@ export default function ChatWidget({
   // letting iOS scroll the whole page to expose the focused input.
   const [keyboardInset, setKeyboardInset] = useState(0);
   const [vvHeight, setVvHeight] = useState<number | null>(null);
+  const [vvOffsetTop, setVvOffsetTop] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
 
   // Hide the floating launcher while the user is actively scrolling down so
   // it doesn't sit over the menu items they're trying to read. It reappears
@@ -169,17 +171,47 @@ export default function ChatWidget({
     if (open) setDragOffset(0);
   }, [open]);
 
+  // Track viewport size so we can apply the mobile-only layout style props.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(max-width: 639px)");
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
+
   // Lock page scroll while the chat is open ONLY on mobile, where the chat
-  // is a fullscreen-feel overlay. On desktop the panel sits in the corner
-  // and the menu should stay scrollable behind it.
+  // is a fullscreen overlay. We freeze the body in place using
+  // position:fixed (overflow:hidden alone isn't enough on iOS Safari — it
+  // still auto-scrolls when the input is focused, exposing menu cards
+  // behind the chat panel).
   useEffect(() => {
     if (!open) return;
     if (typeof window === "undefined") return;
     if (!window.matchMedia("(max-width: 639px)").matches) return;
-    const orig = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+
+    const scrollY = window.scrollY;
+    const body = document.body;
+    const orig = {
+      overflow: body.style.overflow,
+      position: body.style.position,
+      top: body.style.top,
+      left: body.style.left,
+      right: body.style.right,
+      width: body.style.width,
+    };
+
+    body.style.overflow = "hidden";
+    body.style.position = "fixed";
+    body.style.top = `-${scrollY}px`;
+    body.style.left = "0";
+    body.style.right = "0";
+    body.style.width = "100%";
+
     return () => {
-      document.body.style.overflow = orig;
+      Object.assign(body.style, orig);
+      window.scrollTo(0, scrollY);
     };
   }, [open]);
 
@@ -227,6 +259,7 @@ export default function ChatWidget({
       const inset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
       setKeyboardInset(inset);
       setVvHeight(vv.height);
+      setVvOffsetTop(vv.offsetTop);
     }
     vv.addEventListener("resize", update);
     vv.addEventListener("scroll", update);
@@ -236,6 +269,7 @@ export default function ChatWidget({
       vv.removeEventListener("scroll", update);
       setKeyboardInset(0);
       setVvHeight(null);
+      setVvOffsetTop(0);
     };
   }, [open]);
 
@@ -434,13 +468,18 @@ export default function ChatWidget({
             onClick={() => setOpen(false)}
             aria-hidden="true"
             style={
-              // Live visualViewport height when available — more reliable
-              // than 100dvh on older iOS Safari for keyboard-shrink.
-              vvHeight != null
-                ? ({ height: `${vvHeight}px` } as React.CSSProperties)
+              // On mobile, lock the container exactly to the visualViewport
+              // so iOS Safari's keyboard auto-scroll never exposes the menu
+              // page behind the chat. On desktop the inline style is
+              // skipped and the sm: classes (inset-0) take over.
+              isMobile && vvHeight != null
+                ? ({
+                    top: `${vvOffsetTop}px`,
+                    height: `${vvHeight}px`,
+                  } as React.CSSProperties)
                 : undefined
             }
-            className="fixed inset-x-0 top-0 z-30 flex h-[100dvh] flex-col bg-cream sm:inset-0 sm:block sm:h-auto sm:bg-cream/85 sm:backdrop-blur-md"
+            className="fixed inset-x-0 top-0 z-50 flex h-[100dvh] flex-col bg-cream sm:inset-0 sm:block sm:h-auto sm:bg-cream/85 sm:backdrop-blur-md"
           >
             {/* Logo: mobile only. PNG has ~43% transparent whitespace below
                 the artwork; clip it. */}
