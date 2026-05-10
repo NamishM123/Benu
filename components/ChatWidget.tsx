@@ -65,6 +65,13 @@ function containsOffensiveLanguage(input: string): boolean {
   return OFFENSIVE_TERMS.some((term) => normalised.includes(term));
 }
 
+// Render `**bold**` segments as <strong>; everything else passes through.
+function renderInlineMarkdown(text: string) {
+  return text.split(/\*\*(.+?)\*\*/g).map((part, i) =>
+    i % 2 === 1 ? <strong key={i}>{part}</strong> : <span key={i}>{part}</span>,
+  );
+}
+
 export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
   const [open, setOpen] = useState(false);
   const [preferences, setPreferences] = useState<string[]>([]);
@@ -214,7 +221,7 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
           <div className="flex items-center justify-between border-b border-neutral-200 px-4 pt-4 pb-3">
             <div>
               <h2 className="font-serif text-2xl tracking-tight text-neutral-900">
-                Ask Benu In Any Language
+                Ask Benu
               </h2>
               {preferences.length > 0 && (
                 <p className="mt-0.5 text-xs text-neutral-500">
@@ -267,7 +274,7 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
                       : "bg-white text-neutral-900",
                   ].join(" ")}
                 >
-                  {m.text}
+                  {renderInlineMarkdown(m.text)}
                 </div>
 
                 {m.dishes && m.dishes.length > 0 && (
