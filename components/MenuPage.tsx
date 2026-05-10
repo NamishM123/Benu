@@ -336,8 +336,8 @@ export default function MenuPage({ menu }: Props) {
                         className={[
                           "min-h-[1.5em] font-semibold uppercase text-neutral-900",
                           lang === "zh"
-                            ? "text-lg tracking-normal"
-                            : "text-lg tracking-[0.08em]",
+                            ? "text-xl tracking-normal"
+                            : "text-xl tracking-[0.08em]",
                         ].join(" ")}
                       >
                         {localName(d, lang, autoMap)}

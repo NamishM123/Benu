@@ -274,7 +274,7 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
             <div className="mt-1 flex items-baseline gap-3 text-sm text-neutral-700">
               <span>{formatPrice(item.price)}</span>
             </div>
-            <p className="mt-3 text-sm leading-relaxed text-neutral-700">
+            <p className="mt-3 text-base leading-relaxed text-neutral-700">
               {localDescription(item, lang, autoMap)}
             </p>
             {flags.length > 0 && (
@@ -291,7 +291,7 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
             {groups.map((g) => (
               <section key={g.id}>
                 <div className="mb-2 flex items-baseline justify-between">
-                  <h3 className="text-sm font-semibold uppercase tracking-wider text-neutral-700">
+                  <h3 className="text-base font-semibold uppercase tracking-wider text-neutral-700">
                     {t(`group_${g.id}`)}
                   </h3>
                   {g.required && (
@@ -315,7 +315,7 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
                           e.currentTarget.blur();
                         }}
                         className={[
-                          "flex h-full flex-col rounded-2xl border px-3 py-3 text-left text-sm shadow-sm transition-all",
+                          "flex h-full flex-col rounded-2xl border px-3 py-3 text-left text-base shadow-sm transition-all",
                           "focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30",
                           picked
                             ? "border-cantaloupe-deep bg-cantaloupe text-neutral-900 shadow-inner"
@@ -361,7 +361,7 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
             ))}
 
             <section>
-              <h3 className="mb-2 text-sm font-semibold uppercase tracking-wider text-neutral-700">
+              <h3 className="mb-2 text-base font-semibold uppercase tracking-wider text-neutral-700">
                 {t("quantity")}
               </h3>
               <div className="inline-flex items-center gap-3 rounded-full border border-neutral-300 bg-white px-3 py-2 select-none">
