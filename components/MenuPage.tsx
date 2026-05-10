@@ -14,7 +14,6 @@ import {
   CART_EVENT,
   addToCart,
   cartCount,
-  cartTotal,
   getCart,
   type CartLine,
 } from "@/lib/cart-store";
@@ -325,10 +324,7 @@ export default function MenuPage({ menu }: Props) {
                           }
                         }}
                         style={{ filter: "blur(8px)" }}
-                        className={[
-                          "menu-img h-full w-full opacity-0 transition-[opacity,filter] duration-500 ease-out",
-                          d.category === "Beverages" ? "object-contain p-4" : "object-cover",
-                        ].join(" ")}
+                        className="menu-img h-full w-full object-cover opacity-0 transition-[opacity,filter] duration-500 ease-out"
                         onLoad={(e) => {
                           loadedImages.add(d.image);
                           const img = e.currentTarget;
@@ -398,11 +394,11 @@ export default function MenuPage({ menu }: Props) {
                       {localName(d, lang, autoMap)}
                       <SpiceChilis level={d.spiceLevel} size={22} />
                     </h3>
+                    <p className="mt-1 text-base text-neutral-700">
+                      {formatPrice(d.price)}
+                    </p>
                     <p className="mt-2 min-h-[4.875em] text-base leading-relaxed text-neutral-500">
                       {localDescription(d, lang, autoMap)}
-                    </p>
-                    <p className="mt-2 text-base text-neutral-700">
-                      {formatPrice(d.price)}
                     </p>
                     {flags.length > 0 && (
                       <p className="mt-2 text-[11px] uppercase tracking-wider text-amber-700">
@@ -450,7 +446,7 @@ export default function MenuPage({ menu }: Props) {
         </svg>
         <span>
           {totalCount > 0
-            ? `${(totalCount === 1 ? t("viewCartCountOne") : t("viewCartCount")).replace("{n}", String(totalCount))} · ${formatPrice(cartTotal(cart))}`
+            ? (totalCount === 1 ? t("viewCartCountOne") : t("viewCartCount")).replace("{n}", String(totalCount))
             : t("yourCart")}
         </span>
       </button>
