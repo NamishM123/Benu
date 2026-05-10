@@ -243,8 +243,8 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
               <polyline points="12 19 5 12 12 5" />
             </svg>
           </button>
-          <div className="relative z-10 px-6 pt-14 pb-6">
-            <div className="relative aspect-square w-full overflow-hidden rounded-3xl bg-white shadow-md">
+          <div className="relative z-10 px-6 pt-14 pb-6 sm:pt-12 sm:pb-2">
+            <div className="relative aspect-square w-full overflow-hidden rounded-3xl bg-white shadow-md sm:aspect-[4/3]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={item.image}
@@ -278,13 +278,12 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
         </div>
 
         {/* Lighter content card with a wide arc top edge — comes up high so
-            the curve sits behind the lower half of the image card */}
+            the curve sits behind the lower half of the image card on mobile.
+            On desktop (sm+) the overlap and arc are dropped via the
+            .benu-content-arc CSS so title + first options stay above the
+            fold inside the dialog. */}
         <div
-          className="relative -mt-[80%] bg-cream-light px-6 pt-[85%] pb-6 shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.06)]"
-          style={{
-            borderTopLeftRadius: "50% 60px",
-            borderTopRightRadius: "50% 60px",
-          }}
+          className="benu-content-arc relative -mt-[80%] bg-cream-light px-6 pt-[85%] pb-6 shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.06)] sm:mt-0 sm:pt-4"
         >
           <div>
             <h2

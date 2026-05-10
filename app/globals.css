@@ -19,6 +19,21 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* Item-detail content card — gentle arc on the top edge that overlaps the
+   image on mobile. On desktop the popup is a fixed dialog with limited
+   height, so the arc + overlap is dropped to keep title + options visible
+   above the fold. */
+.benu-content-arc {
+  border-top-left-radius: 50% 60px;
+  border-top-right-radius: 50% 60px;
+}
+@media (min-width: 640px) {
+  .benu-content-arc {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+  }
+}
+
 /* Slim scrollbar that stays inside rounded popups instead of clipping the corners */
 .popup-scroll {
   scrollbar-width: thin;
