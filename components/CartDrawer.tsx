@@ -178,8 +178,15 @@ export default function CartDrawer({
             </div>
           </div>
         ) : cart.length === 0 ? (
-          <div className="px-6 py-16 text-center text-lg text-neutral-600">
-            {t("emptyCart")}
+          <div className="flex flex-col items-center justify-center px-6 py-12 text-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/cart-empty.gif"
+              alt=""
+              aria-hidden="true"
+              className="h-40 w-40 object-contain"
+            />
+            <p className="mt-4 text-lg text-neutral-600">{t("emptyCart")}</p>
           </div>
         ) : (
           <>
