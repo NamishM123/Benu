@@ -180,6 +180,7 @@ export function getOptionGroupsForItem(item: MenuItem): OptionGroup[] {
         name.includes("sparkling");
       const hasMilk =
         name.includes("milk") || name.includes("latte") || name.includes("matcha");
+      const skipAddons = name.includes("lemon") || name.includes("coffee");
       if (isSoda) {
         // sodas: no options — single can/bottle, fixed price
       } else {
@@ -187,7 +188,7 @@ export function getOptionGroupsForItem(item: MenuItem): OptionGroup[] {
         groups.push(TEA_ICE);
         if (hasMilk) groups.push(MILK_TEA_MILK);
         groups.push(TEA_SWEETNESS);
-        groups.push(TEA_ADDONS);
+        if (!skipAddons) groups.push(TEA_ADDONS);
       }
       break;
     }
