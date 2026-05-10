@@ -114,7 +114,7 @@ export default function MenuPage({ menu }: Props) {
     <>
       <main className="min-h-screen w-full bg-cream pb-28">
         <div className="mx-auto w-full max-w-6xl">
-          <div className="flex flex-col items-stretch gap-3 px-6 pt-6 sm:flex-row sm:items-center sm:justify-between sm:px-10 sm:pt-3">
+          <div className="flex items-center justify-between gap-3 px-4 pt-4 sm:px-10 sm:pt-3">
             <button
               type="button"
               onClick={() => {
@@ -124,10 +124,10 @@ export default function MenuPage({ menu }: Props) {
                 }
               }}
               aria-label={t("backToStart")}
-              className="flex-none self-start cursor-default rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
+              className="flex-none cursor-default rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
             >
               {/* PNG has ~43% transparent whitespace below the artwork; clip it. */}
-              <div className="block overflow-hidden h-[52px] sm:h-[68px] flex-none">
+              <div className="block overflow-hidden h-8 sm:h-[68px] flex-none">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/shake-shake-logo.png"
@@ -137,7 +137,7 @@ export default function MenuPage({ menu }: Props) {
                   fetchPriority="high"
                   decoding="sync"
                   loading="eager"
-                  className="block h-24 w-auto max-w-none sm:h-32 -mt-1 sm:-mt-1.5 flex-none"
+                  className="block h-14 w-auto max-w-none sm:h-32 -mt-0.5 sm:-mt-1.5 flex-none"
                 />
               </div>
             </button>
