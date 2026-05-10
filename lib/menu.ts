@@ -418,7 +418,7 @@ export const MENU: MenuItem[] = [
     descriptionZh: "经典可口可乐,冰镇供应。",
     spiceLevel: 0,
     tags: ["vegan", "vegetarian", "dairy-free", "gluten-free"],
-    image: "/menu/coke.avif",
+    image: "/menu/coke.jpg",
   },
   {
     name: "Diet Coke",
