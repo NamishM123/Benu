@@ -183,33 +183,35 @@ export default function KitchenDisplay() {
                     ))}
                   </ul>
 
-                  <div className="flex items-end gap-2 border-t border-neutral-200 pt-3">
-                    <label className="flex flex-1 flex-col gap-1">
-                      <span className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
-                        {t("etaOverrideLabel")}
-                      </span>
-                      <input
-                        type="number"
-                        inputMode="numeric"
-                        min={0}
-                        value={etaValue}
-                        placeholder="—"
-                        onChange={(e) =>
-                          setEtaDrafts((prev) => ({
-                            ...prev,
-                            [order.id]: e.target.value,
-                          }))
-                        }
-                        onBlur={() => commitEta(order.id)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            (e.target as HTMLInputElement).blur();
+                  {order.status !== "ready" && (
+                    <div className="flex items-end gap-2 border-t border-neutral-200 pt-3">
+                      <label className="flex flex-1 flex-col gap-1">
+                        <span className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
+                          {t("etaOverrideLabel")}
+                        </span>
+                        <input
+                          type="number"
+                          inputMode="numeric"
+                          min={0}
+                          value={etaValue}
+                          placeholder="—"
+                          onChange={(e) =>
+                            setEtaDrafts((prev) => ({
+                              ...prev,
+                              [order.id]: e.target.value,
+                            }))
                           }
-                        }}
-                        className="rounded-full border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-neutral-900 focus:outline-none"
-                      />
-                    </label>
-                  </div>
+                          onBlur={() => commitEta(order.id)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                              (e.target as HTMLInputElement).blur();
+                            }
+                          }}
+                          className="rounded-full border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-neutral-900 focus:outline-none"
+                        />
+                      </label>
+                    </div>
+                  )}
 
                   <div className="flex flex-wrap gap-2">
                     {order.status === "new" && (
