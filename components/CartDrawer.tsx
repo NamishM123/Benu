@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { formatPrice, type MenuItem } from "@/lib/menu";
 import {
@@ -34,7 +33,6 @@ export default function CartDrawer({
   onClose,
 }: Props) {
   const { t, lang } = useTranslation();
-  const router = useRouter();
   const [dragOffset, setDragOffset] = useState(0);
   const [confirmRemoveId, setConfirmRemoveId] = useState<string | null>(null);
   const [confirmClear, setConfirmClear] = useState(false);
@@ -342,7 +340,6 @@ export default function CartDrawer({
                     }
                     clearCart();
                     onClose();
-                    router.push(`/order/${order.id}`);
                   }}
                 >
                   {sentFlash ? t("orderSent") : t("sendToKitchen")}
