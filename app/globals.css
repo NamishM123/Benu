@@ -41,6 +41,47 @@ body {
   background-color: rgba(0, 0, 0, 0.35);
 }
 
+/* Rotating orange "highlight" travelling around the chat input border.
+   Uses @property so the conic-gradient angle is animatable. */
+@property --benu-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+.benu-input-glow {
+  position: relative;
+  isolation: isolate;
+}
+.benu-input-glow::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 9999px;
+  padding: 2px;
+  background: conic-gradient(
+    from var(--benu-angle),
+    transparent 0deg,
+    transparent 250deg,
+    #FFB892 285deg,
+    #FDA172 305deg,
+    #E88A5C 325deg,
+    transparent 360deg
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: benu-rotate-glow 2.6s linear infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+@keyframes benu-rotate-glow {
+  to { --benu-angle: 360deg; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .benu-input-glow::before { animation: none; }
+}
+
 /* Subtle wiggle for chili pepper spice indicators */
 @keyframes benu-chili-wiggle {
   0%, 100% { transform: rotate(-4deg); }

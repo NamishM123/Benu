@@ -419,15 +419,17 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
             <label htmlFor="chat-widget-input" className="sr-only">
               Ask the menu assistant
             </label>
-            <input
-              id="chat-widget-input"
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder={isSending ? "Thinking…" : "Ask Benu in any language…"}
-              disabled={isSending}
-              className="flex-1 rounded-full border border-neutral-300 bg-white px-4 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-700/30 disabled:opacity-60"
-            />
+            <div className="benu-input-glow flex-1 rounded-full">
+              <input
+                id="chat-widget-input"
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder={isSending ? "Thinking…" : "Let's find something you'll love."}
+                disabled={isSending}
+                className="relative z-[2] block w-full rounded-full border border-neutral-300 bg-white px-4 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-700/30 disabled:opacity-60"
+              />
+            </div>
             <button
               type="submit"
               disabled={!input.trim() || isSending}
