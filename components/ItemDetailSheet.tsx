@@ -201,7 +201,7 @@ export default function ItemDetailSheet({ item, preferences, onClose, onCartOpen
         ? { specialRequest: trimmedRequest }
         : {}),
     });
-    setJustAdded(true);
+    onClose();
   }
 
   return (
@@ -487,16 +487,16 @@ export default function ItemDetailSheet({ item, preferences, onClose, onCartOpen
           <div className="sticky bottom-0 -mx-6 mt-8 bg-cream-light/95 px-6 py-5 backdrop-blur">
             <button
               type="button"
-              onClick={justAdded ? () => { onClose(); onCartOpen?.(); } : handleAdd}
-              disabled={!canAdd && !justAdded}
+              onClick={handleAdd}
+              disabled={!canAdd}
               className={[
                 "flex w-full items-center justify-between rounded-full px-6 py-4 text-base font-medium shadow-md transition-colors",
-                canAdd || justAdded
+                canAdd
                   ? "bg-neutral-900 text-cream hover:bg-neutral-800"
                   : "bg-neutral-300 text-neutral-500",
               ].join(" ")}
             >
-              <span>{justAdded ? t("viewCart") : t("addToCart")}</span>
+              <span>{t("addToCart")}</span>
               <span>{formatPrice(totalPrice)}</span>
             </button>
           </div>
