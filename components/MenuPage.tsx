@@ -360,7 +360,7 @@ export default function MenuPage({ menu }: Props) {
 
                   <div
                     className={[
-                      "mt-5 px-1 transition-opacity",
+                      "mt-3 px-1 transition-opacity",
                       isRestricted ? "opacity-50" : "",
                     ].join(" ")}
                   >
