@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import {
   getOrders,
   ORDERS_EVENT,
@@ -38,37 +38,6 @@ function statusLabel(status: OrderStatusValue, lang: Lang): string {
   if (status === "new") return translate("statusNew", lang);
   if (status === "cooking") return translate("statusCooking", lang);
   return translate("statusReady", lang);
-}
-
-function TestBotButton({ order }: { order: Order }) {
-  const [loading, setLoading] = useState(false);
-  const [sent, setSent] = useState(false);
-
-  const handleTest = useCallback(async () => {
-    setLoading(true);
-    await fetch("/api/test-notify", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        tableNumber: order.tableNumber,
-        etaMinutes: order.etaMinutes,
-        items: order.lines.map((l) => ({ name: l.itemName, quantity: l.quantity })),
-      }),
-    });
-    setLoading(false);
-    setSent(true);
-    setTimeout(() => setSent(false), 4000);
-  }, [order]);
-
-  return (
-    <button
-      onClick={handleTest}
-      disabled={loading}
-      className="w-full rounded-full border border-neutral-300 bg-white px-6 py-3 text-sm font-medium text-neutral-900 hover:bg-neutral-100 disabled:opacity-50"
-    >
-      {loading ? "Sending..." : sent ? "✓ Sent to Telegram!" : "Test Bot"}
-    </button>
-  );
 }
 
 export default function OrderStatus({ id }: Props) {
@@ -264,9 +233,6 @@ export default function OrderStatus({ id }: Props) {
           </Link>
         </div>
 
-        <div className="mt-4">
-          <TestBotButton order={order} />
-        </div>
       </main>
     </div>
   );

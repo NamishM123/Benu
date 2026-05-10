@@ -49,7 +49,6 @@ export type Order = {
   tableNumber: number;
   etaMinutes?: number;
   clientId?: string;
-  telegramLinked?: boolean;
 };
 
 // Client-side cache of the latest server snapshot. Components read this

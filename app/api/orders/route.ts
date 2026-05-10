@@ -5,7 +5,6 @@ import {
   listOrdersForClient,
 } from "@/lib/server-orders";
 import { TABLE_COUNT } from "@/lib/prep-time";
-import { notifyOrderPlaced } from "@/lib/telegram";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -61,9 +60,6 @@ export async function POST(req: Request) {
       tableNumber,
       clientId,
     });
-    if (clientId) {
-      notifyOrderPlaced(clientId, order.id, order.etaMinutes, order.tableNumber).catch(() => {});
-    }
     return NextResponse.json({ order }, { status: 201 });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
