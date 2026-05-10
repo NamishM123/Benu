@@ -148,25 +148,27 @@ export default function OrderStatus({ id }: Props) {
             </span>
           </div>
 
-          <div className="mt-6 border-t border-neutral-200 pt-6">
-            {order.etaMinutes !== undefined ? (
-              <>
-                <p className="text-xs uppercase tracking-wider text-neutral-500">
-                  {t("estimatedReady")}
+          {order.status !== "ready" && (
+            <div className="mt-6 border-t border-neutral-200 pt-6">
+              {order.etaMinutes !== undefined ? (
+                <>
+                  <p className="text-xs uppercase tracking-wider text-neutral-500">
+                    {t("estimatedReady")}
+                  </p>
+                  <p className="mt-1 font-serif text-4xl tabular-nums text-neutral-900">
+                    {order.etaMinutes}{" "}
+                    <span className="text-base text-neutral-600">
+                      {t("minutesShort")}
+                    </span>
+                  </p>
+                </>
+              ) : (
+                <p className="text-sm italic text-neutral-600">
+                  {t("waitingForEta")}
                 </p>
-                <p className="mt-1 font-serif text-4xl tabular-nums text-neutral-900">
-                  {order.etaMinutes}{" "}
-                  <span className="text-base text-neutral-600">
-                    {t("minutesShort")}
-                  </span>
-                </p>
-              </>
-            ) : (
-              <p className="text-sm italic text-neutral-600">
-                {t("waitingForEta")}
-              </p>
-            )}
-          </div>
+              )}
+            </div>
+          )}
         </div>
 
         <section className="mt-6 rounded-2xl border border-neutral-200 bg-white p-5">
