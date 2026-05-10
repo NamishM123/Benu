@@ -15,7 +15,6 @@ import { getCurrentTableNumber, placeOrder } from "@/lib/order-store";
 import { pairingReason, pickPairings } from "@/lib/cart-insights";
 import { useTranslation } from "@/lib/i18n";
 import { localName } from "@/lib/menu";
-import { getClientId } from "@/lib/client-id";
 
 type Props = {
   open: boolean;
@@ -40,7 +39,6 @@ export default function CartDrawer({
   const [confirmRemoveId, setConfirmRemoveId] = useState<string | null>(null);
   const [confirmClear, setConfirmClear] = useState(false);
   const [sentFlash, setSentFlash] = useState(false);
-  const [showTelegram, setShowTelegram] = useState(false);
   const startYRef = useRef<number | null>(null);
   const draggingRef = useRef(false);
 
@@ -315,9 +313,21 @@ export default function CartDrawer({
                   type="button"
                   disabled={sentFlash}
                   className="flex-1 rounded-full bg-neutral-900 px-6 py-3 text-sm font-medium text-cream hover:bg-neutral-800 disabled:opacity-70"
-                  onClick={() => {
+                  onClick={async () => {
                     if (cart.length === 0) return;
-                    setShowTelegram(true);
+                    let order;
+                    try {
+                      order = await placeOrder(cart, preferences, getCurrentTableNumber());
+                    } catch {
+                      return;
+                    }
+                    clearCart();
+                    setSentFlash(true);
+                    setTimeout(() => {
+                      setSentFlash(false);
+                      onClose();
+                      router.push(`/order/${order.id}`);
+                    }, 900);
                   }}
                 >
                   {sentFlash ? t("orderSent") : t("sendToKitchen")}
@@ -365,67 +375,6 @@ export default function CartDrawer({
                   className="flex-1 rounded-full bg-neutral-900 px-4 py-2.5 text-sm font-medium text-cream hover:bg-neutral-800"
                 >
                   {t("clearAll")}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {showTelegram && (
-          <div
-            className="absolute inset-0 z-30 flex items-center justify-center bg-black/40 backdrop-blur-sm"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div
-              role="alertdialog"
-              aria-modal="true"
-              onClick={(e) => e.stopPropagation()}
-              className="mx-6 w-full max-w-[340px] rounded-2xl bg-cream p-5 shadow-xl"
-            >
-              <h3 className="font-serif text-xl text-neutral-900">Get order updates</h3>
-              <p className="mt-2 text-sm text-neutral-600">
-                Connect Telegram to get notified when your order is placed, cooking, and ready — plus a review link after your meal.
-              </p>
-              <a
-                href={`https://t.me/b3nu_bot?start=${getClientId()}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-4 flex items-center justify-center gap-2 rounded-full bg-[#229ED9] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#1a8bbf]"
-              >
-                <svg viewBox="0 0 24 24" className="h-4 w-4 fill-white"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12L7.14 13.67l-2.96-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.834.889h.004z"/></svg>
-                Open @b3nu_bot on Telegram
-              </a>
-              <p className="mt-3 text-center text-xs text-neutral-400">Tap Start in Telegram, then come back</p>
-              <div className="mt-4 flex gap-3">
-                <button
-                  type="button"
-                  onClick={() => setShowTelegram(false)}
-                  className="flex-1 rounded-full border border-neutral-300 px-4 py-2.5 text-sm text-neutral-700 hover:bg-neutral-100"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={async () => {
-                    setShowTelegram(false);
-                    if (cart.length === 0) return;
-                    let order;
-                    try {
-                      order = await placeOrder(cart, preferences, getCurrentTableNumber());
-                    } catch {
-                      return;
-                    }
-                    clearCart();
-                    setSentFlash(true);
-                    setTimeout(() => {
-                      setSentFlash(false);
-                      onClose();
-                      router.push(`/order/${order.id}`);
-                    }, 900);
-                  }}
-                  className="flex-1 rounded-full bg-neutral-900 px-4 py-2.5 text-sm font-medium text-cream hover:bg-neutral-800"
-                >
-                  Place order
                 </button>
               </div>
             </div>
