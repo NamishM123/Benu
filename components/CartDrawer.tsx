@@ -132,7 +132,7 @@ export default function CartDrawer({
           transform: `translateY(${dragOffset}px)`,
           transition: draggingRef.current ? "none" : "transform 200ms ease-out",
         }}
-        className="relative w-full max-w-[480px] h-[92dvh] overflow-y-auto overscroll-none rounded-t-3xl bg-cream shadow-xl sm:h-auto sm:max-h-[88vh] sm:rounded-3xl"
+        className="relative flex w-full max-w-[480px] flex-col h-[92dvh] overflow-y-auto overscroll-none rounded-t-3xl bg-cream shadow-xl sm:h-auto sm:max-h-[88vh] sm:rounded-3xl"
       >
         {/* Drag handle — touch this region to swipe down */}
         <div
@@ -178,7 +178,7 @@ export default function CartDrawer({
             </div>
           </div>
         ) : cart.length === 0 ? (
-          <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
+          <div className="flex flex-1 flex-col items-center justify-center px-6 py-6 text-center sm:flex-none sm:py-12">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/cart-empty.webp"
@@ -186,7 +186,7 @@ export default function CartDrawer({
               aria-hidden="true"
               className="h-64 w-64 object-contain sm:h-56 sm:w-56"
             />
-            <p className="mt-6 text-2xl text-neutral-600">{t("emptyCart")}</p>
+            <p className="mt-3 text-2xl text-neutral-600">{t("emptyCart")}</p>
           </div>
         ) : (
           <>
