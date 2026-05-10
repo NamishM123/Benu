@@ -17,8 +17,10 @@ const ALLERGEN_KEYWORDS: Record<string, string[]> = {
   Soy: ["soy", "soya", "soybean", "soybeans", "tofu", "edamame"],
 };
 
+// "a+l+erg" matches "alerg", "allerg", "aalerg" — handles common typos
+// like "alergic" (single L) which the previous strict pattern missed.
 const AVOIDANCE_RE =
-  /\b(?:allerg(?:ic|y|ies)?|intoleran(?:t|ce)|sensitiv(?:e|ity)|can'?t\s+(?:have|eat|do|tolerate)|cannot\s+(?:have|eat|do|tolerate)|don'?t\s+(?:eat|do)|do\s+not\s+(?:eat|do)|avoid(?:ing)?|without|hold\s+the|skip\s+the|hate|exclud(?:e|ing)|free\s+of|stay\s+away\s+from|never\s+eat)\b/i;
+  /\b(?:a+l+erg(?:ic|y|ies)?|intoleran(?:t|ce)|sensitiv(?:e|ity)|can'?t\s+(?:have|eat|do|tolerate)|cannot\s+(?:have|eat|do|tolerate)|don'?t\s+(?:eat|do)|do\s+not\s+(?:eat|do)|avoid(?:ing)?|without|hold\s+the|skip\s+the|hate|exclud(?:e|ing)|free\s+of|stay\s+away\s+from|never\s+eat|gives?\s+me|makes?\s+me\s+(?:itch|swell|sneeze|sick|nauseous|puffy|hives|breakout)|breakout|hives|puffy|swelling)\b/i;
 
 const NEGATION_RE =
   /\bnot\s+allergic\b|\bnot\s+(?:intolerant|sensitive)\b|\bi\s+(?:can|do|love|like|enjoy|want)\s+(?:have|eat)?/i;
@@ -107,23 +109,53 @@ const STOP_WORDS = new Set([
   "steamed", "raw", "cooked",
 ]);
 
+// Capture groups end at sentence-ending punctuation, NOT at "and"/"or" —
+// so "allergic to potato and tofu" captures "potato and tofu" as one
+// run, and the post-split handles the conjunction. Allow commas inside
+// the capture so "allergic to peanuts, sesame, and shrimp" works.
+const STOP = "(?=\\s*(?:[.!?;]|\\sso\\s|\\sbut\\s|$))";
 const CUSTOM_AVOIDANCE_PATTERNS: RegExp[] = [
-  // "allergic to X", "allergy to X"
-  /\ballerg(?:ic|y|ies)\s+to\s+([a-z][a-z\-\s]{2,30}?)(?=\s*(?:[,.!?;]|\sand\s|\sor\s|\sbut\s|\sso\s|$))/gi,
+  // "allergic to X", "alergic to X" (typo) — fuzzy a+l+erg.
+  new RegExp(
+    `\\ba+l+erg(?:ic|y|ies)?\\s+to\\s+([a-z][a-z\\-\\s,]{2,60}?)${STOP}`,
+    "gi",
+  ),
   // "can't / cannot have/eat/tolerate X"
-  /\b(?:can'?t|cannot|can\s+not)\s+(?:have|eat|tolerate|do)\s+([a-z][a-z\-\s]{2,30}?)(?=\s*(?:[,.!?;]|\sand\s|\sor\s|\sbut\s|\sso\s|$))/gi,
+  new RegExp(
+    `\\b(?:can'?t|cannot|can\\s+not)\\s+(?:have|eat|tolerate|do)\\s+([a-z][a-z\\-\\s,]{2,60}?)${STOP}`,
+    "gi",
+  ),
   // "don't eat X"
-  /\b(?:don'?t|do\s+not)\s+eat\s+([a-z][a-z\-\s]{2,30}?)(?=\s*(?:[,.!?;]|\sand\s|\sor\s|\sbut\s|\sso\s|$))/gi,
+  new RegExp(
+    `\\b(?:don'?t|do\\s+not)\\s+eat\\s+([a-z][a-z\\-\\s,]{2,60}?)${STOP}`,
+    "gi",
+  ),
   // "avoid X" / "avoiding X"
-  /\bavoid(?:ing)?\s+([a-z][a-z\-\s]{2,30}?)(?=\s*(?:[,.!?;]|\sand\s|\sor\s|\sbut\s|\sso\s|$))/gi,
+  new RegExp(
+    `\\bavoid(?:ing)?\\s+([a-z][a-z\\-\\s,]{2,60}?)${STOP}`,
+    "gi",
+  ),
   // "without X"
-  /\bwithout\s+([a-z][a-z\-\s]{2,30}?)(?=\s*(?:[,.!?;]|\sand\s|\sor\s|\sbut\s|\sso\s|$))/gi,
-  // "no X" / "hold the X" / "skip the X"
-  /\b(?:no|hold\s+the|skip\s+the)\s+([a-z][a-z\-]{2,30})\b/gi,
+  new RegExp(
+    `\\bwithout\\s+([a-z][a-z\\-\\s,]{2,60}?)${STOP}`,
+    "gi",
+  ),
+  // "no X" / "hold the X" / "skip the X" — single word/short phrase
+  /\b(?:no|hold\s+the|skip\s+the)\s+([a-z][a-z\-]{2,30}(?:\s+(?:and|or)\s+[a-z][a-z\-]{2,30})*)\b/gi,
   // "X-free" / "X free"
   /\b([a-z][a-z\-]{2,30})[-\s]free\b/gi,
   // "intolerant to X" / "sensitive to X"
-  /\b(?:intolerant|sensitive)\s+to\s+([a-z][a-z\-\s]{2,30}?)(?=\s*(?:[,.!?;]|\sand\s|\sor\s|\sbut\s|\sso\s|$))/gi,
+  new RegExp(
+    `\\b(?:intolerant|sensitive)\\s+to\\s+([a-z][a-z\\-\\s,]{2,60}?)${STOP}`,
+    "gi",
+  ),
+  // SYMPTOM-BASED: "X gives me [symptom]", "X makes me [symptom]"
+  /\b([a-z][a-z\-]{2,25})\s+(?:gives?|makes?|cause[sd]?)\s+(?:me|my\s+\w+)\s+(?:itch|itchy|swell|swelling|swollen|puffy|hives|rash|sneeze|sneezing|sick|nauseous|breakout|wheeze)/gi,
+  // SYMPTOM-BASED: "after eating X" / "when I eat X" / "if I eat X"
+  /\b(?:after\s+eating|when\s+i\s+eat|if\s+i\s+eat|from\s+eating)\s+([a-z][a-z\-]{2,25})\b/gi,
+  // SYMPTOM-BASED: "X but my [body part] gets [symptom]"
+  // ("I want pork but my eye gets puffy" → "pork")
+  /\b([a-z][a-z\-]{2,25})\s+but\s+(?:my|i)\s+\w+\s+(?:get|gets|become|becomes|turn|turns|swell|swells|puff|puffs|itch|itches)/gi,
 ];
 
 export function extractCustomAllergens(text: string): string[] {
@@ -137,19 +169,22 @@ export function extractCustomAllergens(text: string): string[] {
     let m: RegExpExecArray | null;
     while ((m = pat.exec(text)) !== null) {
       const raw = m[1].trim().toLowerCase();
-      // Split on conjunctions that may have been included anyway
-      // ("soy and cucumber" → ["soy", "cucumber"])
-      const parts = raw.split(/\s+(?:and|or|plus|with)\s+|\s*,\s*/);
+      // Split on commas AND on "and"/"or"/"plus"/"with" conjunctions.
+      // "potato, tofu, and shrimp" → ["potato", "tofu", "and shrimp"];
+      // the post-clean step then strips the leading "and"/"or" so the
+      // final list is ["potato", "tofu", "shrimp"].
+      const parts = raw.split(/\s*,\s*|\s+(?:and|or|plus|with)\s+/);
       for (const part of parts) {
-        const cleaned = part.trim().replace(/[^a-z\-\s]/gi, "").trim();
+        const cleaned = part
+          .trim()
+          .replace(/^(?:and|or|plus|with)\s+/i, "")
+          .replace(/[^a-z\-\s]/gi, "")
+          .trim();
         if (!cleaned) continue;
         if (cleaned.length < 3 || cleaned.length > 30) continue;
-        // Reject phrases longer than 3 words — likely captured a clause
         const words = cleaned.split(/\s+/);
         if (words.length > 3) continue;
-        // Reject if every word is a stop-word
         if (words.every((w) => STOP_WORDS.has(w))) continue;
-        // Strip leading stop-words ("a/the/some cucumber" → "cucumber")
         while (words.length > 1 && STOP_WORDS.has(words[0])) words.shift();
         const final = words.join(" ");
         if (final.length < 3) continue;
@@ -161,28 +196,72 @@ export function extractCustomAllergens(text: string): string[] {
   return Array.from(detected);
 }
 
-// Returns true if a dish should be filtered out because it contains one
-// of the custom allergens the user named. We check the dish name,
-// description, and tags for any allergen substring — over-filter on
-// purpose. "cucumber" matches "Garlic Cucumber".
+// Strip common English plural suffixes so "potato" and "potatoes" are
+// treated as the same allergen when matching. Also strips "es", "ies"
+// → "y" (berries → berry).
+function stem(word: string): string {
+  const w = word.toLowerCase().trim();
+  if (w.length <= 3) return w;
+  if (w.endsWith("ies")) return w.slice(0, -3) + "y";
+  if (w.endsWith("es") && w.length > 4) return w.slice(0, -2);
+  if (w.endsWith("s") && !w.endsWith("ss")) return w.slice(0, -1);
+  return w;
+}
+
+// Returns the list of allergens (from the user-named list) that appear
+// in this dish's name/description/tags. We:
+//   1. Stem both the allergen and the matched word so "potato" matches
+//      "potatoes" and vice versa.
+//   2. Use word-boundary regex (not bare `includes`) so "egg" doesn't
+//      match "eggplant" — but "potato" still matches "potatoes" via
+//      the stem step.
+// Over-flag on purpose: "cucumber" matches "Garlic Cucumber". A
+// false-positive filter is fine; a missed allergen ships an EpiPen call.
 export function dishMatchesCustomAllergen(
   dish: { name: string; description: string; tags: string[] },
   customAllergens: string[],
 ): string[] {
   if (!customAllergens.length) return [];
-  const name = dish.name.toLowerCase();
-  const desc = dish.description.toLowerCase();
-  const tags = dish.tags.map((t) => t.toLowerCase());
+  const haystack = `${dish.name} ${dish.description} ${dish.tags.join(" ")}`.toLowerCase();
   const hits: string[] = [];
   for (const a of customAllergens) {
-    const al = a.toLowerCase();
-    if (
-      name.includes(al) ||
-      desc.includes(al) ||
-      tags.some((t) => t.includes(al))
-    ) {
+    const stemmed = stem(a);
+    if (stemmed.length < 3) continue;
+    // Word-boundary, then the stem, then optional plural suffix.
+    const pattern = new RegExp(
+      `\\b${escapeRegex(stemmed)}(?:s|es|ies)?\\b`,
+      "i",
+    );
+    if (pattern.test(haystack)) {
       hits.push(a);
     }
   }
   return hits;
+}
+
+// Pull every allergen the user has stated across the whole conversation.
+// Scans both the user's messages AND the bot's prior warnings — when
+// the bot says "you mentioned being allergic to potato and tofu", we
+// extract "potato" and "tofu" too, so a typo in the user's original
+// message ("alergic") doesn't cost us the constraint.
+export function extractAllergensFromConversation(
+  history: { role: "user" | "bot"; text: string }[],
+): { categories: string[]; ingredients: string[] } {
+  const categories = new Set<string>();
+  const ingredients = new Set<string>();
+
+  for (const msg of history) {
+    if (!msg.text) continue;
+    // User messages: full detection (vegan, X-free, "no X", avoidance verbs).
+    // Bot messages: also scan, because the bot often paraphrases the
+    // user's allergy ("since you said you're allergic to potato"), and
+    // that paraphrase is sometimes cleaner than the original (no typos).
+    for (const c of extractAllergensFromText(msg.text)) categories.add(c);
+    for (const i of extractCustomAllergens(msg.text)) ingredients.add(i);
+  }
+
+  return {
+    categories: Array.from(categories),
+    ingredients: Array.from(ingredients),
+  };
 }

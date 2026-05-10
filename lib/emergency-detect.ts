@@ -3,31 +3,39 @@
 // emergency-instructions message — no menu suggestions, no friendly
 // "what flavors are you in the mood for?" reply.
 //
-// Bias: aggressive over-detection. A false positive means the customer
-// sees a "if this is an emergency, call 911" message they can ignore. A
-// false negative means a customer in anaphylaxis is told to pick noodles.
-// We choose the false positive every time.
+// CONSERVATIVE BIAS: only trigger on phrasing that is unambiguously a
+// medical emergency. The previous version had combo logic that could
+// fire on unrelated text ("Hi sick my dic" was wrongly flagged), and
+// false positives erode the signal — if the customer sees the 911
+// banner on every other message they will tune it out, defeating the
+// purpose of the intercept entirely.
+//
+// We accept that some real emergencies will be missed by this regex.
+// That's OK because the LLM, the system prompt, and the dish hard
+// filter all have separate safeguards. The intercept's job is to
+// bypass the LLM only when we are CERTAIN.
 
 const STRONG_PATTERNS: RegExp[] = [
-  // Active allergic reaction
+  // Active anaphylaxis / reaction language. Specific multi-word phrases
+  // only — bare "reaction" is too generic.
   /\ballergic\s+reaction\b/i,
-  /\bhaving\s+(?:an?\s+)?reaction\b/i,
+  /\bhaving\s+(?:an?\s+)?allergic\s+reaction\b/i,
   /\banaphylax(?:is|ic)\b/i,
+  /\banaphylactic\s+shock\b/i,
 
-  // Airway / breathing
+  // Airway / breathing — every variant requires the breathing/airway word
   /\bcan'?t\s+breathe\b/i,
   /\bcannot\s+breathe\b/i,
   /\bcan\s+not\s+breathe\b/i,
-  /\b(?:trouble|difficulty|hard)\s+breathing\b/i,
-  /\bthroat\s+(?:closing|tight|swelling|swollen|is\s+closing)\b/i,
-  /\bchok(?:ing|ed)\b/i,
+  /\b(?:trouble|difficulty|hard\s+time)\s+breathing\b/i,
+  /\bthroat\s+(?:is\s+)?(?:closing|tight|swelling|swollen|closing\s+up)\b/i,
 
-  // Swelling
-  /\b(?:tongue|lips?|face|mouth)\s+(?:is\s+)?(?:swelling|swollen)\b/i,
+  // Visible swelling of allergy-prone areas — requires both body part
+  // and swelling verb together
+  /\b(?:tongue|lips?|face|mouth|throat)\s+(?:is\s+|are\s+)?(?:swelling|swollen|closing)\b/i,
   /\bswollen\s+(?:tongue|lips?|face|mouth|throat)\b/i,
-  /\bhives\s+(?:all\s+over|everywhere|spreading)\b/i,
 
-  // Direct medical emergency vocabulary
+  // Direct medical-emergency vocabulary
   /\bepi[-\s]?pen\b/i,
   /\bepinephrine\b/i,
   /\bcall\s+911\b/i,
@@ -35,25 +43,18 @@ const STRONG_PATTERNS: RegExp[] = [
   /\bcall\s+(?:an?\s+)?ambulance\b/i,
   /\bneed\s+(?:an?\s+)?ambulance\b/i,
   /\bemergency\s+room\b/i,
-
-  // Death / collapse language
-  /\b(?:i'?m|i\s+am|i)\s+dying\b/i,
-  /\bgoing\s+to\s+die\b/i,
-  /\bgonna\s+die\b/i,
-  /\bpassing\s+out\b/i,
-  /\bblack(?:ing)?\s+out\b/i,
-  /\bfaint(?:ing)?\b/i,
-
-  // Severe symptoms
-  /\bchest\s+(?:pain|tight|hurting|hurts)\b/i,
+  /\bgo(?:ing)?\s+to\s+(?:the\s+)?(?:er|emergency\s+room|hospital)\b/i,
 ];
 
-// Softer signals — alone these wouldn't trigger, but if combined with an
-// allergy / reaction context they do.
+// Combo: an allergy-context noun + an active-distress phrase. Both
+// must be specific so casual chat doesn't trip them — e.g. just "sick"
+// is not enough; "I just ate it and feel sick" is. Bare "I'm dying"
+// is removed entirely (too easily hyperbolic — "I'm dying for some
+// noodles" should not flash 911 instructions).
 const ALLERGY_CONTEXT_RE =
-  /\ballerg(?:ic|y|ies)\b|\breaction\b|\bate\s+(?:it|that|the)\b|\bjust\s+ate\b/i;
+  /\ballergic\s+reaction\b|\bhaving\s+a\s+reaction\b|\bjust\s+ate\b|\bafter\s+eating\b/i;
 const HELP_DISTRESS_RE =
-  /\b(?:help\s+me|need\s+help|please\s+help|get\s+help|getting\s+worse|feel\s+(?:awful|terrible|sick|bad)|throwing\s+up|vomiting|nausea(?:ted|us)?)\b/i;
+  /\bcan'?t\s+breathe\b|\b(?:throat|tongue|lips?|face)\s+(?:is\s+|are\s+)?(?:swelling|swollen|closing)\b|\bfeel\s+(?:awful|terrible|like\s+i'?m\s+dying)\b|\bvomit(?:ing)?\b|\bthrowing\s+up\b/i;
 
 export function isMedicalEmergency(text: string): boolean {
   if (!text) return false;
@@ -62,8 +63,6 @@ export function isMedicalEmergency(text: string): boolean {
     if (re.test(text)) return true;
   }
 
-  // Combo: any distress/help-seeking phrase together with an allergy
-  // context (e.g. "I just ate it and I need help") = treat as emergency.
   if (ALLERGY_CONTEXT_RE.test(text) && HELP_DISTRESS_RE.test(text)) {
     return true;
   }

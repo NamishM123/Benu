@@ -6,6 +6,7 @@ import { searchPhoto } from "@/lib/unsplash";
 import { listMenuItems } from "@/lib/server-menu";
 import {
   dishMatchesCustomAllergen,
+  extractAllergensFromConversation,
   extractAllergensFromText,
   extractCustomAllergens,
 } from "@/lib/allergen-detect";
@@ -188,32 +189,45 @@ export async function POST(req: Request) {
     });
   }
 
-  // SAFETY: medical-emergency intercept. If the message looks like the
-  // customer is in distress (allergic reaction, can't breathe, "I'm
-  // dying", etc.), bypass the LLM entirely and return a fixed
-  // emergency-instructions reply. The LLM has demonstrably failed at
-  // this — it told a customer in active anaphylaxis "I'd love to help
-  // you find something delicious!" — so we do NOT trust it for this.
-  // SAFETY: extract any allergies stated in the chat message itself —
-  // both standard categories AND custom ingredients (cucumber, sesame,
-  // egg, etc.). Done BEFORE the emergency check so the client gets the
-  // detected allergens back even on emergency turns and can persist
-  // them for the next request.
+  // SAFETY: extract allergies from BOTH the current message AND the
+  // entire conversation history (user messages and bot warnings).
+  // Scanning the bot's prior paraphrased responses ("you said you're
+  // allergic to potato") catches allergens the user typed with a typo
+  // — the bot's paraphrase is usually cleaner.
   const detectedAllergens = extractAllergensFromText(question);
   const detectedCustomAllergens = extractCustomAllergens(question);
+  const fromHistory = extractAllergensFromConversation([
+    ...history,
+    { role: "user", text: question },
+  ]);
   const preferences = Array.from(
-    new Set([...explicitPreferences, ...detectedAllergens]),
+    new Set([
+      ...explicitPreferences,
+      ...detectedAllergens,
+      ...fromHistory.categories,
+    ]),
   );
   const customAllergens = Array.from(
-    new Set([...sessionCustomAllergens, ...detectedCustomAllergens]),
+    new Set([
+      ...sessionCustomAllergens,
+      ...detectedCustomAllergens,
+      ...fromHistory.ingredients,
+    ]),
   );
 
+  // SAFETY: medical-emergency intercept. Bypass the LLM and respond
+  // with the canned 911 message ONLY when the regex is certain — the
+  // detector is now conservative to avoid false positives (the prior
+  // version flagged "Hi sick my dic" as anaphylaxis).
   if (isMedicalEmergency(question)) {
     return NextResponse.json({
       text: EMERGENCY_TEXT_EN,
       dishes: [],
-      detectedAllergens,
-      detectedCustomAllergens,
+      // Send the full effective sets so allergens persist even on
+      // emergency turns (user might have just stated an allergy in the
+      // same message as the emergency phrase).
+      detectedAllergens: preferences,
+      detectedCustomAllergens: customAllergens,
       isEmergency: true,
     });
   }
@@ -367,22 +381,16 @@ export async function POST(req: Request) {
       })),
     );
 
-    // Send back any newly identified allergens so the client can persist
-    // them — that's what makes constraints sticky across turns.
-    const newCategories = llmCategories.filter((c) => !preferences.includes(c));
-    const newIngredients = llmIngredients.filter(
-      (i) => !customAllergens.includes(i),
-    );
-
+    // Send back the FULL effective allergen set the server used so the
+    // client can persist any new ones (from history scan + LLM
+    // identification) into sessionCustomAllergens. This is what makes
+    // the constraint truly sticky — every subsequent request carries
+    // the cumulative list.
     return NextResponse.json({
       text: finalText,
       dishes: enrichedDishes,
-      detectedAllergens: Array.from(
-        new Set([...detectedAllergens, ...newCategories]),
-      ),
-      detectedCustomAllergens: Array.from(
-        new Set([...detectedCustomAllergens, ...newIngredients]),
-      ),
+      detectedAllergens: effectivePreferences,
+      detectedCustomAllergens: effectiveCustomAllergens,
       isEmergency: false,
     });
   } catch (error) {
