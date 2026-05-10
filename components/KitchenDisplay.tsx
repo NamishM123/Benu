@@ -122,40 +122,53 @@ export default function KitchenDisplay() {
               onChange={(e) => setItemSearch(e.target.value)}
               className="mb-3 w-full rounded-full border border-neutral-300 bg-white px-4 py-2 text-sm text-neutral-900 placeholder-neutral-400 focus:border-neutral-900 focus:outline-none"
             />
-            <div className="flex flex-wrap gap-2">
-              {menuItems.filter((item) =>
-                item.name.toLowerCase().includes(itemSearch.toLowerCase())
-              ).map((item) => {
-                const soldOut = item.available === false;
+            {(["Appetizers", "Dry Noodles", "Noodle Soup", "Rice", "Beverages"] as const).map((cat) => {
+                const filtered = menuItems.filter(
+                  (item) =>
+                    item.category === cat &&
+                    item.name.toLowerCase().includes(itemSearch.toLowerCase())
+                );
+                if (filtered.length === 0) return null;
                 return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={async () => {
-                      const res = await fetch(`/api/menu/items/${encodeURIComponent(item.id)}`, {
-                        method: "PATCH",
-                        headers: { "content-type": "application/json" },
-                        body: JSON.stringify({ available: soldOut ? true : false }),
-                      });
-                      if (res.ok) {
-                        const { item: updated } = await res.json();
-                        setMenuItems((prev) =>
-                          prev.map((p) => (p.id === updated.id ? updated : p))
+                  <div key={cat} className="mb-4">
+                    <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-neutral-400">
+                      {cat}
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {filtered.map((item) => {
+                        const soldOut = item.available === false;
+                        return (
+                          <button
+                            key={item.id}
+                            type="button"
+                            onClick={async () => {
+                              const res = await fetch(`/api/menu/items/${encodeURIComponent(item.id)}`, {
+                                method: "PATCH",
+                                headers: { "content-type": "application/json" },
+                                body: JSON.stringify({ available: soldOut ? true : false }),
+                              });
+                              if (res.ok) {
+                                const { item: updated } = await res.json();
+                                setMenuItems((prev) =>
+                                  prev.map((p) => (p.id === updated.id ? updated : p))
+                                );
+                              }
+                            }}
+                            className={[
+                              "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+                              soldOut
+                                ? "border-red-200 bg-red-50 text-red-700 hover:bg-red-100"
+                                : "border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-100",
+                            ].join(" ")}
+                          >
+                            {item.name}
+                          </button>
                         );
-                      }
-                    }}
-                    className={[
-                      "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
-                      soldOut
-                        ? "border-red-200 bg-red-50 text-red-700 hover:bg-red-100"
-                        : "border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-100",
-                    ].join(" ")}
-                  >
-                    {item.name}
-                  </button>
+                      })}
+                    </div>
+                  </div>
                 );
               })}
-            </div>
           </div>
         </div>
       )}
