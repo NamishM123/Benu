@@ -318,20 +318,27 @@ export default function ChatWidget({
 
       {open && (
         <>
-          {/* Mobile-only backdrop. On phones the chat is a fullscreen-feel
-              overlay so we hide the menu cards behind an opaque cream
-              backdrop and let outside-tap dismiss the panel. On desktop
-              (sm:hidden) there's no backdrop — the small right-pinned chat
-              panel is opaque on its own and the rest of the menu stays
-              fully visible AND interactive. */}
+          {/* Mobile: full-screen "Ask Benu" page (logo + chat panel inside
+              one fixed container that sizes itself to the dynamic viewport
+              so the keyboard never exposes the menu underneath).
+              Desktop (sm:): the same container becomes a thin translucent
+              backdrop and the chat panel below floats out as a fixed
+              bottom-right widget. */}
           <div
-            className="fixed inset-0 z-30 bg-cream sm:hidden"
             onClick={() => setOpen(false)}
             aria-hidden="true"
+            style={
+              // Live visualViewport height when available — more reliable
+              // than 100dvh on older iOS Safari for keyboard-shrink.
+              vvHeight != null
+                ? ({ height: `${vvHeight}px` } as React.CSSProperties)
+                : undefined
+            }
+            className="fixed inset-x-0 top-0 z-30 flex h-[100dvh] flex-col bg-cream sm:inset-0 sm:block sm:h-auto sm:bg-cream/85 sm:backdrop-blur-md"
           >
-            {/* Logo at the top of the cream backdrop, mobile only. PNG has
-                ~43% transparent whitespace below the artwork; clip it. */}
-            <div className="pointer-events-none absolute top-2 left-1/2 -translate-x-1/2 sm:hidden">
+            {/* Logo: mobile only. PNG has ~43% transparent whitespace below
+                the artwork; clip it. */}
+            <div className="pointer-events-none flex flex-none justify-center pt-2 sm:hidden">
               <div className="block overflow-hidden h-[64px]">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -343,27 +350,17 @@ export default function ChatWidget({
                 />
               </div>
             </div>
-          </div>
-          <section
-            aria-label={t("chatPanelAria")}
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              // When the keyboard is up, sit flush with its top edge so no
-              // strip of menu page peeks between the chat input and the
-              // keyboard. When it's down, just an 8px gap from the bottom.
-              bottom:
-                keyboardInset > 0 ? `${keyboardInset}px` : "8px",
-              maxHeight:
-                vvHeight != null ? `${vvHeight - 16}px` : "88dvh",
-              // --chat-x flips to 0 on desktop (sm:) so the panel pins to the
-              // right instead of centering full-width — see className below.
-              transform: `translateX(var(--chat-x,-50%)) translateY(${dragOffset}px)`,
-              transition: draggingRef.current
-                ? "none"
-                : "transform 200ms ease-out",
-            }}
-            className="fixed left-1/2 z-40 flex h-[88dvh] w-[calc(100vw-2rem)] max-w-6xl flex-col overflow-hidden rounded-2xl border border-neutral-300/70 bg-white sm:left-auto sm:right-5 sm:h-[min(720px,82dvh)] sm:w-[min(420px,calc(100vw-2.5rem))] sm:max-w-none sm:shadow-2xl sm:[--chat-x:0]"
-          >
+            <section
+              aria-label={t("chatPanelAria")}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                transform: `translateY(${dragOffset}px)`,
+                transition: draggingRef.current
+                  ? "none"
+                  : "transform 200ms ease-out",
+              }}
+              className="mx-3 mb-2 flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-neutral-300/70 bg-white sm:fixed sm:bottom-5 sm:right-5 sm:left-auto sm:m-0 sm:h-[min(720px,82dvh)] sm:w-[min(420px,calc(100vw-2.5rem))] sm:max-w-none sm:flex-none sm:shadow-2xl"
+            >
           <div
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
@@ -596,6 +593,7 @@ export default function ChatWidget({
             </button>
           </form>
           </section>
+          </div>
         </>
       )}
     </>
