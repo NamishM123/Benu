@@ -87,9 +87,41 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [dragOffset, setDragOffset] = useState(0);
+  const [scrollHidden, setScrollHidden] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
   const startYRef = useRef<number | null>(null);
   const draggingRef = useRef(false);
+
+  // Hide the floating launcher while the user is actively scrolling down so
+  // it doesn't sit over the menu items they're trying to read. It reappears
+  // once they pause scrolling (or scroll back up).
+  useEffect(() => {
+    let lastY = window.scrollY;
+    let lastShownAt = Date.now();
+    const REAPPEAR_PAUSE_MS = 300;
+    let raf = 0;
+
+    function onScroll() {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        const y = window.scrollY;
+        const delta = y - lastY;
+        lastY = y;
+        if (delta > 4 && y > 80) {
+          setScrollHidden(true);
+        } else if (delta < -4 || Date.now() - lastShownAt > REAPPEAR_PAUSE_MS) {
+          setScrollHidden(false);
+          lastShownAt = Date.now();
+        }
+      });
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, []);
 
   function handleTouchStart(e: React.TouchEvent<HTMLDivElement>) {
     startYRef.current = e.touches[0].clientY;
@@ -203,14 +235,23 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
   return (
     <>
       {/* Floating launcher — hidden while the panel is open so the user
-          collapses the chat with the dash button in the header instead. */}
+          collapses the chat with the dash button in the header instead.
+          Also auto-hides while scrolling down so it doesn't cover menu cards
+          on small screens. */}
       {!open && (
         <button
           type="button"
           aria-label="Open menu assistant"
           aria-expanded={false}
+          aria-hidden={scrollHidden}
+          tabIndex={scrollHidden ? -1 : 0}
           onClick={() => setOpen(true)}
-          className="fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-neutral-900 text-neutral-50 shadow-lg transition-colors duration-150 ease-out hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-700/30"
+          className={[
+            "fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-neutral-900 text-neutral-50 shadow-lg transition-all duration-200 ease-out hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-700/30",
+            scrollHidden
+              ? "pointer-events-none translate-y-24 opacity-0"
+              : "translate-y-0 opacity-100",
+          ].join(" ")}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
