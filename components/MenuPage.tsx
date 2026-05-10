@@ -344,7 +344,7 @@ export default function MenuPage({ menu }: Props) {
                         }}
                       />
                       {isSoldOut && (
-                        <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-neutral-900/75 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-white backdrop-blur-sm">
+                        <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-red-600 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-white">
                           Sold out
                         </span>
                       )}
