@@ -126,7 +126,7 @@ export default function MenuPage({ menu }: Props) {
                 }
               }}
               aria-label={t("backToStart")}
-              className="cursor-default rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
+              className="flex-none cursor-default rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -135,7 +135,7 @@ export default function MenuPage({ menu }: Props) {
                 fetchPriority="high"
                 decoding="sync"
                 loading="eager"
-                className="h-24 w-auto sm:h-32"
+                className="h-24 w-auto max-w-none sm:h-32"
               />
             </button>
             <div className="flex items-center gap-2">
@@ -156,7 +156,7 @@ export default function MenuPage({ menu }: Props) {
               onClick={() => setFiltersOpen(true)}
               aria-label={t("filters")}
               className={[
-                "hidden sm:inline-flex h-11 items-center whitespace-nowrap rounded-full px-4 text-base font-medium shadow-sm transition-colors",
+                "hidden sm:inline-flex h-11 min-w-[9.5rem] items-center justify-center whitespace-nowrap rounded-full px-4 text-base font-medium shadow-sm transition-colors",
                 "focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30",
                 preferences.length > 0
                   ? "bg-cantaloupe text-neutral-900 hover:bg-cantaloupe-soft"
