@@ -74,28 +74,28 @@ body {
   inset: -2px;
   border-radius: 9999px;
   padding: 2px;
-  /* Continuous orange ring with a brighter chasing highlight.
-     The base alpha stays high enough that the ring is visible all the way
-     around — the bright peak just travels smoothly past every angle instead
-     of appearing/disappearing. 0deg and 360deg match so there's no seam. */
+  /* Symmetric soft glow with one bright peak. The gradient starts and ends
+     at the same alpha (no seam) and falls off symmetrically in both
+     directions from the bright spot at 180°, so as --benu-angle rotates
+     uniformly the bright spot appears to travel at a constant perceived
+     speed without any visible pulsing or "jump" at the wrap point. */
   background: conic-gradient(
     from var(--benu-angle),
-    rgba(255, 184, 146, 0.65) 0deg,
-    rgba(253, 161, 114, 0.6) 80deg,
-    rgba(255, 184, 146, 0.75) 160deg,
-    rgba(253, 161, 114, 0.9) 230deg,
-    #FDA172 280deg,
-    #E88A5C 305deg,
-    #FDA172 330deg,
-    rgba(255, 184, 146, 0.75) 355deg,
-    rgba(255, 184, 146, 0.65) 360deg
+    rgba(253, 161, 114, 0.45) 0deg,
+    rgba(253, 161, 114, 0.6) 60deg,
+    rgba(253, 161, 114, 0.78) 120deg,
+    rgba(232, 138, 92, 0.95) 180deg,
+    rgba(253, 161, 114, 0.78) 240deg,
+    rgba(253, 161, 114, 0.6) 300deg,
+    rgba(253, 161, 114, 0.45) 360deg
   );
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
-  animation: benu-rotate-glow 2.4s linear infinite;
+  animation: benu-rotate-glow 3.6s linear infinite;
   pointer-events: none;
   z-index: 1;
+  will-change: --benu-angle;
 }
 @keyframes benu-rotate-glow {
   to { --benu-angle: 360deg; }
@@ -104,26 +104,12 @@ body {
   .benu-input-glow::before { animation: none; }
 }
 
-/* Soft orange halo around inline accent text (e.g. "Any Language" in the
-   chat header). Pulses gently in sync with the input glow's color family. */
-@keyframes benu-text-glow {
-  0%, 100% {
-    text-shadow:
-      0 0 6px rgba(253, 161, 114, 0.55),
-      0 0 14px rgba(253, 161, 114, 0.35);
-  }
-  50% {
-    text-shadow:
-      0 0 10px rgba(253, 161, 114, 0.85),
-      0 0 22px rgba(232, 138, 92, 0.55);
-  }
-}
+/* Soft orange tint on inline accent text (e.g. "Any Language" in the chat
+   header). Subtle and steady — no pulsing — so it reads as a gentle accent
+   rather than a glowing highlight. */
 .benu-text-glow {
-  color: #E88A5C;
-  animation: benu-text-glow 2.4s ease-in-out infinite;
-}
-@media (prefers-reduced-motion: reduce) {
-  .benu-text-glow { animation: none; }
+  color: #FDA172;
+  text-shadow: 0 0 4px rgba(253, 161, 114, 0.18);
 }
 
 /* Subtle wiggle for chili pepper spice indicators */
