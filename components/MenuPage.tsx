@@ -22,6 +22,7 @@ import CartDrawer from "./CartDrawer";
 import FilterSheet from "./FilterSheet";
 import LanguageSwitcher from "./LanguageSwitcher";
 import MobileHeaderControl from "./MobileHeaderControl";
+import SpiceChilis from "./SpiceChilis";
 import { useTranslation } from "@/lib/i18n";
 import { useAutoTranslate } from "@/lib/auto-translate";
 
@@ -153,7 +154,7 @@ export default function MenuPage({ menu }: Props) {
               onClick={() => setFiltersOpen(true)}
               aria-label={t("filters")}
               className={[
-                "hidden sm:inline-flex h-10 items-center whitespace-nowrap rounded-full px-4 text-base font-medium shadow-sm transition-colors",
+                "hidden sm:inline-flex h-10 items-center whitespace-nowrap rounded-full px-4 text-base font-bold shadow-sm transition-colors",
                 "focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30",
                 preferences.length > 0
                   ? "bg-cantaloupe text-neutral-900 hover:bg-cantaloupe-soft"
@@ -316,24 +317,6 @@ export default function MenuPage({ menu }: Props) {
                           img.style.filter = "blur(0px)";
                         }}
                       />
-                      {d.spiceLevel >= 1 && (
-                        <span
-                          className={[
-                            "absolute left-4 top-4 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider",
-                            d.spiceLevel === 1
-                              ? "bg-yellow-200 text-neutral-900"
-                              : d.spiceLevel === 2
-                              ? "bg-orange-400 text-neutral-900"
-                              : "bg-rose-600 text-white",
-                          ].join(" ")}
-                        >
-                          {d.spiceLevel === 1
-                            ? t("mildlySpicy")
-                            : d.spiceLevel === 2
-                            ? t("spicy")
-                            : t("verySpicy")}
-                        </span>
-                      )}
                       {flags.length > 0 && (
                         <span className="absolute right-4 top-4 rounded-full bg-amber-50/95 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-amber-800">
                           {t("filteredBadge")}
@@ -358,6 +341,11 @@ export default function MenuPage({ menu }: Props) {
                         ].join(" ")}
                       >
                         {localName(d, lang, autoMap)}
+                        {d.spiceLevel > 0 && (
+                          <span className="ml-2 inline-flex">
+                            <SpiceChilis level={d.spiceLevel} size={16} />
+                          </span>
+                        )}
                       </h3>
                       <p className="flex-none text-base text-neutral-700">
                         {formatPrice(d.price)}

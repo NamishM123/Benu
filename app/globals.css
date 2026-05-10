@@ -41,6 +41,19 @@ body {
   background-color: rgba(0, 0, 0, 0.35);
 }
 
+/* Subtle wiggle for chili pepper spice indicators */
+@keyframes benu-chili-wiggle {
+  0%, 100% { transform: rotate(-4deg); }
+  50% { transform: rotate(6deg); }
+}
+.benu-chili {
+  animation: benu-chili-wiggle 2.4s ease-in-out infinite;
+  transform-origin: 50% 95%;
+}
+@media (prefers-reduced-motion: reduce) {
+  .benu-chili { animation: none; }
+}
+
 /* Prevent the browser's native ghost-image drag and selection flash on every image */
 img {
   -webkit-user-drag: none;

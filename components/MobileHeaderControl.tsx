@@ -37,7 +37,7 @@ export default function MobileHeaderControl({
         onClick={onFiltersOpen}
         aria-label={t("filters")}
         className={[
-          "relative inline-flex h-10 items-center whitespace-nowrap rounded-full px-3 text-sm font-medium shadow-sm transition-colors",
+          "relative inline-flex h-10 items-center whitespace-nowrap rounded-full px-3 text-sm font-bold shadow-sm transition-colors",
           "focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30",
           preferencesCount > 0
             ? "bg-cantaloupe text-neutral-900 hover:bg-cantaloupe-soft"
