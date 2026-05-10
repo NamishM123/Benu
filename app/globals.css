@@ -56,49 +56,45 @@ body {
   background-color: rgba(0, 0, 0, 0.35);
 }
 
-/* Rotating orange "highlight" travelling around the chat input border.
-   Uses @property so the conic-gradient angle is animatable. */
-@property --benu-angle {
-  syntax: "<angle>";
-  initial-value: 0deg;
-  inherits: false;
-}
-
+/* Rotating orange "highlight" travelling around the chat input border. */
 .benu-input-glow {
   position: relative;
+  border-radius: 9999px;
+  padding: 2px;
   isolation: isolate;
+  overflow: hidden;
 }
+/* A square conic-gradient pseudo-element sits behind the input, large
+   enough to cover the pill at every rotation angle, and rotates via
+   `transform` — which is GPU-composited and silky smooth on every
+   browser (the previous @property/--angle approach interpolates on the
+   main thread in Safari and stutters on iOS). The wrapper's `padding:
+   2px` + `overflow: hidden` clips it to a thin pill-shaped ring around
+   the input. */
 .benu-input-glow::before {
   content: "";
   position: absolute;
-  inset: -2px;
-  border-radius: 9999px;
-  padding: 2px;
-  /* Symmetric soft glow with one bright peak. The gradient starts and ends
-     at the same alpha (no seam) and falls off symmetrically in both
-     directions from the bright spot at 180°, so as --benu-angle rotates
-     uniformly the bright spot appears to travel at a constant perceived
-     speed without any visible pulsing or "jump" at the wrap point. */
+  top: 50%;
+  left: 50%;
+  width: 200%;
+  aspect-ratio: 1;
   background: conic-gradient(
-    from var(--benu-angle),
-    rgba(253, 161, 114, 0.45) 0deg,
-    rgba(253, 161, 114, 0.6) 60deg,
-    rgba(253, 161, 114, 0.78) 120deg,
+    from 0deg,
+    rgba(253, 161, 114, 0.4) 0deg,
+    rgba(253, 161, 114, 0.6) 90deg,
     rgba(232, 138, 92, 0.95) 180deg,
-    rgba(253, 161, 114, 0.78) 240deg,
-    rgba(253, 161, 114, 0.6) 300deg,
-    rgba(253, 161, 114, 0.45) 360deg
+    rgba(253, 161, 114, 0.6) 270deg,
+    rgba(253, 161, 114, 0.4) 360deg
   );
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
+  transform: translate(-50%, -50%);
   animation: benu-rotate-glow 3.6s linear infinite;
   pointer-events: none;
-  z-index: 1;
-  will-change: --benu-angle;
+  z-index: -1;
+  will-change: transform;
+  backface-visibility: hidden;
 }
 @keyframes benu-rotate-glow {
-  to { --benu-angle: 360deg; }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
 }
 @media (prefers-reduced-motion: reduce) {
   .benu-input-glow::before { animation: none; }
