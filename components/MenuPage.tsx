@@ -12,7 +12,9 @@ import { findFlaggedPreferences } from "@/lib/preferences";
 import { getStoredPreferences } from "@/lib/preferences-store";
 import {
   CART_EVENT,
+  addToCart,
   cartCount,
+  cartTotal,
   getCart,
   type CartLine,
 } from "@/lib/cart-store";
@@ -25,6 +27,7 @@ import MobileHeaderControl from "./MobileHeaderControl";
 import SpiceChilis from "./SpiceChilis";
 import { useTranslation } from "@/lib/i18n";
 import { useAutoTranslate } from "@/lib/auto-translate";
+import { getOptionGroupsForItem } from "@/lib/menu-options";
 
 const CATEGORY_ORDER = [
   "Appetizers",
@@ -263,23 +266,29 @@ export default function MenuPage({ menu }: Props) {
             {visibleItems.map((d) => {
               const flags = findFlaggedPreferences(d, preferences);
               const isRestricted = flags.length > 0;
+              const isSoldOut = d.available === false;
+              const hasRequiredOptions = getOptionGroupsForItem(d).some(
+                (g) => g.type === "single" && g.required,
+              );
               return (
                 <button
                   key={d.name}
                   type="button"
                   onClick={() => {
-                    if (!isRestricted) setActiveItem(d);
+                    if (!isRestricted && !isSoldOut) setActiveItem(d);
                   }}
-                  disabled={isRestricted}
-                  aria-disabled={isRestricted}
+                  disabled={isRestricted || isSoldOut}
+                  aria-disabled={isRestricted || isSoldOut}
                   title={
-                    isRestricted
+                    isSoldOut
+                      ? "Sold out today"
+                      : isRestricted
                       ? `Hidden by your filter: contains ${flags.join(", ").toLowerCase()}`
                       : undefined
                   }
                   className={[
                     "group flex flex-col text-left rounded-[28px] outline-none transition-all duration-150",
-                    isRestricted
+                    isRestricted || isSoldOut
                       ? "cursor-not-allowed"
                       : "hover:-translate-y-0.5",
                   ].join(" ")}
@@ -289,6 +298,8 @@ export default function MenuPage({ menu }: Props) {
                       "relative overflow-hidden rounded-[28px] bg-white shadow-sm ring-4 ring-transparent transition-all duration-150",
                       isRestricted
                         ? "opacity-50 grayscale"
+                        : isSoldOut
+                        ? "opacity-60 grayscale"
                         : "group-hover:bg-butter-soft group-hover:shadow-lg group-hover:ring-butter group-focus-visible:ring-butter",
                     ].join(" ")}
                   >
@@ -333,10 +344,36 @@ export default function MenuPage({ menu }: Props) {
                           img.style.filter = "blur(0px)";
                         }}
                       />
+                      {isSoldOut && (
+                        <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-neutral-900/75 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wider text-white backdrop-blur-sm">
+                          Sold out today
+                        </span>
+                      )}
                       {flags.length > 0 && (
                         <span className="absolute right-4 top-4 rounded-full bg-amber-50/95 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-amber-800">
                           {t("filteredBadge")}
                         </span>
+                      )}
+                      {!isRestricted && !isSoldOut && !hasRequiredOptions && (
+                        <button
+                          type="button"
+                          aria-label={`Add ${d.name} to cart`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            addToCart({
+                              itemName: d.name,
+                              itemNameZh: d.nameZh,
+                              basePrice: d.price,
+                              quantity: 1,
+                              unitPrice: d.price,
+                              selections: [],
+                              image: d.image,
+                            });
+                          }}
+                          className="absolute bottom-3 right-3 flex h-9 w-9 items-center justify-center rounded-full bg-neutral-900/80 text-xl text-white backdrop-blur-sm transition-transform hover:scale-110 active:scale-95"
+                        >
+                          +
+                        </button>
                       )}
                     </div>
                   </div>
@@ -344,7 +381,7 @@ export default function MenuPage({ menu }: Props) {
                   <div
                     className={[
                       "mt-3 px-1 transition-opacity",
-                      isRestricted ? "opacity-50" : "",
+                      isRestricted || isSoldOut ? "opacity-50" : "",
                     ].join(" ")}
                   >
                     <div className="flex items-baseline justify-between gap-3">
@@ -412,10 +449,7 @@ export default function MenuPage({ menu }: Props) {
         </svg>
         <span>
           {totalCount > 0
-            ? (totalCount === 1
-                ? t("viewCartCountOne")
-                : t("viewCartCount")
-              ).replace("{n}", String(totalCount))
+            ? `${(totalCount === 1 ? t("viewCartCountOne") : t("viewCartCount")).replace("{n}", String(totalCount))} · ${formatPrice(cartTotal(cart))}`
             : t("yourCart")}
         </span>
       </button>
@@ -424,6 +458,7 @@ export default function MenuPage({ menu }: Props) {
         item={activeItem}
         preferences={preferences}
         onClose={() => setActiveItem(null)}
+        onCartOpen={() => { setActiveItem(null); setCartOpen(true); }}
       />
       <CartDrawer
         open={cartOpen}

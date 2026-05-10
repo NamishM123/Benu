@@ -39,6 +39,7 @@ export default function CartDrawer({
   const [confirmRemoveId, setConfirmRemoveId] = useState<string | null>(null);
   const [confirmClear, setConfirmClear] = useState(false);
   const [sentFlash, setSentFlash] = useState(false);
+  const [orderError, setOrderError] = useState<string | null>(null);
   const startYRef = useRef<number | null>(null);
   const draggingRef = useRef(false);
 
@@ -295,12 +296,23 @@ export default function CartDrawer({
             )}
 
             <div className="sticky bottom-0 mt-2 border-t border-neutral-200 bg-cream/95 px-6 py-5 backdrop-blur">
-              <div className="mb-3 flex items-baseline justify-between">
+              <div className="mb-1 flex items-baseline justify-between">
                 <span className="text-sm text-neutral-600">{t("subtotal")}</span>
-                <span className="text-lg font-medium text-neutral-900">
-                  {formatPrice(total)}
-                </span>
+                <span className="text-sm text-neutral-900">{formatPrice(total)}</span>
               </div>
+              <div className="mb-3 flex items-baseline justify-between">
+                <span className="text-sm text-neutral-600">Tax (9.25%)</span>
+                <span className="text-sm text-neutral-900">{formatPrice(Math.round(total * 0.0925))}</span>
+              </div>
+              <div className="mb-3 flex items-baseline justify-between border-t border-neutral-200 pt-2">
+                <span className="text-sm font-semibold text-neutral-900">Total</span>
+                <span className="text-lg font-medium text-neutral-900">{formatPrice(Math.round(total * 1.0925))}</span>
+              </div>
+              {orderError && (
+                <p className="mb-3 rounded-xl bg-red-50 px-4 py-2 text-sm text-red-600 border border-red-200">
+                  {orderError}
+                </p>
+              )}
               <div className="flex gap-3">
                 <button
                   type="button"
@@ -315,10 +327,12 @@ export default function CartDrawer({
                   className="flex-1 rounded-full bg-neutral-900 px-6 py-3 text-sm font-medium text-cream hover:bg-neutral-800 disabled:opacity-70"
                   onClick={async () => {
                     if (cart.length === 0) return;
+                    setOrderError(null);
                     let order;
                     try {
                       order = await placeOrder(cart, preferences, getCurrentTableNumber());
                     } catch {
+                      setOrderError("Couldn't reach the kitchen — please try again.");
                       return;
                     }
                     clearCart();

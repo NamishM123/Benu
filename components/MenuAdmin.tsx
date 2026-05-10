@@ -256,6 +256,29 @@ export default function MenuAdmin({ initialItems }: Props) {
                     <div className="flex flex-none gap-2">
                       <button
                         type="button"
+                        onClick={async () => {
+                          const next = item.available === false ? true : false;
+                          const res = await fetch(`/api/menu/items/${encodeURIComponent(item.id)}`, {
+                            method: "PATCH",
+                            headers: { "content-type": "application/json" },
+                            body: JSON.stringify({ available: next }),
+                          });
+                          if (res.ok) {
+                            const { item: updated } = (await res.json()) as { item: StoredItem };
+                            setItems((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+                          }
+                        }}
+                        className={[
+                          "rounded-full border px-3 py-1 text-xs",
+                          item.available === false
+                            ? "border-neutral-400 bg-neutral-100 text-neutral-600 hover:bg-white"
+                            : "border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-100",
+                        ].join(" ")}
+                      >
+                        {item.available === false ? "86'd" : "In stock"}
+                      </button>
+                      <button
+                        type="button"
                         onClick={() => openEdit(item)}
                         className="rounded-full border border-neutral-300 bg-white px-3 py-1 text-xs text-neutral-700 hover:bg-neutral-100"
                       >

@@ -21,6 +21,7 @@ type Props = {
   item: MenuItem | null;
   preferences: string[];
   onClose: () => void;
+  onCartOpen?: () => void;
 };
 
 type Selections = Record<string, string[]>;
@@ -37,7 +38,7 @@ function initialSelections(groups: OptionGroup[]): Selections {
   return sel;
 }
 
-export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
+export default function ItemDetailSheet({ item, preferences, onClose, onCartOpen }: Props) {
   const { t, lang } = useTranslation();
   const autoStrings = useMemo(
     () =>
@@ -176,9 +177,6 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
         : {}),
     });
     setJustAdded(true);
-    setTimeout(() => {
-      onClose();
-    }, 600);
   }
 
   return (
@@ -449,16 +447,16 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
           <div className="sticky bottom-0 -mx-6 mt-8 bg-cream-light/95 px-6 py-5 backdrop-blur">
             <button
               type="button"
-              onClick={handleAdd}
-              disabled={!allRequiredMet}
+              onClick={justAdded ? () => { onClose(); onCartOpen?.(); } : handleAdd}
+              disabled={!allRequiredMet && !justAdded}
               className={[
                 "flex w-full items-center justify-between rounded-full px-6 py-4 text-base font-medium shadow-md transition-colors",
-                allRequiredMet
+                allRequiredMet || justAdded
                   ? "bg-neutral-900 text-cream hover:bg-neutral-800"
                   : "bg-neutral-300 text-neutral-500",
               ].join(" ")}
             >
-              <span>{justAdded ? t("added") : t("addToCart")}</span>
+              <span>{justAdded ? `View cart →` : t("addToCart")}</span>
               <span>{formatPrice(totalPrice)}</span>
             </button>
           </div>

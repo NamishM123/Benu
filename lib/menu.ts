@@ -13,6 +13,7 @@ export type MenuItem = {
   spiceLevel: SpiceLevel;
   tags: string[];
   image: string;
+  available?: boolean;
 };
 
 export const MENU_CATEGORIES = [
