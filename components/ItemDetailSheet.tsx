@@ -242,13 +242,16 @@ export default function ItemDetailSheet({ item, preferences, onClose, onCartOpen
           className="pointer-events-none sticky top-0 z-10 -mb-24 h-24 transition-opacity duration-150 sm:rounded-t-3xl"
         />
 
-        {/* Hero: image as a rounded card on darker cream */}
-        <div className="relative">
+        {/* Back button — sticky so it stays pinned to the dialog top while
+            the user scrolls past the image. The wrapper is zero-height and
+            sticks at top:0 of the scroll container; the absolute child
+            renders at top-4 / left-6 of the visible dialog. */}
+        <div className="sticky top-0 z-30 h-0">
           <button
             type="button"
             onClick={onClose}
             aria-label={t("close")}
-            className="absolute top-4 left-6 z-30 flex h-9 w-9 items-center justify-center rounded-full bg-neutral-900 text-white shadow-sm hover:bg-neutral-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+            className="absolute top-4 left-6 flex h-9 w-9 items-center justify-center rounded-full bg-neutral-900 text-white shadow-sm hover:bg-neutral-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -266,6 +269,10 @@ export default function ItemDetailSheet({ item, preferences, onClose, onCartOpen
               <polyline points="15 18 9 12 15 6" />
             </svg>
           </button>
+        </div>
+
+        {/* Hero: image as a rounded card on darker cream */}
+        <div className="relative">
           <div className="relative z-10 px-6 pt-16 pb-2 sm:pt-14">
             <div className="relative aspect-square w-full overflow-hidden rounded-3xl bg-white shadow-md sm:aspect-[4/3]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
