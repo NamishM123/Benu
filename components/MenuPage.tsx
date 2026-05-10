@@ -114,7 +114,7 @@ export default function MenuPage({ menu }: Props) {
     <>
       <main className="min-h-screen w-full bg-cream pb-28">
         <div className="mx-auto w-full max-w-6xl">
-          <div className="flex flex-col items-stretch gap-2 px-4 pt-4 sm:flex-row sm:items-center sm:justify-between sm:gap-3 sm:px-10 sm:pt-3">
+          <div className="flex items-center justify-between gap-3 px-4 pt-4 sm:px-10 sm:pt-3">
             <button
               type="button"
               onClick={() => {
@@ -124,10 +124,10 @@ export default function MenuPage({ menu }: Props) {
                 }
               }}
               aria-label={t("backToStart")}
-              className="flex-none self-start cursor-default rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
+              className="flex-none cursor-default rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
             >
               {/* PNG has ~43% transparent whitespace below the artwork; clip it. */}
-              <div className="block overflow-hidden h-[68px] sm:h-[78px] flex-none">
+              <div className="block overflow-hidden h-9 sm:h-[78px] flex-none">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/shake-shake-logo.png"
@@ -137,7 +137,7 @@ export default function MenuPage({ menu }: Props) {
                   fetchPriority="high"
                   decoding="sync"
                   loading="eager"
-                  className="block h-32 w-auto max-w-none sm:h-36 -mt-1.5 sm:-mt-2 flex-none"
+                  className="block h-16 w-auto max-w-none sm:h-36 -mt-0.5 sm:-mt-2 flex-none"
                 />
               </div>
             </button>
@@ -376,14 +376,32 @@ export default function MenuPage({ menu }: Props) {
       <button
         type="button"
         onClick={() => setCartOpen(true)}
-        className="fixed bottom-6 left-1/2 z-40 -translate-x-1/2 rounded-full bg-neutral-900 px-6 py-3 text-sm font-medium text-cream shadow-lg transition-transform hover:scale-105 sm:hidden"
+        className="fixed bottom-6 left-1/2 z-40 -translate-x-1/2 inline-flex items-center gap-2 rounded-full bg-neutral-900 px-6 py-3 text-sm font-medium text-cream shadow-lg transition-transform hover:scale-105 sm:hidden"
       >
-        {totalCount > 0
-          ? (totalCount === 1
-              ? t("viewCartCountOne")
-              : t("viewCartCount")
-            ).replace("{n}", String(totalCount))
-          : t("yourCart")}
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <circle cx="9" cy="21" r="1" />
+          <circle cx="20" cy="21" r="1" />
+          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+        </svg>
+        <span>
+          {totalCount > 0
+            ? (totalCount === 1
+                ? t("viewCartCountOne")
+                : t("viewCartCount")
+              ).replace("{n}", String(totalCount))
+            : t("yourCart")}
+        </span>
       </button>
 
       <ItemDetailSheet
