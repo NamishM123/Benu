@@ -4,7 +4,11 @@ import { answerMenuQuestion } from "@/lib/chatbot";
 import { findFlaggedPreferences } from "@/lib/preferences";
 import { searchPhoto } from "@/lib/unsplash";
 import { listMenuItems } from "@/lib/server-menu";
-import { extractAllergensFromText } from "@/lib/allergen-detect";
+import {
+  dishMatchesCustomAllergen,
+  extractAllergensFromText,
+  extractCustomAllergens,
+} from "@/lib/allergen-detect";
 import { isMedicalEmergency } from "@/lib/emergency-detect";
 import type { MenuItem } from "@/lib/menu";
 
@@ -27,11 +31,12 @@ MEDICAL EMERGENCY OVERRIDE (highest priority — overrides all menu behavior):
 - dish_names must be an empty array. Do NOT suggest food. Do NOT ask "what flavors are you in the mood for?" Do NOT continue normal menu chat until the guest explicitly says they're OK now.
 
 CRITICAL ALLERGEN SAFETY RULES (these override normal menu behavior):
-- The "ALLERGENS TO AVOID" list at the start of the user message is a HARD constraint, not a preference. Treat every entry as a life-threatening allergy.
-- NEVER, under any circumstances, recommend / suggest / list / surface / mention as a good option / describe positively any dish whose tags include an allergen on that list. Do not put it in dish_names. Do not say "you might enjoy it anyway." Do not call it "delicious" or "popular" while warning about it. Just exclude it.
-- If the guest asks specifically about a dish that contains one of their allergens, your text reply must LEAD with a clear warning, e.g. "⚠️ Heads up — Braised Pork over White Rice contains soy, which you said you can't have. I'd skip it." Do not put the dish in dish_names.
-- If every dish that fits the request contains an allergen, say so honestly ("Nothing on our menu fits — every option contains soy.") rather than recommending an unsafe dish.
-- Allergens in scope: Dairy, Fish (incl. shellfish), Gluten, Meat (incl. beef/pork/lamb/chicken), Nuts (incl. peanuts), Soy.
+- Two lists at the start of the user message: "ALLERGENS TO AVOID" (standard categories — Dairy/Fish/Gluten/Meat/Nuts/Soy) and "ALSO AVOID" (specific ingredients the guest named — e.g. cucumber, sesame, egg, mushroom). BOTH are HARD constraints. Treat every entry on either list as a life-threatening allergy.
+- NEVER, under any circumstances, recommend / suggest / list / surface / mention as a good option / describe positively any dish whose tags include a standard-list allergen, OR whose name/description contains an "ALSO AVOID" ingredient. Do not put it in dish_names. Do not say "you might enjoy it anyway." Do not call it "delicious" or "popular" while warning about it. Just exclude it.
+- If the guest asks specifically about a dish that contains one of their allergens, your text reply must LEAD with a clear warning, e.g. "⚠️ Heads up — Garlic Cucumber contains cucumber, which you said you can't have. I'd skip it." Do not put the dish in dish_names.
+- If every dish that fits the request contains an allergen, say so honestly ("Nothing on our menu fits — every option contains cucumber.") rather than recommending an unsafe dish.
+
+ANTI-SYCOPHANCY RULE: if the guest asks for, jokes about, or insists on a dish that contains an allergen they previously stated (e.g. "I want cucumber so I can be itchy", "give me the soy one anyway"), DO NOT comply. Treat it as a safety check, not a request. Reply: "I'm not going to recommend cucumber since you said you're allergic — here are safe alternatives instead:" and suggest only safe dishes. Once an allergy is stated in this conversation, it stays in effect for the entire conversation no matter how the guest later phrases requests.
 
 General guidelines:
 - Only recommend dishes from the MENU below. Never invent dishes, prices, or ingredients.
@@ -65,22 +70,33 @@ const RESPONSE_SCHEMA = {
 type ChatPayload = {
   question?: unknown;
   preferences?: unknown;
+  // The conversation's cumulative custom-allergen list (free-text
+  // ingredients the user has named — cucumber, sesame, egg). Sent on
+  // every turn so the constraint persists even though each LLM call
+  // is otherwise stateless.
+  customAllergens?: unknown;
 };
 
 function localFallback(
   question: string,
   preferences: string[],
+  customAllergens: string[],
   detectedAllergens: string[],
+  detectedCustom: string[],
 ) {
   const reply = answerMenuQuestion(question, preferences);
-  // Hard-filter the local fallback's dishes too
+  // Hard-filter the local fallback's dishes against BOTH standard and
+  // custom allergens.
   const safeDishes = (reply.dishes ?? []).filter(
-    (d) => findFlaggedPreferences(d, preferences).length === 0,
+    (d) =>
+      findFlaggedPreferences(d, preferences).length === 0 &&
+      dishMatchesCustomAllergen(d, customAllergens).length === 0,
   );
   return {
     text: reply.text,
     dishes: safeDishes,
     detectedAllergens,
+    detectedCustomAllergens: detectedCustom,
     isEmergency: false,
   };
 }
@@ -97,12 +113,16 @@ export async function POST(req: Request) {
   const explicitPreferences = Array.isArray(body.preferences)
     ? body.preferences.filter((p): p is string => typeof p === "string")
     : [];
+  const sessionCustomAllergens = Array.isArray(body.customAllergens)
+    ? body.customAllergens.filter((p): p is string => typeof p === "string")
+    : [];
 
   if (!question.trim()) {
     return NextResponse.json({
       text: "",
       dishes: [],
       detectedAllergens: [],
+      detectedCustomAllergens: [],
       isEmergency: false,
     });
   }
@@ -113,29 +133,41 @@ export async function POST(req: Request) {
   // emergency-instructions reply. The LLM has demonstrably failed at
   // this — it told a customer in active anaphylaxis "I'd love to help
   // you find something delicious!" — so we do NOT trust it for this.
+  // SAFETY: extract any allergies stated in the chat message itself —
+  // both standard categories AND custom ingredients (cucumber, sesame,
+  // egg, etc.). Done BEFORE the emergency check so the client gets the
+  // detected allergens back even on emergency turns and can persist
+  // them for the next request.
+  const detectedAllergens = extractAllergensFromText(question);
+  const detectedCustomAllergens = extractCustomAllergens(question);
+  const preferences = Array.from(
+    new Set([...explicitPreferences, ...detectedAllergens]),
+  );
+  const customAllergens = Array.from(
+    new Set([...sessionCustomAllergens, ...detectedCustomAllergens]),
+  );
+
   if (isMedicalEmergency(question)) {
     return NextResponse.json({
       text: EMERGENCY_TEXT_EN,
       dishes: [],
-      detectedAllergens: [],
+      detectedAllergens,
+      detectedCustomAllergens,
       isEmergency: true,
     });
   }
-
-  // SAFETY: extract any allergies stated in the chat message itself and
-  // merge them with the user's existing preferences for this turn. The
-  // detected list is also returned so the client can persist them as
-  // proper dietary preferences (toggle the filter on for them).
-  const detectedAllergens = extractAllergensFromText(question);
-  const preferences = Array.from(
-    new Set([...explicitPreferences, ...detectedAllergens]),
-  );
 
   const apiKey = process.env.OPENAI_API_KEY;
   const menu = await listMenuItems();
   if (!apiKey) {
     return NextResponse.json(
-      localFallback(question, preferences, detectedAllergens),
+      localFallback(
+        question,
+        preferences,
+        customAllergens,
+        detectedAllergens,
+        detectedCustomAllergens,
+      ),
     );
   }
 
@@ -146,6 +178,10 @@ export async function POST(req: Request) {
       preferences.length > 0
         ? `ALLERGENS TO AVOID (HARD CONSTRAINT — never recommend a dish containing any of these): ${preferences.join(", ")}.`
         : "ALLERGENS TO AVOID: none stated.";
+    const customAllergenLine =
+      customAllergens.length > 0
+        ? `ALSO AVOID (specific ingredients the guest named — HARD CONSTRAINT, persists for the entire conversation, applies even if the guest later asks for the dish anyway): ${customAllergens.join(", ")}.`
+        : "ALSO AVOID: none stated.";
 
     const response = await client.chat.completions.create({
       model: "gpt-4o-mini",
@@ -154,7 +190,7 @@ export async function POST(req: Request) {
         { role: "system", content: buildSystemPrompt(menu) },
         {
           role: "user",
-          content: `${allergenLine}\n\nGuest question: ${question}`,
+          content: `${allergenLine}\n${customAllergenLine}\n\nGuest question: ${question}`,
         },
       ],
       response_format: {
@@ -170,7 +206,13 @@ export async function POST(req: Request) {
     const text = response.choices[0]?.message?.content;
     if (!text) {
       return NextResponse.json(
-        localFallback(question, preferences, detectedAllergens),
+        localFallback(
+          question,
+          preferences,
+          customAllergens,
+          detectedAllergens,
+          detectedCustomAllergens,
+        ),
       );
     }
 
@@ -186,19 +228,18 @@ export async function POST(req: Request) {
       .map((name) => dishMap.get(name.toLowerCase()))
       .filter((d): d is MenuItem => Boolean(d));
 
-    // SAFETY: hard-filter the LLM's dish list. If the model ignored the
-    // allergen instruction (it does, sometimes), drop those dishes here so
-    // they never reach the customer.
-    const unsafeDishes = preferences.length
-      ? llmDishes.filter(
-          (d) => findFlaggedPreferences(d, preferences).length > 0,
-        )
-      : [];
-    const safeDishes = preferences.length
-      ? llmDishes.filter(
-          (d) => findFlaggedPreferences(d, preferences).length === 0,
-        )
-      : llmDishes;
+    // SAFETY: hard-filter the LLM's dish list against BOTH standard
+    // tag-based allergens AND custom ingredient names the user has
+    // mentioned anywhere in this conversation. The LLM has shown it
+    // will recommend "Garlic Cucumber" to someone allergic to cucumber
+    // if the constraint isn't enforced post-hoc.
+    function isUnsafe(d: MenuItem): { reasons: string[] } {
+      const std = findFlaggedPreferences(d, preferences);
+      const cust = dishMatchesCustomAllergen(d, customAllergens);
+      return { reasons: [...std, ...cust] };
+    }
+    const unsafeDishes = llmDishes.filter((d) => isUnsafe(d).reasons.length > 0);
+    const safeDishes = llmDishes.filter((d) => isUnsafe(d).reasons.length === 0);
 
     // SAFETY: if the LLM tried to recommend an unsafe dish, override the
     // chat text with an explicit warning so the customer is not encouraged
@@ -206,9 +247,7 @@ export async function POST(req: Request) {
     let finalText = parsed.text;
     if (unsafeDishes.length > 0) {
       const allergens = Array.from(
-        new Set(
-          unsafeDishes.flatMap((d) => findFlaggedPreferences(d, preferences)),
-        ),
+        new Set(unsafeDishes.flatMap((d) => isUnsafe(d).reasons)),
       );
       const dishList = unsafeDishes.map((d) => d.name).join(", ");
       finalText =
@@ -228,12 +267,19 @@ export async function POST(req: Request) {
       text: finalText,
       dishes: enrichedDishes,
       detectedAllergens,
+      detectedCustomAllergens,
       isEmergency: false,
     });
   } catch (error) {
     console.error("chat api error:", error);
     return NextResponse.json(
-      localFallback(question, preferences, detectedAllergens),
+      localFallback(
+        question,
+        preferences,
+        customAllergens,
+        detectedAllergens,
+        detectedCustomAllergens,
+      ),
     );
   }
 }

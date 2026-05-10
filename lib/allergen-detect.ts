@@ -86,3 +86,103 @@ export function extractAllergensFromText(text: string): string[] {
 function escapeRegex(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
+
+// Custom-allergen extractor: pulls free-text ingredients the user said
+// they can't have (cucumber, sesame, egg, mushroom, cilantro, …) — not
+// just the six standard categories. The chat had no defense for these.
+//
+// Strategy: look for explicit avoidance phrases ("allergic to X", "can't
+// have X", "no X", "without X", "X-free") and capture whatever noun
+// follows. Stop at conjunctions/punctuation so "allergic to soy and
+// cucumber" returns ["soy", "cucumber"]. Filtered for stop-words and
+// max length so we don't grab whole sentences.
+
+const STOP_WORDS = new Set([
+  "it", "that", "this", "those", "these", "anything", "something",
+  "everything", "nothing", "stuff", "things", "food", "foods", "any",
+  "some", "many", "much", "lots", "a", "an", "the", "and", "or", "but",
+  "to", "of", "at", "for", "with", "from", "in", "on", "be", "is",
+  "are", "was", "were", "have", "has", "had", "do", "does", "did",
+  "spicy", "hot", "cold", "warm", "fresh", "fried", "baked", "boiled",
+  "steamed", "raw", "cooked",
+]);
+
+const CUSTOM_AVOIDANCE_PATTERNS: RegExp[] = [
+  // "allergic to X", "allergy to X"
+  /\ballerg(?:ic|y|ies)\s+to\s+([a-z][a-z\-\s]{2,30}?)(?=\s*(?:[,.!?;]|\sand\s|\sor\s|\sbut\s|\sso\s|$))/gi,
+  // "can't / cannot have/eat/tolerate X"
+  /\b(?:can'?t|cannot|can\s+not)\s+(?:have|eat|tolerate|do)\s+([a-z][a-z\-\s]{2,30}?)(?=\s*(?:[,.!?;]|\sand\s|\sor\s|\sbut\s|\sso\s|$))/gi,
+  // "don't eat X"
+  /\b(?:don'?t|do\s+not)\s+eat\s+([a-z][a-z\-\s]{2,30}?)(?=\s*(?:[,.!?;]|\sand\s|\sor\s|\sbut\s|\sso\s|$))/gi,
+  // "avoid X" / "avoiding X"
+  /\bavoid(?:ing)?\s+([a-z][a-z\-\s]{2,30}?)(?=\s*(?:[,.!?;]|\sand\s|\sor\s|\sbut\s|\sso\s|$))/gi,
+  // "without X"
+  /\bwithout\s+([a-z][a-z\-\s]{2,30}?)(?=\s*(?:[,.!?;]|\sand\s|\sor\s|\sbut\s|\sso\s|$))/gi,
+  // "no X" / "hold the X" / "skip the X"
+  /\b(?:no|hold\s+the|skip\s+the)\s+([a-z][a-z\-]{2,30})\b/gi,
+  // "X-free" / "X free"
+  /\b([a-z][a-z\-]{2,30})[-\s]free\b/gi,
+  // "intolerant to X" / "sensitive to X"
+  /\b(?:intolerant|sensitive)\s+to\s+([a-z][a-z\-\s]{2,30}?)(?=\s*(?:[,.!?;]|\sand\s|\sor\s|\sbut\s|\sso\s|$))/gi,
+];
+
+export function extractCustomAllergens(text: string): string[] {
+  if (!text) return [];
+  // Skip entirely on negation ("I'm not allergic to X" / "I love X")
+  if (NEGATION_RE.test(text)) return [];
+
+  const detected = new Set<string>();
+  for (const pat of CUSTOM_AVOIDANCE_PATTERNS) {
+    pat.lastIndex = 0;
+    let m: RegExpExecArray | null;
+    while ((m = pat.exec(text)) !== null) {
+      const raw = m[1].trim().toLowerCase();
+      // Split on conjunctions that may have been included anyway
+      // ("soy and cucumber" → ["soy", "cucumber"])
+      const parts = raw.split(/\s+(?:and|or|plus|with)\s+|\s*,\s*/);
+      for (const part of parts) {
+        const cleaned = part.trim().replace(/[^a-z\-\s]/gi, "").trim();
+        if (!cleaned) continue;
+        if (cleaned.length < 3 || cleaned.length > 30) continue;
+        // Reject phrases longer than 3 words — likely captured a clause
+        const words = cleaned.split(/\s+/);
+        if (words.length > 3) continue;
+        // Reject if every word is a stop-word
+        if (words.every((w) => STOP_WORDS.has(w))) continue;
+        // Strip leading stop-words ("a/the/some cucumber" → "cucumber")
+        while (words.length > 1 && STOP_WORDS.has(words[0])) words.shift();
+        const final = words.join(" ");
+        if (final.length < 3) continue;
+        if (STOP_WORDS.has(final)) continue;
+        detected.add(final);
+      }
+    }
+  }
+  return Array.from(detected);
+}
+
+// Returns true if a dish should be filtered out because it contains one
+// of the custom allergens the user named. We check the dish name,
+// description, and tags for any allergen substring — over-filter on
+// purpose. "cucumber" matches "Garlic Cucumber".
+export function dishMatchesCustomAllergen(
+  dish: { name: string; description: string; tags: string[] },
+  customAllergens: string[],
+): string[] {
+  if (!customAllergens.length) return [];
+  const name = dish.name.toLowerCase();
+  const desc = dish.description.toLowerCase();
+  const tags = dish.tags.map((t) => t.toLowerCase());
+  const hits: string[] = [];
+  for (const a of customAllergens) {
+    const al = a.toLowerCase();
+    if (
+      name.includes(al) ||
+      desc.includes(al) ||
+      tags.some((t) => t.includes(al))
+    ) {
+      hits.push(a);
+    }
+  }
+  return hits;
+}

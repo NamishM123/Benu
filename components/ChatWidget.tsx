@@ -13,7 +13,11 @@ import {
   getStoredPreferences,
   setStoredPreferences,
 } from "@/lib/preferences-store";
-import { extractAllergensFromText } from "@/lib/allergen-detect";
+import {
+  dishMatchesCustomAllergen,
+  extractAllergensFromText,
+  extractCustomAllergens,
+} from "@/lib/allergen-detect";
 import { isMedicalEmergency } from "@/lib/emergency-detect";
 import { containsOffensiveLanguage } from "@/lib/profanity";
 import { useTranslation } from "@/lib/i18n";
@@ -42,6 +46,7 @@ type ApiResponse = {
   text: string;
   dishes?: ApiDish[];
   detectedAllergens?: string[];
+  detectedCustomAllergens?: string[];
   isEmergency?: boolean;
 };
 
@@ -69,6 +74,14 @@ export default function ChatWidget({
   const { t, lang } = useTranslation();
   const [open, setOpen] = useState(false);
   const [preferences, setPreferences] = useState<string[]>([]);
+  // SAFETY: cumulative custom allergens (free-text ingredients the user
+  // named — cucumber, sesame, egg) for the entire conversation. Sent on
+  // every request so the constraint persists across turns. The standard
+  // 6 allergens live in `preferences` (dietary filter); these are the
+  // ad-hoc ones the user mentioned in chat.
+  const [sessionCustomAllergens, setSessionCustomAllergens] = useState<
+    string[]
+  >([]);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 0,
@@ -230,6 +243,21 @@ export default function ChatWidget({
     const text = input.trim();
     if (!text || isSending) return;
 
+    // SAFETY: extract allergens BEFORE the emergency check so the
+    // constraint sticks even when the user's distress message also
+    // names an allergen ("OK GREAT IM ALLERGIC TO CUCUMBERS").
+    const detectedStandard = extractAllergensFromText(text);
+    const detectedCustomNow = extractCustomAllergens(text);
+    const mergedPrefs = Array.from(
+      new Set([...preferences, ...detectedStandard]),
+    );
+    const mergedCustom = Array.from(
+      new Set([...sessionCustomAllergens, ...detectedCustomNow]),
+    );
+    if (detectedCustomNow.length > 0) {
+      setSessionCustomAllergens(mergedCustom);
+    }
+
     // SAFETY: medical-emergency intercept (highest priority). If the
     // message looks like an emergency, render the emergency banner
     // immediately and DO NOT call the LLM. The LLM has previously
@@ -267,16 +295,6 @@ export default function ChatWidget({
       return;
     }
 
-    // SAFETY: pre-detect allergens client-side and merge into preferences
-    // before sending. The server will also re-detect, but doing this here
-    // means the request payload itself carries the user's full allergen
-    // set — so even if the server's detection is bypassed, the LLM and
-    // the post-LLM hard filter still see every allergy.
-    const detectedNow = extractAllergensFromText(text);
-    const mergedPrefs = Array.from(
-      new Set([...preferences, ...detectedNow]),
-    );
-
     const userMsg: ChatMessage = { id: Date.now(), role: "user", text };
     setMessages((m) => [...m, userMsg]);
     setInput("");
@@ -284,7 +302,7 @@ export default function ChatWidget({
 
     function persistDetected(extra: string[] | undefined) {
       const all = Array.from(
-        new Set([...preferences, ...detectedNow, ...(extra ?? [])]),
+        new Set([...preferences, ...detectedStandard, ...(extra ?? [])]),
       );
       if (all.length > preferences.length) {
         // Saving fires the benu:preferences-changed event, which updates
@@ -294,15 +312,23 @@ export default function ChatWidget({
         setStoredPreferences(all);
       }
     }
+    function persistDetectedCustom(extra: string[] | undefined) {
+      if (!extra?.length) return;
+      const all = Array.from(new Set([...mergedCustom, ...extra]));
+      if (all.length > mergedCustom.length) {
+        setSessionCustomAllergens(all);
+      }
+    }
 
-    // SAFETY: even after the server's hard filter, do a final pass on the
-    // client to be absolutely sure no dish containing a user allergen
-    // ever renders in a chat card.
+    // SAFETY: belt-and-suspenders client-side filter. Even after the
+    // server's hard filter, drop any dish whose tags include a standard
+    // allergen OR whose name/description contains a custom allergen.
     function safeDishes(dishes: ApiDish[] | undefined): ApiDish[] {
-      if (!dishes || mergedPrefs.length === 0) return dishes ?? [];
+      if (!dishes) return [];
       return dishes.filter(
         (d) =>
-          findFlaggedPreferences(d as MenuItem, mergedPrefs).length === 0,
+          findFlaggedPreferences(d as MenuItem, mergedPrefs).length === 0 &&
+          dishMatchesCustomAllergen(d, mergedCustom).length === 0,
       );
     }
 
@@ -310,11 +336,16 @@ export default function ChatWidget({
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ question: text, preferences: mergedPrefs }),
+        body: JSON.stringify({
+          question: text,
+          preferences: mergedPrefs,
+          customAllergens: mergedCustom,
+        }),
       });
       if (!res.ok) throw new Error("api error");
       const data: ApiResponse = await res.json();
       persistDetected(data.detectedAllergens);
+      persistDetectedCustom(data.detectedCustomAllergens);
       const isEmergency = Boolean(data.isEmergency);
       setMessages((m) => [
         ...m,
