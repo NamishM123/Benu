@@ -341,11 +341,7 @@ export default function MenuPage({ menu }: Props) {
                         ].join(" ")}
                       >
                         {localName(d, lang, autoMap)}
-                        {d.spiceLevel > 0 && (
-                          <span className="ml-2 inline-flex">
-                            <SpiceChilis level={d.spiceLevel} size={16} />
-                          </span>
-                        )}
+                        <SpiceChilis level={d.spiceLevel} size={22} />
                       </h3>
                       <p className="flex-none text-base text-neutral-700">
                         {formatPrice(d.price)}

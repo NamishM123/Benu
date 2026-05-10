@@ -9,19 +9,17 @@ type Props = {
 
 /**
  * Renders 1–3 chili-pepper icons inline based on spice level using the
- * single Chili.svg asset. Returns null for non-spicy items so the row
- * collapses cleanly.
+ * single Chili.svg asset. Returns null for non-spicy items.
  *
- * Each pepper has a subtle wiggle keyframe applied with a staggered
- * delay so they sway slightly out of phase.
+ * Each chili is an inline-block <img> so they flow with the title text
+ * and sit on the same baseline as the last word of the title — they
+ * only wrap to a new visual line if the title itself wraps. No
+ * animation: peppers are static.
  */
-export default function SpiceChilis({ level, size = 18 }: Props) {
+export default function SpiceChilis({ level, size = 20 }: Props) {
   if (level <= 0) return null;
   return (
-    <span
-      className="inline-flex items-center gap-0.5 align-middle"
-      aria-label={`spice level ${level} of 3`}
-    >
+    <>
       {Array.from({ length: level }).map((_, i) => (
         /* eslint-disable-next-line @next/next/no-img-element */
         <img
@@ -30,10 +28,11 @@ export default function SpiceChilis({ level, size = 18 }: Props) {
           alt=""
           width={size}
           height={size}
-          className="benu-chili"
-          style={{ animationDelay: `${i * 180}ms` }}
+          className="ml-1 inline-block align-middle"
+          aria-hidden="true"
         />
       ))}
-    </span>
+      <span className="sr-only">spice level {level} of 3</span>
+    </>
   );
 }
