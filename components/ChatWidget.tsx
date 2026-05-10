@@ -72,6 +72,8 @@ function renderInlineMarkdown(text: string) {
   );
 }
 
+const SWIPE_DISMISS_THRESHOLD = 80; // px to drag header down before closing
+
 export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
   const [open, setOpen] = useState(false);
   const [preferences, setPreferences] = useState<string[]>([]);
@@ -84,7 +86,36 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
   ]);
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
+  const [dragOffset, setDragOffset] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const startYRef = useRef<number | null>(null);
+  const draggingRef = useRef(false);
+
+  function handleTouchStart(e: React.TouchEvent<HTMLDivElement>) {
+    startYRef.current = e.touches[0].clientY;
+    draggingRef.current = true;
+  }
+
+  function handleTouchMove(e: React.TouchEvent<HTMLDivElement>) {
+    if (!draggingRef.current || startYRef.current == null) return;
+    const dy = e.touches[0].clientY - startYRef.current;
+    // Only react to downward swipes
+    setDragOffset(Math.max(0, dy));
+  }
+
+  function handleTouchEnd() {
+    if (dragOffset > SWIPE_DISMISS_THRESHOLD) {
+      setOpen(false);
+    }
+    setDragOffset(0);
+    draggingRef.current = false;
+    startYRef.current = null;
+  }
+
+  // Reset any drag offset when the panel reopens
+  useEffect(() => {
+    if (open) setDragOffset(0);
+  }, [open]);
 
   useEffect(() => {
     setPreferences(getStoredPreferences());
@@ -199,12 +230,33 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
       )}
 
       {open && (
-        <section
-          aria-label="Menu assistant"
-          className="fixed bottom-5 right-4 z-40 flex h-[calc(100dvh-2.5rem)] w-[calc(100vw-2rem)] max-w-[460px] flex-col overflow-hidden rounded-2xl border border-neutral-300/70 bg-white shadow-2xl sm:bottom-5 sm:h-[min(820px,calc(100vh-2.5rem))]"
-          style={{ maxHeight: "calc(100dvh - 2.5rem)" }}
-        >
-          <div className="flex items-start justify-between gap-3 border-b border-neutral-200 px-4 pt-4 pb-3">
+        <>
+          {/* Transparent backdrop — clicking the menu (anywhere outside the
+              panel) collapses the chat back to the launcher. */}
+          <div
+            className="fixed inset-0 z-30"
+            onClick={() => setOpen(false)}
+            aria-hidden="true"
+          />
+          <section
+            aria-label="Menu assistant"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              maxHeight: "65dvh",
+              transform: `translateY(${dragOffset}px)`,
+              transition: draggingRef.current
+                ? "none"
+                : "transform 200ms ease-out",
+            }}
+            className="fixed bottom-5 right-4 z-40 flex h-[65dvh] w-[calc(100vw-2rem)] max-w-[460px] flex-col overflow-hidden rounded-2xl border border-neutral-300/70 bg-white shadow-2xl sm:bottom-5 sm:h-[min(620px,65dvh)]"
+          >
+          <div
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            onTouchCancel={handleTouchEnd}
+            className="flex cursor-grab items-start justify-between gap-3 border-b border-neutral-200 px-4 pt-4 pb-3 active:cursor-grabbing"
+          >
             <div className="min-w-0">
               <h2 className="font-serif text-2xl leading-tight tracking-tight text-neutral-900">
                 Ask Benu In Any Language
@@ -383,7 +435,8 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
               Send
             </button>
           </form>
-        </section>
+          </section>
+        </>
       )}
     </>
   );
