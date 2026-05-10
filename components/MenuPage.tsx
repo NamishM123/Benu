@@ -387,24 +387,22 @@ export default function MenuPage({ menu }: Props) {
                       isRestricted || isSoldOut ? "opacity-50" : "",
                     ].join(" ")}
                   >
-                    <div className="flex items-baseline justify-between gap-3">
-                      <h3
-                        className={[
-                          "min-h-[1.5em] font-semibold uppercase text-neutral-900",
-                          lang === "zh"
-                            ? "text-xl tracking-normal"
-                            : "text-xl tracking-[0.08em]",
-                        ].join(" ")}
-                      >
-                        {localName(d, lang, autoMap)}
-                        <SpiceChilis level={d.spiceLevel} size={22} />
-                      </h3>
-                      <p className="flex-none text-base text-neutral-700">
-                        {formatPrice(d.price)}
-                      </p>
-                    </div>
+                    <h3
+                      className={[
+                        "min-h-[1.5em] font-semibold uppercase text-neutral-900",
+                        lang === "zh"
+                          ? "text-xl tracking-normal"
+                          : "text-xl tracking-[0.08em]",
+                      ].join(" ")}
+                    >
+                      {localName(d, lang, autoMap)}
+                      <SpiceChilis level={d.spiceLevel} size={22} />
+                    </h3>
                     <p className="mt-2 min-h-[4.875em] text-base leading-relaxed text-neutral-500">
                       {localDescription(d, lang, autoMap)}
+                    </p>
+                    <p className="mt-2 text-base text-neutral-700">
+                      {formatPrice(d.price)}
                     </p>
                     {flags.length > 0 && (
                       <p className="mt-2 text-[11px] uppercase tracking-wider text-amber-700">
