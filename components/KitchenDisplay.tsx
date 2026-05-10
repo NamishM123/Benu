@@ -80,7 +80,7 @@ export default function KitchenDisplay() {
       <header className="sticky top-0 z-10 border-b border-neutral-200 bg-cream/95 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-6 py-4">
           <h1 className="font-serif text-2xl text-neutral-900 sm:text-3xl">
-            KFC
+            Benu Kitchen Orders
           </h1>
           <div className="flex items-center gap-3">
             <button
