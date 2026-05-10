@@ -90,7 +90,7 @@ body {
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
-  animation: benu-rotate-glow 1.8s linear infinite;
+  animation: benu-rotate-glow 0.9s linear infinite;
   pointer-events: none;
   z-index: 1;
 }

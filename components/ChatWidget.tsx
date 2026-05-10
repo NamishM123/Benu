@@ -89,8 +89,13 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
   const [dragOffset, setDragOffset] = useState(0);
   const [scrollHidden, setScrollHidden] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const latestMessageRef = useRef<HTMLDivElement | null>(null);
   const startYRef = useRef<number | null>(null);
   const draggingRef = useRef(false);
+  // Tracks the on-screen keyboard so the chat panel stays above it instead of
+  // letting iOS scroll the whole page to expose the focused input.
+  const [keyboardInset, setKeyboardInset] = useState(0);
+  const [vvHeight, setVvHeight] = useState<number | null>(null);
 
   // Hide the floating launcher while the user is actively scrolling down so
   // it doesn't sit over the menu items they're trying to read. It reappears
@@ -168,9 +173,42 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
     };
   }, []);
 
+  // When a new message arrives, scroll its TOP into view so long bot replies
+  // are readable from the start. The very first render shows the greeting
+  // (no scroll needed), so we only scroll once messages.length grows.
   useEffect(() => {
-    if (open) messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (!open) return;
+    if (messages.length <= 1) return;
+    latestMessageRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
   }, [messages.length, open]);
+
+  // Keyboard-aware positioning: track visualViewport so the panel sits just
+  // above the keyboard with no awkward whole-page shift.
+  useEffect(() => {
+    if (!open) return;
+    if (typeof window === "undefined") return;
+    const vv = window.visualViewport;
+    if (!vv) return;
+
+    function update() {
+      if (!vv) return;
+      const inset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+      setKeyboardInset(inset);
+      setVvHeight(vv.height);
+    }
+    vv.addEventListener("resize", update);
+    vv.addEventListener("scroll", update);
+    update();
+    return () => {
+      vv.removeEventListener("resize", update);
+      vv.removeEventListener("scroll", update);
+      setKeyboardInset(0);
+      setVvHeight(null);
+    };
+  }, [open]);
 
   async function handleSend() {
     const text = input.trim();
@@ -283,13 +321,14 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
             aria-label="Menu assistant"
             onClick={(e) => e.stopPropagation()}
             style={{
-              maxHeight: "65dvh",
+              bottom: `${20 + keyboardInset}px`,
+              maxHeight: vvHeight != null ? `${vvHeight - 40}px` : "65dvh",
               transform: `translateX(-50%) translateY(${dragOffset}px)`,
               transition: draggingRef.current
                 ? "none"
                 : "transform 200ms ease-out",
             }}
-            className="fixed bottom-5 left-1/2 z-40 flex h-[65dvh] w-[calc(100vw-2rem)] max-w-6xl flex-col overflow-hidden rounded-2xl border border-neutral-300/70 bg-white shadow-2xl sm:bottom-5 sm:h-[min(620px,65dvh)]"
+            className="fixed left-1/2 z-40 flex h-[65dvh] w-[calc(100vw-2rem)] max-w-6xl flex-col overflow-hidden rounded-2xl border border-neutral-300/70 bg-white shadow-2xl sm:h-[min(620px,65dvh)]"
           >
           <div
             onTouchStart={handleTouchStart}
@@ -343,9 +382,11 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
               const prev = messages[i - 1];
               const samePrev = prev?.role === m.role;
               const isUser = m.role === "user";
+              const isLatest = i === messages.length - 1;
               return (
               <div
                 key={m.id}
+                ref={isLatest ? latestMessageRef : null}
                 className={[
                   "flex items-end gap-1.5",
                   isUser ? "flex-row-reverse self-end" : "self-start",
@@ -459,7 +500,7 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder={isSending ? "Thinking…" : "Let's find something you'll love."}
+                placeholder={isSending ? "Thinking…" : "Let's find something you'll love"}
                 disabled={isSending}
                 className="relative z-[2] block w-full rounded-full border border-cantaloupe-soft bg-white px-4 py-2 text-base text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-cantaloupe/40 disabled:opacity-60 sm:text-sm"
               />

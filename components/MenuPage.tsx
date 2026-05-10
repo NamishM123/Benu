@@ -206,7 +206,6 @@ export default function MenuPage({ menu }: Props) {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   aria-hidden="true"
-                  className="-translate-x-[2px]"
                 >
                   <circle cx="9" cy="21" r="1" />
                   <circle cx="20" cy="21" r="1" />
