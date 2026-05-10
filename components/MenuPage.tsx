@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
   formatPrice,
@@ -20,6 +21,8 @@ import ItemDetailSheet from "./ItemDetailSheet";
 import CartDrawer from "./CartDrawer";
 import FilterSheet from "./FilterSheet";
 import LanguageSwitcher from "./LanguageSwitcher";
+import MobileHeaderControl from "./MobileHeaderControl";
+import SpiceChilis from "./SpiceChilis";
 import { useTranslation } from "@/lib/i18n";
 import { useAutoTranslate } from "@/lib/auto-translate";
 
@@ -111,7 +114,7 @@ export default function MenuPage({ menu }: Props) {
     <>
       <main className="min-h-screen w-full bg-cream pb-28">
         <div className="mx-auto w-full max-w-6xl">
-          <div className="flex items-center justify-between gap-3 px-6 pt-8 sm:px-10 sm:pt-3">
+          <div className="flex items-center justify-between gap-3 px-3 pt-4 sm:px-10 sm:pt-3">
             <button
               type="button"
               onClick={() => {
@@ -121,51 +124,48 @@ export default function MenuPage({ menu }: Props) {
                 }
               }}
               aria-label={t("backToStart")}
-              className="cursor-default rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
+              className="flex-none cursor-default rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
             >
               {/* PNG has ~43% transparent whitespace below the artwork; clip it. */}
-              <div className="block overflow-hidden h-[52px] sm:h-[68px] mt-6 sm:mt-0">
+              <div className="block overflow-hidden h-[46px] sm:h-[68px] flex-none">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/shake-shake-logo.png"
                   alt="Shake Shake Fresh Noodle"
+                  width={1536}
+                  height={831}
                   fetchPriority="high"
                   decoding="sync"
                   loading="eager"
-                  className="h-24 w-auto max-w-none sm:h-32 -mt-1 sm:-mt-1.5"
+                  className="block h-20 w-auto max-w-none sm:h-32 -mt-0.5 sm:-mt-1.5 flex-none"
                 />
               </div>
             </button>
-            <div className="flex items-center gap-2">
-              <LanguageSwitcher />
+            <div className="flex items-center justify-end gap-2">
+              {/* Mobile: rotating swipe control (filters ↔ language) */}
+              <div className="sm:hidden">
+                <MobileHeaderControl
+                  onFiltersOpen={() => setFiltersOpen(true)}
+                  preferencesCount={preferences.length}
+                />
+              </div>
+
+              {/* Desktop: language switcher + filters as separate buttons */}
+              <div className="hidden sm:block">
+                <LanguageSwitcher />
+              </div>
               <button
               type="button"
               onClick={() => setFiltersOpen(true)}
               aria-label={t("filters")}
               className={[
-                "inline-flex items-center gap-2 rounded-full px-4 py-2 text-base font-medium transition-colors",
+                "hidden sm:inline-flex w-[10rem] items-center justify-center whitespace-nowrap rounded-full px-4 py-2 text-base font-medium shadow-sm transition-colors",
                 "focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30",
                 preferences.length > 0
                   ? "bg-cantaloupe text-neutral-900 hover:bg-cantaloupe-soft"
                   : "border border-neutral-300 bg-white text-neutral-800 hover:bg-neutral-100",
               ].join(" ")}
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <line x1="4" y1="6" x2="20" y2="6" />
-                <line x1="7" y1="12" x2="17" y2="12" />
-                <line x1="10" y1="18" x2="14" y2="18" />
-              </svg>
               <span>
                 {t("filters")}
                 {preferences.length > 0 ? ` · ${preferences.length}` : ""}
@@ -175,7 +175,7 @@ export default function MenuPage({ menu }: Props) {
                 type="button"
                 onClick={() => setCartOpen(true)}
                 aria-label={t("yourCart")}
-                className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-neutral-300 bg-white text-neutral-800 transition-colors hover:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
+                className="relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-neutral-300 bg-white text-neutral-800 shadow-sm transition-colors hover:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30 sm:h-10 sm:w-10"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -194,11 +194,6 @@ export default function MenuPage({ menu }: Props) {
                   <circle cx="20" cy="21" r="1" />
                   <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
                 </svg>
-                {totalCount > 0 && (
-                  <span className="absolute -top-1 -right-1 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-cantaloupe px-1 text-[11px] font-semibold text-neutral-900">
-                    {totalCount}
-                  </span>
-                )}
               </button>
             </div>
           </div>
@@ -212,10 +207,10 @@ export default function MenuPage({ menu }: Props) {
 
           <nav
             aria-label="Menu categories"
-            className="sticky top-0 z-20 -mt-5 bg-cream"
+            className="sticky top-0 z-20 bg-cream"
           >
             <div className="overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <div className="flex w-max min-w-full items-center justify-start gap-2 px-6 py-0 sm:justify-center sm:px-10">
+              <div className="flex w-max min-w-full items-center justify-start gap-2 px-6 py-3 sm:justify-center sm:px-10">
                 {categories.map((cat) => {
                   const isActive = cat === activeCategory;
                   return (
@@ -248,7 +243,7 @@ export default function MenuPage({ menu }: Props) {
             </div>
           </nav>
 
-          <section className="grid grid-cols-1 gap-x-8 gap-y-12 px-6 pt-10 sm:grid-cols-2 sm:px-10 lg:grid-cols-3">
+          <section className="grid grid-cols-1 gap-x-8 gap-y-6 px-6 pt-2 sm:grid-cols-2 sm:px-10 lg:grid-cols-3">
             {visibleItems.map((d) => {
               const flags = findFlaggedPreferences(d, preferences);
               const isRestricted = flags.length > 0;
@@ -322,24 +317,6 @@ export default function MenuPage({ menu }: Props) {
                           img.style.filter = "blur(0px)";
                         }}
                       />
-                      {d.spiceLevel >= 1 && (
-                        <span
-                          className={[
-                            "absolute left-4 top-4 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider",
-                            d.spiceLevel === 1
-                              ? "bg-yellow-200 text-neutral-900"
-                              : d.spiceLevel === 2
-                              ? "bg-orange-400 text-neutral-900"
-                              : "bg-rose-600 text-white",
-                          ].join(" ")}
-                        >
-                          {d.spiceLevel === 1
-                            ? t("mildlySpicy")
-                            : d.spiceLevel === 2
-                            ? t("spicy")
-                            : t("verySpicy")}
-                        </span>
-                      )}
                       {flags.length > 0 && (
                         <span className="absolute right-4 top-4 rounded-full bg-amber-50/95 px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider text-amber-800">
                           {t("filteredBadge")}
@@ -350,7 +327,7 @@ export default function MenuPage({ menu }: Props) {
 
                   <div
                     className={[
-                      "mt-5 px-1 transition-opacity",
+                      "mt-3 px-1 transition-opacity",
                       isRestricted ? "opacity-50" : "",
                     ].join(" ")}
                   >
@@ -359,17 +336,18 @@ export default function MenuPage({ menu }: Props) {
                         className={[
                           "min-h-[1.5em] font-semibold uppercase text-neutral-900",
                           lang === "zh"
-                            ? "text-base tracking-normal"
-                            : "text-base tracking-[0.08em]",
+                            ? "text-xl tracking-normal"
+                            : "text-xl tracking-[0.08em]",
                         ].join(" ")}
                       >
                         {localName(d, lang, autoMap)}
+                        <SpiceChilis level={d.spiceLevel} size={22} />
                       </h3>
-                      <p className="flex-none text-sm text-neutral-700">
+                      <p className="flex-none text-base text-neutral-700">
                         {formatPrice(d.price)}
                       </p>
                     </div>
-                    <p className="mt-2 min-h-[4.875em] text-sm leading-relaxed text-neutral-500">
+                    <p className="mt-2 min-h-[4.875em] text-base leading-relaxed text-neutral-500">
                       {localDescription(d, lang, autoMap)}
                     </p>
                     {flags.length > 0 && (
@@ -383,18 +361,35 @@ export default function MenuPage({ menu }: Props) {
               );
             })}
           </section>
+
+          <footer className="mt-16 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 px-6 pb-6 sm:px-10">
+            <Link
+              href="/orders"
+              className="text-xs text-neutral-500 underline-offset-4 hover:text-neutral-800 hover:underline"
+            >
+              {t("viewMyOrders")}
+            </Link>
+            <a
+              href="/kitchen"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-neutral-500 underline-offset-4 hover:text-neutral-800 hover:underline"
+            >
+              {t("staffKitchen")}
+            </a>
+          </footer>
         </div>
       </main>
 
-      {totalCount > 0 && (
-        <button
-          type="button"
-          onClick={() => setCartOpen(true)}
-          className="fixed bottom-6 left-1/2 z-40 -translate-x-1/2 rounded-full bg-neutral-900 px-6 py-3 text-sm font-medium text-cream shadow-lg transition-transform hover:scale-105"
-        >
-          View cart · {totalCount} {totalCount === 1 ? "item" : "items"}
-        </button>
-      )}
+      <button
+        type="button"
+        onClick={() => setCartOpen(true)}
+        className="fixed bottom-6 left-1/2 z-40 -translate-x-1/2 rounded-full bg-neutral-900 px-6 py-3 text-sm font-medium text-cream shadow-lg transition-transform hover:scale-105 sm:hidden"
+      >
+        {totalCount > 0
+          ? `View cart · ${totalCount} ${totalCount === 1 ? "item" : "items"}`
+          : t("yourCart")}
+      </button>
 
       <ItemDetailSheet
         item={activeItem}
@@ -405,6 +400,7 @@ export default function MenuPage({ menu }: Props) {
         open={cartOpen}
         cart={cart}
         preferences={preferences}
+        menu={menu}
         onClose={() => setCartOpen(false)}
       />
       <FilterSheet

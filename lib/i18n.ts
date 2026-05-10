@@ -9,7 +9,7 @@ const EVENT_NAME = "benu:lang-changed";
 
 const TRANSLATIONS = {
   // App shell / header
-  filters: { en: "Filters", zh: "筛选" },
+  filters: { en: "Dietary Filter", zh: "饮食筛选" },
   flaggingItems: { en: "Flagging items containing", zh: "标记含有" },
   backToStart: { en: "Back to start of menu", zh: "返回菜单开头" },
   language: { en: "Language", zh: "语言" },
@@ -48,11 +48,16 @@ const TRANSLATIONS = {
 
   // Cart
   yourCart: { en: "Your cart", zh: "您的购物车" },
+  yourCartEmpty: {
+    en: "Your cart is safe... Cause it's empty",
+    zh: "您的购物车很安全…因为是空的",
+  },
   emptyCart: {
-    en: "Your cart is empty. Pick something tasty from the menu.",
-    zh: "购物车是空的。请从菜单中选购美味菜品。",
+    en: "Add something tasty",
+    zh: "来点好吃的吧",
   },
   subtotal: { en: "Subtotal", zh: "小计" },
+  total: { en: "Total", zh: "总计" },
   checkout: { en: "Checkout", zh: "结账" },
   remove: { en: "Remove", zh: "移除" },
   cancel: { en: "Cancel", zh: "取消" },
@@ -80,16 +85,33 @@ const TRANSLATIONS = {
   orderSent: { en: "Order sent ✓", zh: "订单已送出 ✓" },
 
   // Kitchen display
-  kitchenTitle: { en: "Kitchen Orders", zh: "厨房订单" },
+  kitchenTitle: { en: "Kitchen — Floor View", zh: "厨房 — 餐厅平面图" },
   noOrders: {
     en: "No orders yet. New orders will appear here.",
     zh: "暂无订单。新订单将显示在这里。",
   },
+  tableEmpty: { en: "No active orders", zh: "暂无订单" },
+  estTime: { en: "Est.", zh: "预计" },
+  floorWindow: { en: "Window", zh: "窗户" },
+  floorKitchen: { en: "Kitchen", zh: "厨房" },
+  floorEntrance: { en: "Entrance", zh: "入口" },
+  dish: { en: "dish", zh: "道菜" },
+  dishes: { en: "dishes", zh: "道菜" },
   orderNumber: { en: "Order", zh: "订单" },
   placedAt: { en: "Placed", zh: "下单时间" },
   preferencesLabel: { en: "Customer avoids", zh: "顾客忌口" },
   noteLabel: { en: "Note", zh: "备注" },
   etaLabel: { en: "Est. time (min)", zh: "预计时间（分钟）" },
+  etaOverrideLabel: {
+    en: "Override ETA (min)",
+    zh: "覆盖预计时间（分钟）",
+  },
+  tableLabel: { en: "Table", zh: "桌号" },
+  tableShort: { en: "Tbl", zh: "桌" },
+  tableRequired: {
+    en: "Please select your table number.",
+    zh: "请选择您的桌号。",
+  },
   setEta: { en: "Set ETA", zh: "设定时间" },
   statusNew: { en: "New", zh: "新订单" },
   statusCooking: { en: "Cooking", zh: "制作中" },
@@ -98,6 +120,47 @@ const TRANSLATIONS = {
   markReady: { en: "Mark ready", zh: "标记完成" },
   clearOrder: { en: "Clear", zh: "清除" },
   qty: { en: "Qty", zh: "数量" },
+  staffKitchen: { en: "Staff · Kitchen", zh: "员工 · 厨房" },
+
+  // Customer order status page
+  orderConfirmedTitle: { en: "Order received!", zh: "订单已收到！" },
+  orderConfirmedSubtitle: {
+    en: "We've sent it to the kitchen.",
+    zh: "已送至厨房。",
+  },
+  waitingForEta: {
+    en: "Waiting for the kitchen to confirm prep time…",
+    zh: "正在等待厨房确认制作时间…",
+  },
+  estimatedReady: { en: "Estimated ready in", zh: "预计完成时间" },
+  minutesShort: { en: "min", zh: "分钟" },
+  yourOrder: { en: "Your order", zh: "您的订单" },
+  orderReadyHeadline: { en: "Your order is ready!", zh: "您的订单已完成！" },
+  orderCookingHeadline: {
+    en: "The kitchen is on it.",
+    zh: "厨房正在制作。",
+  },
+  orderNotFound: {
+    en: "We couldn't find that order on this device.",
+    zh: "在此设备上找不到该订单。",
+  },
+  backToMenu: { en: "Back to menu", zh: "返回菜单" },
+  orderAnother: { en: "Order something else", zh: "再来一份" },
+
+  // My orders portal (customer-facing)
+  myOrdersTitle: { en: "My orders", zh: "我的订单" },
+  myOrdersSubtitle: {
+    en: "Orders you've sent to the kitchen from this device.",
+    zh: "您从此设备送至厨房的订单。",
+  },
+  myOrdersEmpty: {
+    en: "You haven't sent any orders yet.",
+    zh: "您还没有下过订单。",
+  },
+  viewMyOrders: { en: "View my orders", zh: "查看我的订单" },
+  itemsCount_one: { en: "item", zh: "件" },
+  itemsCount_other: { en: "items", zh: "件" },
+  viewOrder: { en: "View order", zh: "查看订单" },
 
   // Item detail sheet
   addToCart: { en: "Add to cart", zh: "加入购物车" },

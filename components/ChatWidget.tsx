@@ -37,6 +37,43 @@ type ChatWidgetProps = {
   hidden?: boolean;
 };
 
+/**
+ * Lightweight slur / profanity guard. Normalises the input (lowercased,
+ * non-letters stripped) so common obfuscations like "n!gga" or "n.i.g.g.a"
+ * still match. This isn't comprehensive — it's just a first line of
+ * defence against the most blatant offensive language in a customer-facing
+ * chat. The list intentionally stays short and explicit.
+ */
+const OFFENSIVE_TERMS = [
+  "nigga",
+  "nigger",
+  "faggot",
+  "fag",
+  "tranny",
+  "retard",
+  "kike",
+  "spic",
+  "chink",
+  "gook",
+  "dyke",
+  "wetback",
+  "cunt",
+];
+
+function containsOffensiveLanguage(input: string): boolean {
+  const normalised = input.toLowerCase().replace(/[^a-z]/g, "");
+  return OFFENSIVE_TERMS.some((term) => normalised.includes(term));
+}
+
+// Render `**bold**` segments as <strong>; everything else passes through.
+function renderInlineMarkdown(text: string) {
+  return text.split(/\*\*(.+?)\*\*/g).map((part, i) =>
+    i % 2 === 1 ? <strong key={i}>{part}</strong> : <span key={i}>{part}</span>,
+  );
+}
+
+const SWIPE_DISMISS_THRESHOLD = 80; // px to drag header down before closing
+
 export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
   const [open, setOpen] = useState(false);
   const [preferences, setPreferences] = useState<string[]>([]);
@@ -44,12 +81,73 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
     {
       id: 0,
       role: "bot",
-      text: "Hi! I'm your menu assistant. Ask me about flavors, spice levels, ingredients, or what to order.",
+      text: "Hi, I'm Benu. Tell me what you are craving, what you avoid, or how hungry you are. I'll help you find the right dish.",
     },
   ]);
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
+  const [dragOffset, setDragOffset] = useState(0);
+  const [scrollHidden, setScrollHidden] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const startYRef = useRef<number | null>(null);
+  const draggingRef = useRef(false);
+
+  // Hide the floating launcher while the user is actively scrolling down so
+  // it doesn't sit over the menu items they're trying to read. It reappears
+  // once they pause scrolling (or scroll back up).
+  useEffect(() => {
+    let lastY = window.scrollY;
+    let lastShownAt = Date.now();
+    const REAPPEAR_PAUSE_MS = 300;
+    let raf = 0;
+
+    function onScroll() {
+      if (raf) return;
+      raf = requestAnimationFrame(() => {
+        raf = 0;
+        const y = window.scrollY;
+        const delta = y - lastY;
+        lastY = y;
+        if (delta > 4 && y > 80) {
+          setScrollHidden(true);
+        } else if (delta < -4 || Date.now() - lastShownAt > REAPPEAR_PAUSE_MS) {
+          setScrollHidden(false);
+          lastShownAt = Date.now();
+        }
+      });
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, []);
+
+  function handleTouchStart(e: React.TouchEvent<HTMLDivElement>) {
+    startYRef.current = e.touches[0].clientY;
+    draggingRef.current = true;
+  }
+
+  function handleTouchMove(e: React.TouchEvent<HTMLDivElement>) {
+    if (!draggingRef.current || startYRef.current == null) return;
+    const dy = e.touches[0].clientY - startYRef.current;
+    // Only react to downward swipes
+    setDragOffset(Math.max(0, dy));
+  }
+
+  function handleTouchEnd() {
+    if (dragOffset > SWIPE_DISMISS_THRESHOLD) {
+      setOpen(false);
+    }
+    setDragOffset(0);
+    draggingRef.current = false;
+    startYRef.current = null;
+  }
+
+  // Reset any drag offset when the panel reopens
+  useEffect(() => {
+    if (open) setDragOffset(0);
+  }, [open]);
 
   useEffect(() => {
     setPreferences(getStoredPreferences());
@@ -77,6 +175,22 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
   async function handleSend() {
     const text = input.trim();
     if (!text || isSending) return;
+
+    // Basic profanity / slur guard. Doesn't aim to catch everything —
+    // just stops the most common offensive terms from being sent or
+    // showing up in the chat history.
+    if (containsOffensiveLanguage(text)) {
+      setInput("");
+      setMessages((m) => [
+        ...m,
+        {
+          id: Date.now() + 1,
+          role: "bot",
+          text: "Let's keep things respectful. Please rephrase your question without slurs or offensive language.",
+        },
+      ]);
+      return;
+    }
 
     const userMsg: ChatMessage = { id: Date.now(), role: "user", text };
     setMessages((m) => [...m, userMsg]);
@@ -120,30 +234,25 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
 
   return (
     <>
-      <button
-        type="button"
-        aria-label={open ? "Close menu assistant" : "Open menu assistant"}
-        aria-expanded={open}
-        onClick={() => setOpen((v) => !v)}
-        className="fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-neutral-900 text-neutral-50 shadow-lg transition-colors duration-150 ease-out hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-700/30"
-      >
-        {open ? (
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <line x1="18" y1="6" x2="6" y2="18" />
-            <line x1="6" y1="6" x2="18" y2="18" />
-          </svg>
-        ) : (
+      {/* Floating launcher — hidden while the panel is open so the user
+          collapses the chat with the dash button in the header instead.
+          Also auto-hides while scrolling down so it doesn't cover menu cards
+          on small screens. */}
+      {!open && (
+        <button
+          type="button"
+          aria-label="Open menu assistant"
+          aria-expanded={false}
+          aria-hidden={scrollHidden}
+          tabIndex={scrollHidden ? -1 : 0}
+          onClick={() => setOpen(true)}
+          className={[
+            "fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-neutral-900 text-neutral-50 shadow-lg transition-all duration-200 ease-out hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-700/30",
+            scrollHidden
+              ? "pointer-events-none translate-y-24 opacity-0"
+              : "translate-y-0 opacity-100",
+          ].join(" ")}
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="22"
@@ -158,51 +267,118 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
           >
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
           </svg>
-        )}
-      </button>
+        </button>
+      )}
 
       {open && (
-        <section
-          aria-label="Menu assistant"
-          className="fixed bottom-24 right-4 z-40 flex w-[calc(100vw-2rem)] max-w-[360px] flex-col rounded-2xl border border-neutral-300/70 bg-white shadow-2xl sm:h-[min(520px,calc(100vh-10rem))]"
-          style={{ maxHeight: "min(520px, calc(100vh - 10rem))" }}
-        >
-          <div className="flex items-center justify-between border-b border-neutral-200 px-4 pt-4 pb-3">
-            <div>
-              <h2 className="font-serif text-lg tracking-tight text-neutral-900">
-                Menu assistant
+        <>
+          {/* Transparent backdrop — clicking the menu (anywhere outside the
+              panel) collapses the chat back to the launcher. */}
+          <div
+            className="fixed inset-0 z-30"
+            onClick={() => setOpen(false)}
+            aria-hidden="true"
+          />
+          <section
+            aria-label="Menu assistant"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              maxHeight: "65dvh",
+              transform: `translateY(${dragOffset}px)`,
+              transition: draggingRef.current
+                ? "none"
+                : "transform 200ms ease-out",
+            }}
+            className="fixed bottom-5 left-1/2 z-40 flex h-[65dvh] w-[calc(100vw-2rem)] max-w-6xl -translate-x-1/2 flex-col overflow-hidden rounded-2xl border border-neutral-300/70 bg-white shadow-2xl sm:bottom-5 sm:h-[min(620px,65dvh)]"
+          >
+          <div
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            onTouchCancel={handleTouchEnd}
+            className="flex cursor-grab items-start justify-between gap-3 border-b border-neutral-200 px-4 pt-4 pb-3 active:cursor-grabbing"
+          >
+            <div className="min-w-0">
+              <h2 className="font-serif text-2xl leading-tight tracking-tight text-neutral-900">
+                Ask Benu In Any Language
               </h2>
-              <p className="mt-0.5 text-xs text-neutral-500">
-                {preferences.length > 0
-                  ? `Avoiding: ${preferences.join(", ")}`
-                  : "Ask about taste, spice, or what to order."}
-              </p>
+              {preferences.length > 0 && (
+                <p className="mt-0.5 text-xs text-neutral-500">
+                  Avoiding: {preferences.join(", ")}
+                </p>
+              )}
             </div>
+            {/* Hide / minimise — collapses the chat back to the launcher */}
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              aria-label="Hide chat"
+              className="-mt-1 flex h-9 w-9 flex-none items-center justify-center rounded-full text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                aria-hidden="true"
+              >
+                <line x1="6" y1="13" x2="18" y2="13" />
+              </svg>
+            </button>
           </div>
 
-          <div className="flex flex-1 flex-col gap-3 overflow-y-auto px-4 py-4">
-            {messages.map((m) => (
+          <div
+            className="flex flex-1 flex-col overflow-y-auto px-4 py-4"
+            style={{
+              backgroundImage: "url(/chat-bg.png)",
+              backgroundRepeat: "repeat",
+              backgroundSize: "260px auto",
+            }}
+          >
+            {messages.map((m, i) => {
+              const prev = messages[i - 1];
+              const samePrev = prev?.role === m.role;
+              const isUser = m.role === "user";
+              return (
               <div
                 key={m.id}
-                className={
-                  m.role === "user"
-                    ? "max-w-[85%] self-end"
-                    : "max-w-[92%] self-start"
-                }
+                className={[
+                  "flex items-end gap-1.5",
+                  isUser ? "flex-row-reverse self-end" : "self-start",
+                  samePrev ? "mt-0.5" : "mt-3",
+                  isUser ? "max-w-[85%]" : "max-w-[92%]",
+                ].join(" ")}
               >
+                {/* Bot avatar — shown only on the first message of a cluster */}
+                {!isUser && (
+                  <div
+                    aria-hidden="true"
+                    className={[
+                      "flex h-7 w-7 flex-none items-center justify-center rounded-full bg-cantaloupe text-[13px] text-neutral-900",
+                      samePrev ? "invisible" : "",
+                    ].join(" ")}
+                  >
+                    🍜
+                  </div>
+                )}
+                <div className="flex flex-col gap-1">
                 <div
                   className={[
-                    "rounded-2xl px-3.5 py-2 text-sm leading-relaxed",
-                    m.role === "user"
-                      ? "rounded-br-md bg-neutral-900 text-neutral-50"
-                      : "rounded-bl-md bg-neutral-100 text-neutral-900",
+                    "rounded-3xl px-4 py-2 text-sm leading-relaxed shadow-sm",
+                    isUser
+                      ? "bg-cantaloupe text-neutral-900"
+                      : "bg-white text-neutral-900",
                   ].join(" ")}
                 >
-                  {m.text}
+                  {renderInlineMarkdown(m.text)}
                 </div>
 
                 {m.dishes && m.dishes.length > 0 && (
-                  <ul className="mt-2 flex flex-col gap-2">
+                  <ul className="flex flex-col gap-2">
                     {m.dishes.map((d) => {
                       const flags = findFlaggedPreferences(
                         d as MenuItem,
@@ -260,8 +436,10 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
                     })}
                   </ul>
                 )}
+                </div>
               </div>
-            ))}
+              );
+            })}
             <div ref={messagesEndRef} />
           </div>
 
@@ -275,15 +453,17 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
             <label htmlFor="chat-widget-input" className="sr-only">
               Ask the menu assistant
             </label>
-            <input
-              id="chat-widget-input"
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              placeholder={isSending ? "Thinking…" : "Ask anything…"}
-              disabled={isSending}
-              className="flex-1 rounded-full border border-neutral-300 bg-white px-4 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-neutral-700/30 disabled:opacity-60"
-            />
+            <div className="benu-input-glow flex-1 rounded-full">
+              <input
+                id="chat-widget-input"
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                placeholder={isSending ? "Thinking…" : "Let's find something you'll love."}
+                disabled={isSending}
+                className="relative z-[2] block w-full rounded-full border border-cantaloupe-soft bg-white px-4 py-2 text-base text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-cantaloupe/40 disabled:opacity-60 sm:text-sm"
+              />
+            </div>
             <button
               type="submit"
               disabled={!input.trim() || isSending}
@@ -298,7 +478,8 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
               Send
             </button>
           </form>
-        </section>
+          </section>
+        </>
       )}
     </>
   );

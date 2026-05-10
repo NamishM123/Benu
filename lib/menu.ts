@@ -1,6 +1,9 @@
 export type SpiceLevel = 0 | 1 | 2 | 3;
 
 export type MenuItem = {
+  // Stable identifier for KV lookups. Optional in this static seed file —
+  // the server seed code derives one from the item name when missing.
+  id?: string;
   name: string;
   nameZh?: string;
   price: number;
@@ -11,6 +14,31 @@ export type MenuItem = {
   tags: string[];
   image: string;
 };
+
+export const MENU_CATEGORIES = [
+  "Appetizers",
+  "Dry Noodles",
+  "Noodle Soup",
+  "Rice",
+  "Beverages",
+] as const;
+
+export const DIETARY_TAGS = [
+  "vegetarian",
+  "vegan",
+  "dairy-free",
+  "gluten-free",
+  "soy",
+  "egg",
+  "dairy",
+  "gluten",
+  "meat",
+  "pork",
+  "beef",
+  "chicken",
+  "lamb",
+  "spicy",
+] as const;
 
 export const MENU: MenuItem[] = [
   {
@@ -411,7 +439,7 @@ export const MENU: MenuItem[] = [
     descriptionZh: "清爽柠檬汽水,冰镇供应。",
     spiceLevel: 0,
     tags: ["vegan", "vegetarian", "dairy-free", "gluten-free"],
-    image: "/menu/sprite.png",
+    image: "/menu/sprite.webp",
   },
 ];
 

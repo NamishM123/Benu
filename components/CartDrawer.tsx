@@ -1,7 +1,8 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { formatPrice } from "@/lib/menu";
+import { formatPrice, type MenuItem } from "@/lib/menu";
 import {
   addToCart,
   cartTotal,
@@ -10,7 +11,7 @@ import {
   updateLineQuantity,
   type CartLine,
 } from "@/lib/cart-store";
-import { placeOrder } from "@/lib/order-store";
+import { getCurrentTableNumber, placeOrder } from "@/lib/order-store";
 import { pairingReason, pickPairings } from "@/lib/cart-insights";
 import { useTranslation } from "@/lib/i18n";
 import { localName } from "@/lib/menu";
@@ -19,6 +20,7 @@ type Props = {
   open: boolean;
   cart: CartLine[];
   preferences?: string[];
+  menu: MenuItem[];
   onClose: () => void;
 };
 
@@ -28,9 +30,11 @@ export default function CartDrawer({
   open,
   cart,
   preferences = [],
+  menu,
   onClose,
 }: Props) {
   const { t, lang } = useTranslation();
+  const router = useRouter();
   const [dragOffset, setDragOffset] = useState(0);
   const [confirmRemoveId, setConfirmRemoveId] = useState<string | null>(null);
   const [confirmClear, setConfirmClear] = useState(false);
@@ -77,8 +81,8 @@ export default function CartDrawer({
   }, [open]);
 
   const pairings = useMemo(
-    () => pickPairings(cart, preferences),
-    [cart, preferences],
+    () => pickPairings(cart, preferences, menu),
+    [cart, preferences, menu],
   );
 
   if (!open) return null;
@@ -145,7 +149,9 @@ export default function CartDrawer({
           onTouchCancel={handleTouchEnd}
           className="sticky top-6 z-10 flex items-center justify-between border-b border-neutral-200 bg-cream/95 px-6 py-4 backdrop-blur"
         >
-          <h2 className="font-serif text-2xl text-neutral-900">{t("yourCart")}</h2>
+          <h2 className="font-serif text-2xl text-neutral-900">
+            {cart.length === 0 ? t("yourCartEmpty") : t("yourCart")}
+          </h2>
         </header>
 
         {cart.length === 0 ? (
@@ -205,7 +211,7 @@ export default function CartDrawer({
                         onPointerLeave={clearHold}
                         onPointerCancel={clearHold}
                         disabled={line.quantity <= 1}
-                        className="flex h-7 w-7 items-center justify-center rounded-full bg-cantaloupe text-neutral-900 hover:bg-cantaloupe-soft active:bg-cantaloupe-deep disabled:opacity-40 disabled:cursor-not-allowed touch-none"
+                        className="flex h-9 w-9 items-center justify-center rounded-full bg-cantaloupe text-neutral-900 hover:bg-cantaloupe-soft active:bg-cantaloupe-deep disabled:opacity-40 disabled:cursor-not-allowed touch-none"
                       >
                         −
                       </button>
@@ -224,7 +230,7 @@ export default function CartDrawer({
                         onPointerUp={clearHold}
                         onPointerLeave={clearHold}
                         onPointerCancel={clearHold}
-                        className="flex h-7 w-7 items-center justify-center rounded-full bg-cantaloupe text-neutral-900 hover:bg-cantaloupe-soft active:bg-cantaloupe-deep touch-none"
+                        className="flex h-9 w-9 items-center justify-center rounded-full bg-cantaloupe text-neutral-900 hover:bg-cantaloupe-soft active:bg-cantaloupe-deep touch-none"
                       >
                         +
                       </button>
@@ -261,7 +267,7 @@ export default function CartDrawer({
                       </p>
                     </div>
                     <p className="mt-1 text-xs text-neutral-500">
-                      {pairingReason(p, cart)}
+                      {pairingReason(p, cart, menu)}
                     </p>
                     <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-neutral-500">
                       {lang === "zh" && p.descriptionZh ? p.descriptionZh : p.description}
@@ -307,15 +313,21 @@ export default function CartDrawer({
                   type="button"
                   disabled={sentFlash}
                   className="flex-1 rounded-full bg-neutral-900 px-6 py-3 text-sm font-medium text-cream hover:bg-neutral-800 disabled:opacity-70"
-                  onClick={() => {
+                  onClick={async () => {
                     if (cart.length === 0) return;
-                    placeOrder(cart, preferences);
+                    let order;
+                    try {
+                      order = await placeOrder(cart, preferences, getCurrentTableNumber());
+                    } catch {
+                      return;
+                    }
                     clearCart();
                     setSentFlash(true);
                     setTimeout(() => {
                       setSentFlash(false);
                       onClose();
-                    }, 1100);
+                      router.push(`/order/${order.id}`);
+                    }, 900);
                   }}
                 >
                   {sentFlash ? t("orderSent") : t("sendToKitchen")}

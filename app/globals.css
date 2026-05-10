@@ -41,6 +41,64 @@ body {
   background-color: rgba(0, 0, 0, 0.35);
 }
 
+/* Rotating orange "highlight" travelling around the chat input border.
+   Uses @property so the conic-gradient angle is animatable. */
+@property --benu-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+.benu-input-glow {
+  position: relative;
+  isolation: isolate;
+}
+.benu-input-glow::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: 9999px;
+  padding: 2px;
+  /* Soft, wide orange highlight that fades smoothly in and out as it
+     rotates around the border — no hard edges. */
+  background: conic-gradient(
+    from var(--benu-angle),
+    rgba(253, 161, 114, 0.25) 0deg,
+    rgba(253, 161, 114, 0.25) 200deg,
+    rgba(255, 184, 146, 0.6) 250deg,
+    #FDA172 290deg,
+    #E88A5C 310deg,
+    #FDA172 330deg,
+    rgba(255, 184, 146, 0.6) 350deg,
+    rgba(253, 161, 114, 0.25) 360deg
+  );
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: benu-rotate-glow 1.8s linear infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+@keyframes benu-rotate-glow {
+  to { --benu-angle: 360deg; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .benu-input-glow::before { animation: none; }
+}
+
+/* Subtle wiggle for chili pepper spice indicators */
+@keyframes benu-chili-wiggle {
+  0%, 100% { transform: rotate(-4deg); }
+  50% { transform: rotate(6deg); }
+}
+.benu-chili {
+  animation: benu-chili-wiggle 2.4s ease-in-out infinite;
+  transform-origin: 50% 95%;
+}
+@media (prefers-reduced-motion: reduce) {
+  .benu-chili { animation: none; }
+}
+
 /* Prevent the browser's native ghost-image drag and selection flash on every image */
 img {
   -webkit-user-drag: none;

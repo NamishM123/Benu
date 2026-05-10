@@ -1,9 +1,9 @@
-import { MENU, type MenuItem } from "./menu";
+import { type MenuItem } from "./menu";
 import { findFlaggedPreferences } from "./preferences";
 import type { CartLine } from "./cart-store";
 
-function cartItems(cart: CartLine[]): MenuItem[] {
-  const byName = new Map(MENU.map((m) => [m.name, m]));
+function cartItems(cart: CartLine[], menu: MenuItem[]): MenuItem[] {
+  const byName = new Map(menu.map((m) => [m.name, m]));
   const items: MenuItem[] = [];
   for (const line of cart) {
     const m = byName.get(line.itemName);
@@ -36,8 +36,9 @@ function isTea(d: MenuItem): boolean {
 export function pickPairings(
   cart: CartLine[],
   preferences: string[],
+  menu: MenuItem[],
 ): MenuItem[] {
-  const items = cartItems(cart);
+  const items = cartItems(cart, menu);
   if (items.length === 0) return [];
 
   const mainsCount = items.filter((m) => MAINS.has(m.category)).length;
@@ -54,7 +55,7 @@ export function pickPairings(
     items.filter((m) => m.spiceLevel >= 2).length >=
     Math.ceil(mainsCount / 2);
 
-  const allDrinks = MENU.filter((m) => m.category === "Beverages").filter(safe);
+  const allDrinks = menu.filter((m) => m.category === "Beverages").filter(safe);
 
   // Rank: cooling drinks first when the meal runs spicy, otherwise tea first.
   const ranked = [...allDrinks].sort((a, b) => {
@@ -69,8 +70,12 @@ export function pickPairings(
   return ranked.slice(0, drinksNeeded);
 }
 
-export function pairingReason(item: MenuItem, cart: CartLine[]): string {
-  const items = cartItems(cart);
+export function pairingReason(
+  item: MenuItem,
+  cart: CartLine[],
+  menu: MenuItem[],
+): string {
+  const items = cartItems(cart, menu);
   const mainsCount = items.filter((m) => MAINS.has(m.category)).length;
   const spicyHeavy =
     mainsCount > 0 &&

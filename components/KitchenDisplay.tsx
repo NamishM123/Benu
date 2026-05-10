@@ -5,12 +5,15 @@ import {
   getOrders,
   ORDERS_EVENT,
   removeOrder,
+  subscribeToOrders,
   updateOrder,
   type Order,
   type OrderStatus,
 } from "@/lib/order-store";
+import Link from "next/link";
 import { useTranslation, t as translate, type Lang } from "@/lib/i18n";
 import LanguageSwitcher from "./LanguageSwitcher";
+import SignOutButton from "./SignOutButton";
 
 function formatTime(ts: number): string {
   const d = new Date(ts);
@@ -40,14 +43,11 @@ export default function KitchenDisplay() {
       const detail = (e as CustomEvent<Order[]>).detail;
       if (Array.isArray(detail)) setOrders(detail);
     }
-    function onStorage(e: StorageEvent) {
-      if (e.key === "benu.orders") setOrders(getOrders());
-    }
     window.addEventListener(ORDERS_EVENT, onChange);
-    window.addEventListener("storage", onStorage);
+    const unsubscribe = subscribeToOrders({ scope: "all" });
     return () => {
       window.removeEventListener(ORDERS_EVENT, onChange);
-      window.removeEventListener("storage", onStorage);
+      unsubscribe();
     };
   }, []);
 
@@ -67,11 +67,26 @@ export default function KitchenDisplay() {
   return (
     <div className="min-h-screen bg-cream">
       <header className="sticky top-0 z-10 border-b border-neutral-200 bg-cream/95 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-6 py-4">
           <h1 className="font-serif text-2xl text-neutral-900 sm:text-3xl">
             {t("kitchenTitle")}
           </h1>
-          <LanguageSwitcher />
+          <div className="flex items-center gap-3">
+            <Link
+              href="/admin/menu"
+              className="rounded-full border border-neutral-300 bg-white px-3 py-1.5 text-xs text-neutral-700 hover:bg-neutral-100"
+            >
+              Edit menu
+            </Link>
+            <Link
+              href="/admin/qr"
+              className="rounded-full border border-neutral-300 bg-white px-3 py-1.5 text-xs text-neutral-700 hover:bg-neutral-100"
+            >
+              QR codes
+            </Link>
+            <LanguageSwitcher />
+            <SignOutButton />
+          </div>
         </div>
       </header>
 
@@ -96,13 +111,23 @@ export default function KitchenDisplay() {
                   className="flex flex-col gap-3 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm"
                 >
                   <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
-                        {t("orderNumber")} #{shortId}
-                      </p>
-                      <p className="mt-0.5 text-xs text-neutral-500">
-                        {t("placedAt")} · {formatTime(order.placedAt)}
-                      </p>
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-12 w-12 flex-none flex-col items-center justify-center rounded-xl bg-neutral-900 text-cream">
+                        <span className="text-[9px] font-semibold uppercase tracking-wider text-cream/70">
+                          {t("tableShort")}
+                        </span>
+                        <span className="font-serif text-lg leading-none tabular-nums">
+                          {order.tableNumber ?? "—"}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
+                          {t("orderNumber")} #{shortId}
+                        </p>
+                        <p className="mt-0.5 text-xs text-neutral-500">
+                          {t("placedAt")} · {formatTime(order.placedAt)}
+                        </p>
+                      </div>
                     </div>
                     <span
                       className={[
@@ -161,7 +186,7 @@ export default function KitchenDisplay() {
                   <div className="flex items-end gap-2 border-t border-neutral-200 pt-3">
                     <label className="flex flex-1 flex-col gap-1">
                       <span className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
-                        {t("etaLabel")}
+                        {t("etaOverrideLabel")}
                       </span>
                       <input
                         type="number"

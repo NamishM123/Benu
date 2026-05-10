@@ -205,7 +205,7 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
           const max = el.scrollHeight - el.clientHeight;
           if (el.scrollTop >= max) el.scrollTop = max - 1;
         }}
-        className="popup-scroll relative w-full max-w-[480px] h-[100dvh] overflow-y-auto overscroll-none bg-cream shadow-xl sm:h-auto sm:max-h-[92vh] sm:rounded-3xl"
+        className="popup-scroll relative w-full max-w-[480px] h-[100dvh] overflow-y-auto overscroll-none bg-cream-dark shadow-xl sm:h-auto sm:max-h-[92vh] sm:rounded-3xl"
         style={{ WebkitOverflowScrolling: "auto" }}
       >
         {/* Soft fade strip at top: image scrolls into this instead of being cut sharply */}
@@ -214,59 +214,93 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
           style={{
             opacity: fadeOpacity,
             background:
-              "linear-gradient(to bottom, #FBF7EE 0%, rgba(251,247,238,0.95) 25%, rgba(251,247,238,0.75) 50%, rgba(251,247,238,0.4) 75%, rgba(251,247,238,0) 100%)",
+              "linear-gradient(to bottom, #F7EFDE 0%, rgba(247,239,222,0.95) 25%, rgba(247,239,222,0.75) 50%, rgba(247,239,222,0.4) 75%, rgba(247,239,222,0) 100%)",
           }}
           className="pointer-events-none sticky top-0 z-10 -mb-24 h-24 transition-opacity duration-150 sm:rounded-t-3xl"
         />
 
-        <div className="px-6 pt-6">
-          <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl bg-gradient-to-br from-cream-light to-neutral-200/60">
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label={t("close")}
-              className="absolute top-4 left-4 z-20 flex h-8 w-8 items-center justify-center rounded-full bg-neutral-900/55 text-base leading-none text-white backdrop-blur-sm hover:bg-neutral-900/75 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+        {/* Hero: image as a rounded card on darker cream */}
+        <div className="relative">
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={t("close")}
+            className="absolute top-4 left-4 z-30 flex h-9 w-9 items-center justify-center rounded-full bg-neutral-900/60 text-white shadow-sm backdrop-blur-sm hover:bg-neutral-900/75 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.25"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden="true"
             >
-              ×
-            </button>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={item.image}
-              alt={item.name}
-              decoding="async"
-              fetchPriority="high"
-              ref={(img) => {
-                if (img && img.complete && img.naturalWidth > 0) {
+              <line x1="19" y1="12" x2="5" y2="12" />
+              <polyline points="12 19 5 12 12 5" />
+            </svg>
+          </button>
+          <div className="relative z-10 px-6 pt-14 pb-6">
+            <div className="relative aspect-square w-full overflow-hidden rounded-3xl bg-white shadow-md">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={item.image}
+                alt={item.name}
+                decoding="async"
+                fetchPriority="high"
+                ref={(img) => {
+                  if (img && img.complete && img.naturalWidth > 0) {
+                    img.style.opacity = "1";
+                    img.style.filter = "blur(0px)";
+                  }
+                }}
+                style={{ filter: "blur(8px)" }}
+                className={`h-full w-full ${item.category === "Beverages" ? "object-contain p-6" : "object-cover"} opacity-0 transition-[opacity,filter] duration-500 ease-out`}
+                onLoad={(e) => {
+                  e.currentTarget.style.opacity = "1";
+                  e.currentTarget.style.filter = "blur(0px)";
+                }}
+                onError={(e) => {
+                  const img = e.currentTarget;
+                  if (img.dataset.fallback) return;
+                  img.dataset.fallback = "1";
+                  img.src =
+                    "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%23FBF7EE'%2F%3E%3Cg transform='translate(100 110)' stroke='%23B8A88E' stroke-width='4' fill='none' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M-50 -10 a50 50 0 0 0 100 0 z' fill='%23E5D8C3'%2F%3E%3Cline x1='-30' y1='-25' x2='-15' y2='-40'%2F%3E%3Cline x1='-10' y1='-30' x2='5' y2='-50'%2F%3E%3Cline x1='15' y1='-25' x2='30' y2='-45'%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E";
                   img.style.opacity = "1";
                   img.style.filter = "blur(0px)";
-                }
-              }}
-              style={{ filter: "blur(8px)" }}
-              className="h-full w-full object-contain opacity-0 transition-[opacity,filter] duration-500 ease-out"
-              onLoad={(e) => {
-                e.currentTarget.style.opacity = "1";
-                e.currentTarget.style.filter = "blur(0px)";
-              }}
-              onError={(e) => {
-                const img = e.currentTarget;
-                if (img.dataset.fallback) return;
-                img.dataset.fallback = "1";
-                img.src =
-                  "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%23FBF7EE'%2F%3E%3Cg transform='translate(100 110)' stroke='%23B8A88E' stroke-width='4' fill='none' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M-50 -10 a50 50 0 0 0 100 0 z' fill='%23E5D8C3'%2F%3E%3Cline x1='-30' y1='-25' x2='-15' y2='-40'%2F%3E%3Cline x1='-10' y1='-30' x2='5' y2='-50'%2F%3E%3Cline x1='15' y1='-25' x2='30' y2='-45'%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E";
-                img.style.opacity = "1";
-                img.style.filter = "blur(0px)";
-              }}
-            />
+                }}
+              />
+            </div>
           </div>
+        </div>
 
-          <div className="mt-5">
-            <h2 className="font-serif text-3xl tracking-tight text-neutral-900">
+        {/* Lighter content card with a wide arc top edge — comes up high so
+            the curve sits behind the lower half of the image card */}
+        <div
+          className="relative -mt-[80%] bg-cream-light px-6 pt-[85%] pb-6 shadow-[0_-8px_24px_-12px_rgba(0,0,0,0.06)]"
+          style={{
+            borderTopLeftRadius: "50% 60px",
+            borderTopRightRadius: "50% 60px",
+          }}
+        >
+          <div>
+            <h2
+              className={[
+                "text-2xl font-semibold uppercase text-neutral-900",
+                lang === "zh"
+                  ? "tracking-normal"
+                  : "tracking-[0.08em]",
+              ].join(" ")}
+            >
               {localName(item, lang, autoMap)}
             </h2>
             <div className="mt-1 flex items-baseline gap-3 text-sm text-neutral-700">
               <span>{formatPrice(item.price)}</span>
             </div>
-            <p className="mt-3 text-sm leading-relaxed text-neutral-700">
+            <p className="mt-3 text-base leading-relaxed text-neutral-700">
               {localDescription(item, lang, autoMap)}
             </p>
             {flags.length > 0 && (
@@ -283,7 +317,7 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
             {groups.map((g) => (
               <section key={g.id}>
                 <div className="mb-2 flex items-baseline justify-between">
-                  <h3 className="text-sm font-semibold uppercase tracking-wider text-neutral-700">
+                  <h3 className="text-base font-semibold uppercase tracking-wider text-neutral-700">
                     {t(`group_${g.id}`)}
                   </h3>
                   {g.required && (
@@ -307,11 +341,11 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
                           e.currentTarget.blur();
                         }}
                         className={[
-                          "flex h-full flex-col rounded-2xl border px-3 py-3 text-left text-sm transition-all",
+                          "flex h-full flex-col rounded-2xl border px-3 py-3 text-left text-base shadow-sm transition-all",
                           "focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30",
                           picked
                             ? "border-cantaloupe-deep bg-cantaloupe text-neutral-900 shadow-inner"
-                            : "border-neutral-300 bg-white text-neutral-800 hover:border-neutral-500 hover:shadow-sm",
+                            : "border-neutral-300 bg-white text-neutral-800 hover:border-neutral-500 hover:shadow-md",
                         ].join(" ")}
                       >
                         <div className="flex items-center gap-2">
@@ -374,7 +408,7 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
             )}
 
             <section>
-              <h3 className="mb-2 text-sm font-semibold uppercase tracking-wider text-neutral-700">
+              <h3 className="mb-2 text-base font-semibold uppercase tracking-wider text-neutral-700">
                 {t("quantity")}
               </h3>
               <div className="inline-flex items-center gap-3 rounded-full border border-neutral-300 bg-white px-3 py-2 select-none">
@@ -388,7 +422,7 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
                   onPointerUp={clearHold}
                   onPointerLeave={clearHold}
                   onPointerCancel={clearHold}
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-cantaloupe text-neutral-900 hover:bg-cantaloupe-soft active:bg-cantaloupe-deep touch-none"
+                  className="flex h-11 w-11 items-center justify-center rounded-full bg-cantaloupe text-base text-neutral-900 hover:bg-cantaloupe-soft active:bg-cantaloupe-deep touch-none"
                 >
                   −
                 </button>
@@ -405,7 +439,7 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
                   onPointerUp={clearHold}
                   onPointerLeave={clearHold}
                   onPointerCancel={clearHold}
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-cantaloupe text-neutral-900 hover:bg-cantaloupe-soft active:bg-cantaloupe-deep touch-none"
+                  className="flex h-11 w-11 items-center justify-center rounded-full bg-cantaloupe text-base text-neutral-900 hover:bg-cantaloupe-soft active:bg-cantaloupe-deep touch-none"
                 >
                   +
                 </button>
@@ -413,13 +447,13 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
             </section>
           </div>
 
-          <div className="sticky bottom-0 -mx-6 mt-8 bg-cream/95 px-6 py-5 backdrop-blur">
+          <div className="sticky bottom-0 -mx-6 mt-8 bg-cream-light/95 px-6 py-5 backdrop-blur">
             <button
               type="button"
               onClick={handleAdd}
               disabled={!allRequiredMet}
               className={[
-                "flex w-full items-center justify-between rounded-full px-6 py-4 text-base font-medium transition-colors",
+                "flex w-full items-center justify-between rounded-full px-6 py-4 text-base font-medium shadow-md transition-colors",
                 allRequiredMet
                   ? "bg-neutral-900 text-cream hover:bg-neutral-800"
                   : "bg-neutral-300 text-neutral-500",
