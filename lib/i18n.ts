@@ -296,6 +296,14 @@ const TRANSLATIONS = {
   chatPanelAria: { en: "Menu assistant", zh: "菜单助手" },
   chatInputAria: { en: "Ask the menu assistant", zh: "向菜单助手提问" },
   chatSendAria: { en: "Send message", zh: "发送消息" },
+
+  // Order-placed confirmation (in cart drawer after sending)
+  orderPlacedTitle: { en: "Order placed!", zh: "订单已下！" },
+  orderPlacedSubtitle: {
+    en: "Show this to your server if needed",
+    zh: "如有需要，请向服务员出示此信息",
+  },
+  orderIdLabel: { en: "Order ID", zh: "订单编号" },
 } as const satisfies Record<string, { en: string; zh: string }>;
 
 type TranslationKey = keyof typeof TRANSLATIONS;

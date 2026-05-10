@@ -163,10 +163,10 @@ export default function CartDrawer({
             <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-sage-dark text-3xl">
               ✓
             </div>
-            <h3 className="font-serif text-2xl text-neutral-900">Order placed!</h3>
-            <p className="mt-2 text-sm text-neutral-600">Show this to your server if needed</p>
+            <h3 className="font-serif text-2xl text-neutral-900">{t("orderPlacedTitle")}</h3>
+            <p className="mt-2 text-sm text-neutral-600">{t("orderPlacedSubtitle")}</p>
             <div className="mt-5 rounded-2xl border border-neutral-200 bg-white px-8 py-4">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">Order ID</p>
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">{t("orderIdLabel")}</p>
               <p className="mt-1 font-mono text-3xl font-bold tracking-widest text-neutral-900">
                 #{orderId.slice(0, 6).toUpperCase()}
               </p>
