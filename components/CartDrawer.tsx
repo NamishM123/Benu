@@ -18,6 +18,10 @@ import {
   useTranslation,
 } from "@/lib/i18n";
 import { localName } from "@/lib/menu";
+import {
+  CUSTOM_ALLERGENS_EVENT,
+  getStoredCustomAllergens,
+} from "@/lib/preferences-store";
 
 type Props = {
   open: boolean;
@@ -83,9 +87,23 @@ export default function CartDrawer({
     if (open) setDragOffset(0);
   }, [open]);
 
+  // Custom allergens (chat-stated). These narrow the pairing pool just
+  // like the standard preferences do — a soy-allergic guest who said
+  // "no soy" in chat must not be offered Soy Milk Tea as a pairing.
+  const [customAllergens, setCustomAllergens] = useState<string[]>([]);
+  useEffect(() => {
+    setCustomAllergens(getStoredCustomAllergens());
+    function onChange(e: Event) {
+      const detail = (e as CustomEvent<string[]>).detail;
+      if (Array.isArray(detail)) setCustomAllergens(detail);
+    }
+    window.addEventListener(CUSTOM_ALLERGENS_EVENT, onChange);
+    return () => window.removeEventListener(CUSTOM_ALLERGENS_EVENT, onChange);
+  }, []);
+
   const pairings = useMemo(
-    () => pickPairings(cart, preferences, menu),
-    [cart, preferences, menu],
+    () => pickPairings(cart, preferences, menu, customAllergens),
+    [cart, preferences, menu, customAllergens],
   );
 
   if (!open) return null;

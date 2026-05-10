@@ -1,5 +1,6 @@
 import { type MenuItem } from "./menu";
 import { findFlaggedPreferences } from "./preferences";
+import { dishMatchesCustomAllergen } from "./allergen-detect";
 import type { CartLine } from "./cart-store";
 
 function cartItems(cart: CartLine[], menu: MenuItem[]): MenuItem[] {
@@ -37,6 +38,7 @@ export function pickPairings(
   cart: CartLine[],
   preferences: string[],
   menu: MenuItem[],
+  customAllergens: string[] = [],
 ): MenuItem[] {
   const items = cartItems(cart, menu);
   if (items.length === 0) return [];
@@ -49,6 +51,7 @@ export function pickPairings(
   const namesInCart = new Set(items.map((m) => m.name));
   const safe = (m: MenuItem) =>
     findFlaggedPreferences(m, preferences).length === 0 &&
+    dishMatchesCustomAllergen(m, customAllergens).length === 0 &&
     !namesInCart.has(m.name);
 
   const spicyHeavy =

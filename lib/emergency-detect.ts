@@ -63,6 +63,111 @@ const STRONG_PATTERNS: RegExp[] = [
   // Active loss-of-consciousness language
   /\bpassing\s+out\b/i,
   /\bblack(?:ing)?\s+out\b/i,
+
+  // ==== MULTILINGUAL EMERGENCY PHRASES ====
+  // Fallback for languages where the user typed in their native script.
+  // The LLM is told to respond in their language, but the intercept
+  // happens before the LLM call — so we need direct pattern coverage
+  // for the most life-critical phrases in major languages.
+
+  // SPANISH
+  /\bno\s+puedo\s+respirar\b/i,           // can't breathe
+  /\breacción\s+alérgica\b/i,             // allergic reaction
+  /\banafilaxia\b/i,
+  /\bse\s+(?:está|esta)\s+ahogando\b/i,   // is choking
+  /\bllame(?:n)?\s+al?\s+911\b/i,
+  /\bambulancia\b/i,
+  /\b(?:el|la|mi)\s+\w+\s+(?:murió|muerto|murieron)\b/i, // X died
+  /\bme\s+(?:estoy\s+)?muriendo\b/i,      // I'm dying
+
+  // FRENCH
+  /\bje\s+ne\s+peux\s+(?:plus\s+)?respirer\b/i,
+  /\bréaction\s+allergique\b/i,
+  /\banaphylaxie\b/i,
+  /\b(?:appelez|appeler)\s+(?:le\s+)?(?:911|15|112|samu)\b/i,
+  /\bambulance\b/i,
+  /\b(?:il|elle|le\s+client|la\s+cliente)\s+(?:est\s+)?mort(?:e)?\b/i,
+  /\bje\s+(?:vais\s+)?meurs\b/i,
+  /\bje\s+suis\s+en\s+train\s+de\s+mourir\b/i,
+
+  // RUSSIAN
+  /\bне\s+могу\s+дышать\b/iu,             // can't breathe
+  /\bаллергическая\s+реакция\b/iu,
+  /\bанафилакси/iu,
+  /\bвызовите\s+скорую\b/iu,              // call ambulance
+  /\bумер(?:ла|ли)?\b/iu,                 // died (m/f/pl)
+  /\bя\s+(?:сейчас\s+)?умираю\b/iu,       // I'm dying
+
+  // GERMAN
+  /\bich\s+(?:kann|krieg)\s+(?:keine?\s+luft|nicht\s+atmen)\b/i,
+  /\ballergische\s+reaktion\b/i,
+  /\banaphylax/i,
+  /\bnotruf\b/i,
+  /\b(?:gestorben|tot|verstorben)\b/i,
+  /\bich\s+sterbe\b/i,
+
+  // ITALIAN
+  /\bnon\s+(?:riesco|posso)\s+(?:a\s+)?respirare\b/i,
+  /\breazione\s+allergica\b/i,
+  /\banafilass/i,
+  /\bchiama(?:te)?\s+(?:il\s+)?(?:118|112|911|ambulanza)\b/i,
+  /\b(?:è|e)\s+morto\b/i,
+  /\bsto\s+morendo\b/i,
+
+  // PORTUGUESE
+  /\bnão\s+(?:consigo|posso)\s+respirar\b/i,
+  /\breação\s+alérgica\b/i,
+  /\banafilaxia\b/i,
+  /\b(?:chame|liguem?)\s+(?:o\s+)?(?:samu|192|911|ambulância)\b/i,
+  /\b(?:morreu|morto|morta)\b/i,
+  /\beu\s+(?:estou\s+)?morrendo\b/i,
+
+  // JAPANESE
+  /息ができない/u,                          // can't breathe
+  /息ができません/u,
+  /アレルギー反応/u,                        // allergic reaction
+  /アナフィラキシー/u,
+  /救急車を呼/u,                           // call ambulance
+  /死んだ/u,                               // died
+  /死にそう/u,                             // about to die
+
+  // KOREAN
+  /숨을\s*쉴\s*수\s*없/u,                  // can't breathe
+  /알레르기\s*반응/u,
+  /아나필락시스/u,
+  /구급차/u,                               // ambulance
+  /죽었/u,                                 // died
+  /죽을\s*것\s*같/u,                        // feels like dying
+
+  // CHINESE
+  /(?:我\s*)?喘不过气/u,                    // can't breathe
+  /(?:我\s*)?无法呼吸/u,
+  /过敏反应/u,                             // allergic reaction
+  /过敏性休克/u,
+  /叫\s*救护车/u,
+  /打\s*120\b/u,
+  /已经\s*死了/u,
+  /我\s*快\s*死了/u,
+
+  // ARABIC
+  /لا\s+(?:أستطيع|اقدر)\s+(?:على\s+)?التنفس/u,  // can't breathe
+  /حساسية/u,                               // allergy / allergic
+  /اتصلوا?\s+ب?(?:الإسعاف|911|112)/u,
+  /(?:مات|توفي)/u,                          // died
+  /أنا\s+أموت/u,                            // I'm dying
+
+  // HINDI
+  /साँस\s+नहीं\s+ले/u,                      // can't breathe
+  /एलर्जी\s+प्रतिक्रिया/u,
+  /एम्बुलेंस\s+बुला/u,
+  /मर\s+गया/u,                              // died
+  /मैं\s+मर\s+रहा/u,                        // I'm dying
+
+  // THAI
+  /หายใจไม่ออก/u,
+  /แพ้\s+อย่างรุนแรง/u,
+  /โทร\s*1669/u,
+  /ตาย\s*แล้ว/u,
 ];
 
 // Combo: an allergy-context noun + an active-distress phrase. Both

@@ -13,6 +13,8 @@ import {
   type OptionGroup,
 } from "@/lib/menu-options";
 import { findFlaggedPreferences } from "@/lib/preferences";
+import { dishMatchesCustomAllergen } from "@/lib/allergen-detect";
+import { getStoredCustomAllergens, CUSTOM_ALLERGENS_EVENT } from "@/lib/preferences-store";
 import { addToCart } from "@/lib/cart-store";
 import { useTranslation } from "@/lib/i18n";
 import { useAutoTranslate } from "@/lib/auto-translate";
@@ -63,6 +65,18 @@ export default function ItemDetailSheet({ item, preferences, onClose, onCartOpen
   const [specialRequest, setSpecialRequest] = useState("");
   const [justAdded, setJustAdded] = useState(false);
   const [fadeOpacity, setFadeOpacity] = useState(0);
+  // Custom (chat-stated) allergens — load from localStorage so the detail
+  // sheet warns about the same ingredients the chat is filtering.
+  const [customAllergens, setCustomAllergens] = useState<string[]>([]);
+  useEffect(() => {
+    setCustomAllergens(getStoredCustomAllergens());
+    function onChange(e: Event) {
+      const detail = (e as CustomEvent<string[]>).detail;
+      if (Array.isArray(detail)) setCustomAllergens(detail);
+    }
+    window.addEventListener(CUSTOM_ALLERGENS_EVENT, onChange);
+    return () => window.removeEventListener(CUSTOM_ALLERGENS_EVENT, onChange);
+  }, []);
 
   const supportsSpecialRequest = item ? itemSupportsSpecialRequest(item) : false;
 
@@ -134,6 +148,12 @@ export default function ItemDetailSheet({ item, preferences, onClose, onCartOpen
   if (!item) return null;
 
   const flags = findFlaggedPreferences(item, preferences);
+  // Custom (chat-stated) allergens that this dish matches — surfaced
+  // alongside the standard category warnings so a user can't open and
+  // add a soy-allergic dish even if the chat detector flagged "soy"
+  // by free-text.
+  const customFlags = dishMatchesCustomAllergen(item, customAllergens);
+  const allFlags = [...flags, ...customFlags];
 
   const priceDelta = groups.reduce((sum, g) => {
     const picked = selections[g.id] ?? [];
@@ -329,10 +349,13 @@ export default function ItemDetailSheet({ item, preferences, onClose, onCartOpen
             <p className="mt-3 text-base leading-relaxed text-neutral-700">
               {localDescription(item, lang, autoMap)}
             </p>
-            {flags.length > 0 && (
+            {allFlags.length > 0 && (
               <p className="mt-3 text-sm text-amber-700">
                 {t("headsUp")}{" "}
-                {flags.map((f) => t(f).toLowerCase()).join(", ")}
+                {[
+                  ...flags.map((f) => t(f).toLowerCase()),
+                  ...customFlags,
+                ].join(", ")}
                 {", "}
                 {t("inYourPrefs")}
               </p>

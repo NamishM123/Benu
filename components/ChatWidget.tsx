@@ -10,7 +10,10 @@ import {
 import { findFlaggedPreferences } from "@/lib/preferences";
 import { answerMenuQuestion } from "@/lib/chatbot";
 import {
+  CUSTOM_ALLERGENS_EVENT,
+  getStoredCustomAllergens,
   getStoredPreferences,
+  setStoredCustomAllergens,
   setStoredPreferences,
 } from "@/lib/preferences-store";
 import {
@@ -80,10 +83,16 @@ export default function ChatWidget({
   // named — cucumber, sesame, egg) for the entire conversation. Sent on
   // every request so the constraint persists across turns. The standard
   // 6 allergens live in `preferences` (dietary filter); these are the
-  // ad-hoc ones the user mentioned in chat.
-  const [sessionCustomAllergens, setSessionCustomAllergens] = useState<
+  // ad-hoc ones the user mentioned in chat. Persisted to localStorage
+  // so a page refresh, navigation, or device sleep can't drop them —
+  // an allergy stated five turns ago must still apply tomorrow.
+  const [sessionCustomAllergens, setSessionCustomAllergensState] = useState<
     string[]
   >([]);
+  function setSessionCustomAllergens(list: string[]) {
+    setSessionCustomAllergensState(list);
+    setStoredCustomAllergens(list);
+  }
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 0,
@@ -219,19 +228,28 @@ export default function ChatWidget({
 
   useEffect(() => {
     setPreferences(getStoredPreferences());
-    function onChange(e: Event) {
+    setSessionCustomAllergensState(getStoredCustomAllergens());
+    function onPrefsChange(e: Event) {
       const detail = (e as CustomEvent<string[]>).detail;
       if (Array.isArray(detail)) setPreferences(detail);
+    }
+    function onCustomChange(e: Event) {
+      const detail = (e as CustomEvent<string[]>).detail;
+      if (Array.isArray(detail)) setSessionCustomAllergensState(detail);
     }
     function onStorage(e: StorageEvent) {
       if (e.key === "benu.dietary-preferences") {
         setPreferences(getStoredPreferences());
+      } else if (e.key === "benu.custom-allergens") {
+        setSessionCustomAllergensState(getStoredCustomAllergens());
       }
     }
-    window.addEventListener("benu:preferences-changed", onChange);
+    window.addEventListener("benu:preferences-changed", onPrefsChange);
+    window.addEventListener(CUSTOM_ALLERGENS_EVENT, onCustomChange);
     window.addEventListener("storage", onStorage);
     return () => {
-      window.removeEventListener("benu:preferences-changed", onChange);
+      window.removeEventListener("benu:preferences-changed", onPrefsChange);
+      window.removeEventListener(CUSTOM_ALLERGENS_EVENT, onCustomChange);
       window.removeEventListener("storage", onStorage);
     };
   }, []);
@@ -742,7 +760,8 @@ export default function ChatWidget({
                 id="chat-widget-input"
                 type="text"
                 value={input}
-                onChange={(e) => setInput(e.target.value)}
+                onChange={(e) => setInput(e.target.value.slice(0, 2000))}
+                maxLength={2000}
                 placeholder={isSending ? t("chatThinking") : t("chatPlaceholder")}
                 disabled={isSending}
                 className="relative z-[2] block w-full rounded-full border border-cantaloupe-soft bg-white px-4 py-2 text-base text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-cantaloupe/40 disabled:opacity-60 sm:text-sm"

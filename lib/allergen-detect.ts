@@ -8,6 +8,8 @@
 // (recommending soy to a soy-allergic guest) is dangerous. When in doubt,
 // flag it.
 
+import { expandAllergenSynonyms } from "./allergen-synonyms";
+
 const ALLERGEN_KEYWORDS: Record<string, string[]> = {
   Dairy: ["dairy", "milk", "cheese", "butter", "lactose", "cream", "yogurt", "yoghurt"],
   Fish: ["fish", "seafood", "shellfish", "shrimp", "prawn", "crab", "lobster", "oyster", "clam", "mussel", "scallop"],
@@ -210,11 +212,14 @@ function stem(word: string): string {
 
 // Returns the list of allergens (from the user-named list) that appear
 // in this dish's name/description/tags. We:
-//   1. Stem both the allergen and the matched word so "potato" matches
+//   1. Expand each allergen via the synonym table, so "prawn" matches
+//      a dish with "shrimp" in the description, "ham" matches pork
+//      dishes, "lactose" matches milk/dairy, "креветки" matches
+//      shrimp dishes, etc.
+//   2. Stem both the allergen and the matched word so "potato" matches
 //      "potatoes" and vice versa.
-//   2. Use word-boundary regex (not bare `includes`) so "egg" doesn't
-//      match "eggplant" — but "potato" still matches "potatoes" via
-//      the stem step.
+//   3. Use word-boundary regex (not bare `includes`) so "egg" doesn't
+//      match "eggplant".
 // Over-flag on purpose: "cucumber" matches "Garlic Cucumber". A
 // false-positive filter is fine; a missed allergen ships an EpiPen call.
 export function dishMatchesCustomAllergen(
@@ -225,16 +230,36 @@ export function dishMatchesCustomAllergen(
   const haystack = `${dish.name} ${dish.description} ${dish.tags.join(" ")}`.toLowerCase();
   const hits: string[] = [];
   for (const a of customAllergens) {
-    const stemmed = stem(a);
-    if (stemmed.length < 3) continue;
-    // Word-boundary, then the stem, then optional plural suffix.
-    const pattern = new RegExp(
-      `\\b${escapeRegex(stemmed)}(?:s|es|ies)?\\b`,
-      "i",
-    );
-    if (pattern.test(haystack)) {
-      hits.push(a);
+    const expansions = expandAllergenSynonyms(a);
+    let matched = false;
+    for (const variant of expansions) {
+      const stemmed = stem(variant);
+      if (stemmed.length < 3) continue;
+      // Use a Unicode-aware boundary check: build a regex with the
+      // exact term, then verify the surrounding chars aren't letters.
+      // (\b in JS regex doesn't recognize non-ASCII letters as word
+      // chars, so for CJK / Cyrillic synonyms we test substring +
+      // boundary by hand.)
+      const escaped = escapeRegex(stemmed);
+      // First try ASCII word boundary (catches "potato" in "Potato Salad")
+      const asciiPattern = new RegExp(
+        `\\b${escaped}(?:s|es|ies)?\\b`,
+        "i",
+      );
+      if (asciiPattern.test(haystack)) {
+        matched = true;
+        break;
+      }
+      // For non-ASCII expansions (CJK, Cyrillic, Arabic), \b doesn't
+      // work — fall back to substring check, which is fine because
+      // dish text is English so a non-ASCII expansion would never
+      // cause a false positive.
+      if (!/^[\x00-\x7F]+$/.test(variant) && haystack.includes(stemmed)) {
+        matched = true;
+        break;
+      }
     }
+    if (matched) hits.push(a);
   }
   return hits;
 }
