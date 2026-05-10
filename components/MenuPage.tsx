@@ -114,7 +114,7 @@ export default function MenuPage({ menu }: Props) {
     <>
       <main className="min-h-screen w-full bg-cream pb-28">
         <div className="mx-auto w-full max-w-6xl">
-          <div className="flex items-center justify-between gap-3 px-4 pt-4 sm:px-10 sm:pt-3">
+          <div className="flex items-center justify-between gap-3 px-3 pt-4 sm:px-10 sm:pt-3">
             <button
               type="button"
               onClick={() => {
@@ -175,7 +175,7 @@ export default function MenuPage({ menu }: Props) {
                 type="button"
                 onClick={() => setCartOpen(true)}
                 aria-label={t("yourCart")}
-                className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-neutral-300 bg-white text-neutral-800 shadow-sm transition-colors hover:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
+                className="relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-neutral-300 bg-white text-neutral-800 shadow-sm transition-colors hover:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30 sm:h-10 sm:w-10"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
