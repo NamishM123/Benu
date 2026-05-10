@@ -129,7 +129,7 @@ export default function MenuPage({ menu }: Props) {
               className="flex-none cursor-default rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
             >
               {/* PNG has ~43% transparent whitespace below the artwork; clip it. */}
-              <div className="block overflow-hidden h-[48px] sm:h-[101px] flex-none">
+              <div className="block overflow-hidden h-[60px] sm:h-[101px] flex-none">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/shake-shake-logo.png"
@@ -139,7 +139,7 @@ export default function MenuPage({ menu }: Props) {
                   fetchPriority="high"
                   decoding="sync"
                   loading="eager"
-                  className="block h-[84px] w-auto max-w-none sm:h-[187px] -mt-0.5 sm:-mt-2 flex-none"
+                  className="block h-[105px] w-auto max-w-none sm:h-[187px] -mt-0.5 sm:-mt-2 flex-none"
                 />
               </div>
             </button>
@@ -426,7 +426,7 @@ export default function MenuPage({ menu }: Props) {
       <button
         type="button"
         onClick={() => setCartOpen(true)}
-        className="fixed bottom-6 left-1/2 z-40 -translate-x-1/2 inline-flex items-center gap-2 rounded-full bg-neutral-900 px-6 py-3 text-sm font-medium text-cream shadow-lg transition-transform hover:scale-105 sm:hidden"
+        className="fixed bottom-6 left-1/2 z-40 -translate-x-1/2 inline-flex h-14 items-center gap-2 rounded-full bg-neutral-900 px-6 text-base font-semibold text-cream shadow-lg transition-transform hover:scale-105 sm:hidden"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
