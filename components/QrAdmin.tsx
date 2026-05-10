@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
 import { TABLE_COUNT } from "@/lib/prep-time";
@@ -65,10 +66,22 @@ export default function QrAdmin() {
                 className="w-72 rounded-full border border-neutral-300 bg-white px-3 py-1.5 text-xs text-neutral-900 focus:border-neutral-900 focus:outline-none"
               />
             </label>
+            <Link
+              href="/kitchen"
+              className="rounded-full border border-neutral-300 bg-white px-3 py-1.5 text-xs text-neutral-700 hover:bg-neutral-100 print:hidden"
+            >
+              Kitchen
+            </Link>
+            <Link
+              href="/admin/menu"
+              className="rounded-full border border-neutral-300 bg-white px-3 py-1.5 text-xs text-neutral-700 hover:bg-neutral-100 print:hidden"
+            >
+              Edit menu
+            </Link>
             <button
               type="button"
               onClick={() => window.print()}
-              className="rounded-full bg-neutral-900 px-4 py-2 text-xs font-medium text-cream hover:bg-neutral-800"
+              className="rounded-full bg-neutral-900 px-4 py-2 text-xs font-medium text-cream hover:bg-neutral-800 print:hidden"
             >
               Print
             </button>

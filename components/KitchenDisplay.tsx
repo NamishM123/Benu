@@ -10,6 +10,7 @@ import {
   type Order,
   type OrderStatus,
 } from "@/lib/order-store";
+import Link from "next/link";
 import { useTranslation, t as translate, type Lang } from "@/lib/i18n";
 import LanguageSwitcher from "./LanguageSwitcher";
 import SignOutButton from "./SignOutButton";
@@ -71,6 +72,18 @@ export default function KitchenDisplay() {
             {t("kitchenTitle")}
           </h1>
           <div className="flex items-center gap-3">
+            <Link
+              href="/admin/menu"
+              className="rounded-full border border-neutral-300 bg-white px-3 py-1.5 text-xs text-neutral-700 hover:bg-neutral-100"
+            >
+              Edit menu
+            </Link>
+            <Link
+              href="/admin/qr"
+              className="rounded-full border border-neutral-300 bg-white px-3 py-1.5 text-xs text-neutral-700 hover:bg-neutral-100"
+            >
+              QR codes
+            </Link>
             <LanguageSwitcher />
             <SignOutButton />
           </div>
