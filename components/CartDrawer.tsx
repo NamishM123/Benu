@@ -216,7 +216,7 @@ export default function CartDrawer({
                         onPointerLeave={clearHold}
                         onPointerCancel={clearHold}
                         disabled={line.quantity <= 1}
-                        className="flex h-7 w-7 items-center justify-center rounded-full bg-cantaloupe text-neutral-900 hover:bg-cantaloupe-soft active:bg-cantaloupe-deep disabled:opacity-40 disabled:cursor-not-allowed touch-none"
+                        className="flex h-9 w-9 items-center justify-center rounded-full bg-cantaloupe text-neutral-900 hover:bg-cantaloupe-soft active:bg-cantaloupe-deep disabled:opacity-40 disabled:cursor-not-allowed touch-none"
                       >
                         −
                       </button>
@@ -235,7 +235,7 @@ export default function CartDrawer({
                         onPointerUp={clearHold}
                         onPointerLeave={clearHold}
                         onPointerCancel={clearHold}
-                        className="flex h-7 w-7 items-center justify-center rounded-full bg-cantaloupe text-neutral-900 hover:bg-cantaloupe-soft active:bg-cantaloupe-deep touch-none"
+                        className="flex h-9 w-9 items-center justify-center rounded-full bg-cantaloupe text-neutral-900 hover:bg-cantaloupe-soft active:bg-cantaloupe-deep touch-none"
                       >
                         +
                       </button>

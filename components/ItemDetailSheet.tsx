@@ -375,7 +375,7 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
                   onPointerUp={clearHold}
                   onPointerLeave={clearHold}
                   onPointerCancel={clearHold}
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-cantaloupe text-neutral-900 hover:bg-cantaloupe-soft active:bg-cantaloupe-deep touch-none"
+                  className="flex h-11 w-11 items-center justify-center rounded-full bg-cantaloupe text-base text-neutral-900 hover:bg-cantaloupe-soft active:bg-cantaloupe-deep touch-none"
                 >
                   −
                 </button>
@@ -392,7 +392,7 @@ export default function ItemDetailSheet({ item, preferences, onClose }: Props) {
                   onPointerUp={clearHold}
                   onPointerLeave={clearHold}
                   onPointerCancel={clearHold}
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-cantaloupe text-neutral-900 hover:bg-cantaloupe-soft active:bg-cantaloupe-deep touch-none"
+                  className="flex h-11 w-11 items-center justify-center rounded-full bg-cantaloupe text-base text-neutral-900 hover:bg-cantaloupe-soft active:bg-cantaloupe-deep touch-none"
                 >
                   +
                 </button>
