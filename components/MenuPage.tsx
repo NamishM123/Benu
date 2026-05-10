@@ -127,7 +127,7 @@ export default function MenuPage({ menu }: Props) {
               className="flex-none cursor-default rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
             >
               {/* PNG has ~43% transparent whitespace below the artwork; clip it. */}
-              <div className="block overflow-hidden h-8 sm:h-[68px] flex-none">
+              <div className="block overflow-hidden h-[46px] sm:h-[68px] flex-none">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/shake-shake-logo.png"
@@ -137,7 +137,7 @@ export default function MenuPage({ menu }: Props) {
                   fetchPriority="high"
                   decoding="sync"
                   loading="eager"
-                  className="block h-14 w-auto max-w-none sm:h-32 -mt-0.5 sm:-mt-1.5 flex-none"
+                  className="block h-20 w-auto max-w-none sm:h-32 -mt-0.5 sm:-mt-1.5 flex-none"
                 />
               </div>
             </button>
@@ -381,15 +381,15 @@ export default function MenuPage({ menu }: Props) {
         </div>
       </main>
 
-      {totalCount > 0 && (
-        <button
-          type="button"
-          onClick={() => setCartOpen(true)}
-          className="fixed bottom-6 left-1/2 z-40 -translate-x-1/2 rounded-full bg-neutral-900 px-6 py-3 text-sm font-medium text-cream shadow-lg transition-transform hover:scale-105"
-        >
-          View cart · {totalCount} {totalCount === 1 ? "item" : "items"}
-        </button>
-      )}
+      <button
+        type="button"
+        onClick={() => setCartOpen(true)}
+        className="fixed bottom-6 left-1/2 z-40 -translate-x-1/2 rounded-full bg-neutral-900 px-6 py-3 text-sm font-medium text-cream shadow-lg transition-transform hover:scale-105 sm:hidden"
+      >
+        {totalCount > 0
+          ? `View cart · ${totalCount} ${totalCount === 1 ? "item" : "items"}`
+          : t("yourCart")}
+      </button>
 
       <ItemDetailSheet
         item={activeItem}
