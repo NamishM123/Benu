@@ -113,14 +113,14 @@ export default function ItemDetailSheet({ item, preferences, onClose, onCartOpen
     const origHtmlBg = html.style.backgroundColor;
     const origBodyBg = body.style.backgroundColor;
     body.style.overflow = "hidden";
-    html.style.backgroundColor = "#F7EFDE";
-    body.style.backgroundColor = "#F7EFDE";
+    html.style.backgroundColor = "#FBF7EE";
+    body.style.backgroundColor = "#FBF7EE";
 
     const themeMeta = document.querySelector<HTMLMetaElement>(
       'meta[name="theme-color"]',
     );
     const origTheme = themeMeta?.getAttribute("content") ?? null;
-    themeMeta?.setAttribute("content", "#F7EFDE");
+    themeMeta?.setAttribute("content", "#FBF7EE");
 
     return () => {
       body.style.overflow = origOverflow;
@@ -228,7 +228,7 @@ export default function ItemDetailSheet({ item, preferences, onClose, onCartOpen
           const max = el.scrollHeight - el.clientHeight;
           if (el.scrollTop >= max) el.scrollTop = max - 1;
         }}
-        className="popup-scroll relative w-full max-w-[480px] h-[100dvh] overflow-y-auto overscroll-none bg-cream-dark shadow-xl sm:h-auto sm:max-h-[92vh] sm:rounded-3xl"
+        className="popup-scroll relative w-full max-w-[480px] h-[100dvh] overflow-y-auto overscroll-none bg-cream shadow-xl sm:h-auto sm:max-h-[92vh] sm:rounded-3xl"
         style={{ WebkitOverflowScrolling: "auto" }}
       >
         {/* Soft fade strip at top: image scrolls into this instead of being cut sharply */}
@@ -237,7 +237,7 @@ export default function ItemDetailSheet({ item, preferences, onClose, onCartOpen
           style={{
             opacity: fadeOpacity,
             background:
-              "linear-gradient(to bottom, #F7EFDE 0%, rgba(247,239,222,0.95) 25%, rgba(247,239,222,0.75) 50%, rgba(247,239,222,0.4) 75%, rgba(247,239,222,0) 100%)",
+              "linear-gradient(to bottom, #FBF7EE 0%, rgba(251,247,238,0.95) 25%, rgba(251,247,238,0.75) 50%, rgba(251,247,238,0.4) 75%, rgba(251,247,238,0) 100%)",
           }}
           className="pointer-events-none sticky top-0 z-10 -mb-24 h-24 transition-opacity duration-150 sm:rounded-t-3xl"
         />
@@ -266,7 +266,7 @@ export default function ItemDetailSheet({ item, preferences, onClose, onCartOpen
               <polyline points="15 18 9 12 15 6" />
             </svg>
           </button>
-          <div className="relative z-10 px-6 pt-14 pb-2 sm:pt-12">
+          <div className="relative z-10 px-6 pt-16 pb-2 sm:pt-14">
             <div className="relative aspect-square w-full overflow-hidden rounded-3xl bg-white shadow-md sm:aspect-[4/3]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
