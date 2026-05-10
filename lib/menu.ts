@@ -82,7 +82,7 @@ export const MENU: MenuItem[] = [
   },
   {
     name: "Yuba with Celery Salad",
-    nameZh: "腐竹拌芹菜",
+    nameZh: "凉拌腐竹西芹",
     price: 8.99,
     category: "Appetizers",
     description:
@@ -95,7 +95,7 @@ export const MENU: MenuItem[] = [
   },
   {
     name: "Chili Oil Wontons (8 pc)",
-    nameZh: "红油抄手 (8个)",
+    nameZh: "红油抄手 (8只)",
     price: 11.99,
     category: "Appetizers",
     description:
@@ -108,7 +108,7 @@ export const MENU: MenuItem[] = [
   },
   {
     name: "Pork and Cabbage Boiled Dumplings (12 pc)",
-    nameZh: "猪肉白菜水饺 (12个)",
+    nameZh: "猪肉大白菜水饺 (12只)",
     price: 15.99,
     category: "Appetizers",
     description:
@@ -148,7 +148,7 @@ export const MENU: MenuItem[] = [
 
   {
     name: "Chili Oil Flat Noodle with Beef Bone",
-    nameZh: "红油宽面带骨牛肉",
+    nameZh: "带骨牛肉红油宽面",
     price: 21.99,
     category: "Dry Noodles",
     description:
@@ -332,7 +332,7 @@ export const MENU: MenuItem[] = [
 
   {
     name: "Sichuan Spicy Tofu Noodle Soup",
-    nameZh: "麻辣豆腐面",
+    nameZh: "川味麻辣豆腐汤面",
     price: 15.99,
     category: "Noodle Soup",
     description:

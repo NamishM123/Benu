@@ -127,7 +127,7 @@ export default function MenuPage({ menu }: Props) {
               className="flex-none cursor-default rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
             >
               {/* PNG has ~43% transparent whitespace below the artwork; clip it. */}
-              <div className="block overflow-hidden h-[46px] sm:h-[68px] flex-none">
+              <div className="block overflow-hidden h-[68px] sm:h-[78px] flex-none">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/shake-shake-logo.png"
@@ -137,7 +137,7 @@ export default function MenuPage({ menu }: Props) {
                   fetchPriority="high"
                   decoding="sync"
                   loading="eager"
-                  className="block h-20 w-auto max-w-none sm:h-32 -mt-0.5 sm:-mt-1.5 flex-none"
+                  className="block h-32 w-auto max-w-none sm:h-36 -mt-1.5 sm:-mt-2 flex-none"
                 />
               </div>
             </button>
@@ -159,7 +159,7 @@ export default function MenuPage({ menu }: Props) {
               onClick={() => setFiltersOpen(true)}
               aria-label={t("filters")}
               className={[
-                "hidden sm:inline-flex w-[10rem] items-center justify-center whitespace-nowrap rounded-full px-4 py-2 text-base font-medium shadow-sm transition-colors",
+                "hidden sm:inline-flex w-[8.5rem] items-center justify-center whitespace-nowrap rounded-full px-3 py-2 text-base font-medium shadow-sm transition-colors",
                 "focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30",
                 preferences.length > 0
                   ? "bg-cantaloupe text-neutral-900 hover:bg-cantaloupe-soft"
@@ -387,7 +387,10 @@ export default function MenuPage({ menu }: Props) {
         className="fixed bottom-6 left-1/2 z-40 -translate-x-1/2 rounded-full bg-neutral-900 px-6 py-3 text-sm font-medium text-cream shadow-lg transition-transform hover:scale-105 sm:hidden"
       >
         {totalCount > 0
-          ? `View cart · ${totalCount} ${totalCount === 1 ? "item" : "items"}`
+          ? (totalCount === 1
+              ? t("viewCartCountOne")
+              : t("viewCartCount")
+            ).replace("{n}", String(totalCount))
           : t("yourCart")}
       </button>
 

@@ -48,6 +48,8 @@ const TRANSLATIONS = {
 
   // Cart
   yourCart: { en: "Your cart", zh: "您的购物车" },
+  viewCartCountOne: { en: "View cart · {n} item", zh: "查看购物车 · {n} 件" },
+  viewCartCount: { en: "View cart · {n} items", zh: "查看购物车 · {n} 件" },
   yourCartEmpty: {
     en: "Your cart is safe... Cause it's empty",
     zh: "您的购物车很安全…因为是空的",
@@ -196,6 +198,7 @@ const TRANSLATIONS = {
   // Option choices
   choice_mild: { en: "Mild", zh: "微辣" },
   choice_regular: { en: "Regular", zh: "正常" },
+  choice_default: { en: "Regular", zh: "正常" },
   choice_extra: { en: "Extra Spicy", zh: "特辣" },
   choice_large: { en: "Large", zh: "大份" },
   "choice_extra-noodles": { en: "Extra Noodles", zh: "加面" },
@@ -204,12 +207,13 @@ const TRANSLATIONS = {
   choice_scallion: { en: "Extra Scallion", zh: "加葱" },
   "choice_fried-egg": { en: "Fried Egg", zh: "煎蛋" },
   "choice_extra-rice": { en: "Extra Rice", zh: "加饭" },
-  choice_none: { en: "No Sugar", zh: "无糖" },
-  choice_less: { en: "Less Sweet", zh: "少甜" },
+  choice_sweetNone: { en: "No Sugar", zh: "无糖" },
+  choice_sweetLess: { en: "Less Sweet", zh: "少糖" },
+  choice_sweetRegular: { en: "Regular", zh: "标准糖" },
+  choice_sweetExtra: { en: "Extra Sweet", zh: "多糖" },
   choice_iceNone: { en: "No Ice", zh: "去冰" },
   choice_iceLess: { en: "Less Ice", zh: "少冰" },
   choice_iceRegular: { en: "Regular Ice", zh: "正常冰" },
-  choice_extraSweet: { en: "Extra Sweet", zh: "多甜" },
   choice_whole: { en: "Whole Milk", zh: "全脂奶" },
   choice_oat: { en: "Oat Milk", zh: "燕麦奶" },
   choice_almond: { en: "Almond Milk", zh: "杏仁奶" },

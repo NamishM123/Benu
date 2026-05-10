@@ -82,12 +82,12 @@ const TEA_SWEETNESS: OptionGroup = {
   label: "Sweetness",
   type: "single",
   required: true,
-  defaultChoiceId: "regular",
+  defaultChoiceId: "sweetRegular",
   choices: [
-    { id: "none", label: "No Sugar" },
-    { id: "less", label: "Less Sweet" },
-    { id: "regular", label: "Regular" },
-    { id: "extra", label: "Extra Sweet" },
+    { id: "sweetNone", label: "No Sugar" },
+    { id: "sweetLess", label: "Less Sweet" },
+    { id: "sweetRegular", label: "Regular" },
+    { id: "sweetExtra", label: "Extra Sweet" },
   ],
 };
 
@@ -96,11 +96,11 @@ const TEA_ICE: OptionGroup = {
   label: "Ice Level",
   type: "single",
   required: true,
-  defaultChoiceId: "regular",
+  defaultChoiceId: "iceRegular",
   choices: [
-    { id: "none", label: "No Ice" },
-    { id: "less", label: "Less Ice" },
-    { id: "regular", label: "Regular Ice" },
+    { id: "iceNone", label: "No Ice" },
+    { id: "iceLess", label: "Less Ice" },
+    { id: "iceRegular", label: "Regular Ice" },
   ],
 };
 
