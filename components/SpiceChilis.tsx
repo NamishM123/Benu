@@ -9,7 +9,7 @@ type Props = {
 
 /**
  * Renders 1–3 chili-pepper icons inline based on spice level using the
- * single Chili.svg asset. Returns null for non-spicy items.
+ * single Chili.png asset. Returns null for non-spicy items.
  *
  * Each chili is an inline-block <img> so they flow with the title text
  * and sit on the same baseline as the last word of the title — they
@@ -24,7 +24,7 @@ export default function SpiceChilis({ level, size = 20 }: Props) {
         /* eslint-disable-next-line @next/next/no-img-element */
         <img
           key={i}
-          src="/Chili.svg"
+          src="/Chili.png"
           alt=""
           width={size}
           height={size}
