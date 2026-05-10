@@ -49,8 +49,8 @@ const TRANSLATIONS = {
 
   // Cart
   yourCart: { en: "Your cart", zh: "您的购物车" },
-  viewCartCountOne: { en: "View cart · {n} item", zh: "查看购物车 · {n} 件" },
-  viewCartCount: { en: "View cart · {n} items", zh: "查看购物车 · {n} 件" },
+  viewCartCountOne: { en: "View cart · {n} Item", zh: "查看购物车 · {n} 件" },
+  viewCartCount: { en: "View cart · {n} Items", zh: "查看购物车 · {n} 件" },
   yourCartEmpty: {
     en: "Your cart is safe... Cause it's empty",
     zh: "您的购物车很安全…因为是空的",

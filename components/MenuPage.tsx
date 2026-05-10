@@ -426,12 +426,12 @@ export default function MenuPage({ menu }: Props) {
       <button
         type="button"
         onClick={() => setCartOpen(true)}
-        className="fixed bottom-6 left-1/2 z-40 -translate-x-1/2 inline-flex h-14 items-center gap-2 rounded-full bg-neutral-900 px-6 text-base font-semibold text-cream shadow-lg transition-transform hover:scale-105 sm:hidden"
+        className="fixed bottom-6 left-1/2 z-40 -translate-x-1/2 inline-flex h-14 items-center gap-2 whitespace-nowrap rounded-full bg-neutral-900 px-7 text-base font-semibold text-cream shadow-lg transition-transform hover:scale-105 sm:hidden"
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
+          width="18"
+          height="18"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
