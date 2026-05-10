@@ -372,6 +372,19 @@ export const MENU: MenuItem[] = [
   },
 
   {
+    name: "Coffee Meets Milk Tea",
+    nameZh: "鸳鸯奶茶",
+    price: 6.99,
+    category: "Beverages",
+    description:
+      "Hong Kong–style yuanyang: brewed coffee, black tea, and sweetened condensed or evaporated milk.",
+    descriptionZh:
+      "港式鸳鸯:咖啡与红茶相融,加入炼乳或淡奶。",
+    spiceLevel: 0,
+    tags: ["dairy", "vegetarian", "gluten-free"],
+    image: "/menu/coffee-milk-tea.jpg",
+  },
+  {
     name: "Handmade Fragrance Lemon Tea",
     nameZh: "手作香水柠檬茶",
     price: 6.99,
@@ -385,17 +398,15 @@ export const MENU: MenuItem[] = [
     image: "/menu/lemon-tea.jpg",
   },
   {
-    name: "Coffee Meets Milk Tea",
-    nameZh: "鸳鸯奶茶",
-    price: 6.99,
+    name: "Peach Sparkling Water",
+    nameZh: "蜜桃气泡水",
+    price: 3.99,
     category: "Beverages",
-    description:
-      "Hong Kong–style yuanyang: brewed coffee, black tea, and sweetened condensed or evaporated milk.",
-    descriptionZh:
-      "港式鸳鸯:咖啡与红茶相融,加入炼乳或淡奶。",
+    description: "Lightly sweet peach-infused sparkling water.",
+    descriptionZh: "蜜桃风味气泡水,清淡微甜。",
     spiceLevel: 0,
-    tags: ["dairy", "vegetarian", "gluten-free"],
-    image: "/menu/coffee-milk-tea.jpg",
+    tags: ["vegan", "vegetarian", "dairy-free", "gluten-free"],
+    image: "/menu/peach-sparkling-water.jpg",
   },
   {
     name: "Coke",
@@ -429,17 +440,6 @@ export const MENU: MenuItem[] = [
     spiceLevel: 0,
     tags: ["vegan", "vegetarian", "dairy-free", "gluten-free"],
     image: "/menu/sprite.webp",
-  },
-  {
-    name: "Peach Sparkling Water",
-    nameZh: "蜜桃气泡水",
-    price: 3.99,
-    category: "Beverages",
-    description: "Lightly sweet peach-infused sparkling water.",
-    descriptionZh: "蜜桃风味气泡水,清淡微甜。",
-    spiceLevel: 0,
-    tags: ["vegan", "vegetarian", "dairy-free", "gluten-free"],
-    image: "/menu/peach-sparkling-water.jpg",
   },
 ];
 
