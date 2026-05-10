@@ -132,7 +132,7 @@ export default function CartDrawer({
           transform: `translateY(${dragOffset}px)`,
           transition: draggingRef.current ? "none" : "transform 200ms ease-out",
         }}
-        className="relative w-full max-w-[480px] max-h-[88vh] overflow-y-auto overscroll-none rounded-t-3xl bg-cream shadow-xl sm:rounded-3xl"
+        className="relative w-full max-w-[480px] h-[92dvh] overflow-y-auto overscroll-none rounded-t-3xl bg-cream shadow-xl sm:h-auto sm:max-h-[88vh] sm:rounded-3xl"
       >
         {/* Drag handle — touch this region to swipe down */}
         <div
@@ -153,7 +153,12 @@ export default function CartDrawer({
           onTouchCancel={handleTouchEnd}
           className="sticky top-6 z-10 flex items-center justify-between border-b border-neutral-200 bg-cream/95 px-6 py-4 backdrop-blur"
         >
-          <h2 className="font-serif text-2xl text-neutral-900">
+          <h2
+            className={[
+              "whitespace-pre-line text-2xl font-semibold uppercase text-neutral-900",
+              lang === "zh" ? "tracking-normal" : "tracking-[0.08em]",
+            ].join(" ")}
+          >
             {cart.length === 0 ? t("yourCartEmpty") : t("yourCart")}
           </h2>
         </header>
@@ -173,8 +178,15 @@ export default function CartDrawer({
             </div>
           </div>
         ) : cart.length === 0 ? (
-          <div className="px-6 py-16 text-center text-sm text-neutral-600">
-            {t("emptyCart")}
+          <div className="flex flex-col items-center justify-center px-6 py-16 text-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/cart-empty.webp"
+              alt=""
+              aria-hidden="true"
+              className="h-64 w-64 object-contain sm:h-56 sm:w-56"
+            />
+            <p className="mt-6 text-2xl text-neutral-600">{t("emptyCart")}</p>
           </div>
         ) : (
           <>

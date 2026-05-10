@@ -52,8 +52,8 @@ const TRANSLATIONS = {
   viewCartCountOne: { en: "View cart · {n} Item", zh: "查看购物车 · {n} 件" },
   viewCartCount: { en: "View cart · {n} Items", zh: "查看购物车 · {n} 件" },
   yourCartEmpty: {
-    en: "Your cart is safe... Cause it's empty",
-    zh: "您的购物车很安全…因为是空的",
+    en: "Your cart is safe...\nCause it's empty",
+    zh: "您的购物车很安全…\n因为是空的",
   },
   emptyCart: {
     en: "Add something tasty",

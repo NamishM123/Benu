@@ -137,6 +137,7 @@ function normalize(input: MenuItemInput, id: string): StoredMenuItem {
       ? input.tags.map((t) => t.trim().toLowerCase()).filter(Boolean)
       : [],
     image: input.image?.trim() || "/menu/placeholder.svg",
+    ...(input.available === false ? { available: false } : {}),
   };
 }
 

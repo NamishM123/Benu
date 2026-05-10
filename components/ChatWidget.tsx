@@ -153,10 +153,13 @@ export default function ChatWidget({
     if (open) setDragOffset(0);
   }, [open]);
 
-  // Lock page scroll while the chat is open so the menu underneath can't
-  // drift (and never expose dish photos above the sticky category tabs).
+  // Lock page scroll while the chat is open ONLY on mobile, where the chat
+  // is a fullscreen-feel overlay. On desktop the panel sits in the corner
+  // and the menu should stay scrollable behind it.
   useEffect(() => {
     if (!open) return;
+    if (typeof window === "undefined") return;
+    if (!window.matchMedia("(max-width: 639px)").matches) return;
     const orig = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
@@ -358,30 +361,49 @@ export default function ChatWidget({
 
       {open && (
         <>
-          {/* Cream-tinted, blurred backdrop. Hides the menu cards behind the
-              chat (the user shouldn't see dish photos peeking above the
-              category tabs) and clicks dismiss the panel back to the
-              launcher. */}
+          {/* Mobile: full-screen "Ask Benu" page (logo + chat panel inside
+              one fixed container that sizes itself to the dynamic viewport
+              so the keyboard never exposes the menu underneath).
+              Desktop (sm:): the same container becomes a thin translucent
+              backdrop and the chat panel below floats out as a fixed
+              bottom-right widget. */}
           <div
-            className="fixed inset-0 z-30 bg-cream/85 backdrop-blur-md"
             onClick={() => setOpen(false)}
             aria-hidden="true"
-          />
-          <section
-            aria-label={t("chatPanelAria")}
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              bottom: `${20 + keyboardInset}px`,
-              maxHeight: vvHeight != null ? `${vvHeight - 40}px` : "82dvh",
-              // --chat-x flips to 0 on desktop (sm:) so the panel pins to the
-              // right instead of centering full-width — see className below.
-              transform: `translateX(var(--chat-x,-50%)) translateY(${dragOffset}px)`,
-              transition: draggingRef.current
-                ? "none"
-                : "transform 200ms ease-out",
-            }}
-            className="fixed left-1/2 z-40 flex h-[82dvh] w-[calc(100vw-2rem)] max-w-6xl flex-col overflow-hidden rounded-2xl border border-neutral-300/70 bg-white shadow-2xl sm:left-auto sm:right-5 sm:h-[min(720px,82dvh)] sm:w-[min(420px,calc(100vw-2.5rem))] sm:max-w-none sm:[--chat-x:0]"
+            style={
+              // Live visualViewport height when available — more reliable
+              // than 100dvh on older iOS Safari for keyboard-shrink.
+              vvHeight != null
+                ? ({ height: `${vvHeight}px` } as React.CSSProperties)
+                : undefined
+            }
+            className="fixed inset-x-0 top-0 z-30 flex h-[100dvh] flex-col bg-cream sm:inset-0 sm:block sm:h-auto sm:bg-cream/85 sm:backdrop-blur-md"
           >
+            {/* Logo: mobile only. PNG has ~43% transparent whitespace below
+                the artwork; clip it. */}
+            <div className="pointer-events-none flex flex-none justify-center pt-2 sm:hidden">
+              <div className="block overflow-hidden h-[64px]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/shake-shake-logo.png"
+                  alt=""
+                  width={1536}
+                  height={831}
+                  className="block h-[112px] w-auto max-w-none"
+                />
+              </div>
+            </div>
+            <section
+              aria-label={t("chatPanelAria")}
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                transform: `translateY(${dragOffset}px)`,
+                transition: draggingRef.current
+                  ? "none"
+                  : "transform 200ms ease-out",
+              }}
+              className="mx-3 mb-2 flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-neutral-300/70 bg-white sm:fixed sm:bottom-5 sm:right-5 sm:left-auto sm:m-0 sm:h-[min(720px,82dvh)] sm:w-[min(420px,calc(100vw-2.5rem))] sm:max-w-none sm:flex-none sm:shadow-2xl"
+            >
           <div
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
@@ -614,6 +636,7 @@ export default function ChatWidget({
             </button>
           </form>
           </section>
+          </div>
         </>
       )}
     </>
