@@ -297,10 +297,13 @@ const TRANSLATIONS = {
   chatInputAria: { en: "Ask the menu assistant", zh: "向菜单助手提问" },
   chatSendAria: { en: "Send message", zh: "发送消息" },
 
-  // Medical emergency response (intercepts the chat before any LLM call)
+  // Medical emergency response (intercepts the chat before any LLM call).
+  // Covers BOTH active distress ("I can't breathe") AND incident reports
+  // ("the client died", "you killed me") — same response, because either
+  // demands immediate human escalation.
   emergencyMessage: {
-    en: "🚨 If this is a medical emergency, call 911 immediately. If you have an EpiPen, use it now. Flag down a Benu staff member right away — don't wait. Do not eat or drink anything else, and do not drive yourself if your symptoms are severe.\n\nI'm just a menu assistant and can't give medical advice. Please get human help right now.",
-    zh: "🚨 如果这是医疗紧急情况，请立即拨打 120（中国）或 911（美国）。如果您有肾上腺素自动注射器（EpiPen），请立即使用。请立刻招呼 Benu 工作人员 — 不要等待。请勿再进食或饮水，如症状严重请勿自行驾车。\n\n我只是一个菜单助手，无法提供医疗建议。请立即寻求人工帮助。",
+    en: "🚨 STOP — if there is any medical emergency right now, call 911 immediately. If you or someone with you has had an allergic reaction or anyone has been harmed, get to a Benu staff member or manager NOW and call 911. If an EpiPen is available, use it. Do not eat or drink anything else.\n\nI'm only a menu assistant and cannot handle medical situations or incident reports. Please contact emergency services and restaurant management directly.",
+    zh: "🚨 请立即停止 — 如果有任何医疗紧急情况，请立刻拨打 120（中国）或 911（美国）。如果您或同行人出现过敏反应或任何人受伤，请立即找到 Benu 工作人员或经理并拨打急救电话。如有肾上腺素自动注射器（EpiPen），请立即使用。请勿再进食或饮水。\n\n我只是一个菜单助手，无法处理医疗情况或事故报告。请直接联系急救服务和餐厅管理人员。",
   },
 
   // Order-placed confirmation (in cart drawer after sending)

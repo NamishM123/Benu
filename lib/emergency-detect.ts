@@ -44,6 +44,25 @@ const STRONG_PATTERNS: RegExp[] = [
   /\bneed\s+(?:an?\s+)?ambulance\b/i,
   /\bemergency\s+room\b/i,
   /\bgo(?:ing)?\s+to\s+(?:the\s+)?(?:er|emergency\s+room|hospital)\b/i,
+
+  // DEATH / KILLED — any mention in a food/restaurant chat must be
+  // treated as a serious incident report. Yes, "you killed me" is
+  // sometimes hyperbolic in casual chat, but in a restaurant ordering
+  // assistant the cost of treating it as serious is a banner the user
+  // can read past; the cost of NOT treating it as serious is a
+  // generic "I'm sorry to hear that" reply to a death report. We
+  // pick the safer side every time.
+  /\bkilled\s+(?:me|him|her|them|someone|somebody|a\s+(?:client|guest|customer|person)|the\s+(?:client|guest|customer|person))\b/i,
+  /\byou\s+(?:just\s+)?killed\b/i,
+  /\b(?:i|he|she|they|the\s+(?:client|guest|customer|person)|someone|somebody|my\s+\w+)\s+died\b/i,
+  /\bdied\s+(?:from|because|after\s+eating|of\s+an\s+allergic|of\s+anaphyl)/i,
+  /\bdeath\s+(?:from|caused\s+by|due\s+to)\s+(?:the\s+)?(?:food|meal|dish|allerg)/i,
+  /\bgoing\s+to\s+die\b/i,
+  /\bgonna\s+die\b/i,
+
+  // Active loss-of-consciousness language
+  /\bpassing\s+out\b/i,
+  /\bblack(?:ing)?\s+out\b/i,
 ];
 
 // Combo: an allergy-context noun + an active-distress phrase. Both
