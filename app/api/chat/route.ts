@@ -11,20 +11,16 @@ import {
   extractCustomAllergens,
 } from "@/lib/allergen-detect";
 import { isMedicalEmergency } from "@/lib/emergency-detect";
+import { getEmergencyMessage } from "@/lib/emergency-messages";
+import { detectLanguage } from "@/lib/lang-detect";
 import type { MenuItem } from "@/lib/menu";
-
-// Hardcoded medical-emergency response. The chat intercepts before any
-// LLM call when the user's message looks like a medical emergency, so
-// the response below is what they see — no menu suggestions, no
-// "what flavors are you in the mood for?" reply. This is shipped in
-// both languages so it works regardless of the user's language toggle.
-const EMERGENCY_TEXT_EN =
-  "🚨 STOP — if there is any medical emergency right now, call 911 immediately. If you or someone with you has had an allergic reaction or anyone has been harmed, get to a Benu staff member or manager NOW and call 911. If an EpiPen is available, use it. Do not eat or drink anything else.\n\nI'm only a menu assistant and cannot handle medical situations or incident reports. Please contact emergency services and restaurant management directly.";
 
 export const runtime = "nodejs";
 
 function buildSystemPrompt(menu: MenuItem[]): string {
-  return `You are the menu assistant for Benu, a noodle restaurant. Your job is to help guests pick dishes, explain flavors, and — most importantly — keep them safe from allergens.
+  return `You are Benu, the AI menu assistant for Shake Shake Fresh Noodle, a noodle restaurant. Benu is YOU (the assistant). Shake Shake Fresh Noodle is the restaurant. When you refer to the staff, the manager, or "our team", say "Shake Shake Fresh Noodle staff" / "the restaurant staff" / "the manager" — NEVER "Benu staff" (Benu is not a person/team, Benu is an AI). Your job is to help guests pick dishes, explain flavors, and — most importantly — keep them safe from allergens.
+
+LANGUAGE: Always reply in the same language the guest used in their most recent message. If they wrote in French, reply in French. Russian → Russian. Spanish, German, Japanese, Arabic, Hindi, Thai, Vietnamese — match it. Do not switch back to English unless the guest does.
 
 MEDICAL EMERGENCY / HARM REPORT OVERRIDE (highest priority — overrides all menu behavior):
 - If the guest mentions ANY of the following — even hypothetically, jokingly, in past tense, or about a third party — STOP all menu chat and respond with the canned emergency message below:
@@ -34,7 +30,7 @@ MEDICAL EMERGENCY / HARM REPORT OVERRIDE (highest priority — overrides all men
   • "the client / customer / guest / he / she / they died" (in any tense)
   • "died from", "death from", "killed by the food", "had a reaction"
   • any question that implies someone was harmed or made sick by a dish ("why did you serve X to someone allergic", "you let them eat X")
-- Your reply text must be ONLY this (translated into the guest's language): "🚨 STOP — if there is any medical emergency right now, call 911 immediately. If you or someone with you has had an allergic reaction or anyone has been harmed, get to a Benu staff member or manager NOW and call 911. If an EpiPen is available, use it. Do not eat or drink anything else. I'm only a menu assistant and cannot handle medical situations or incident reports. Please contact emergency services and restaurant management directly."
+- Your reply text must be ONLY this (translated into the guest's language): "🚨 STOP — if there is any medical emergency right now, call 911 (or your local emergency number) immediately. If you or someone with you has had an allergic reaction or anyone has been harmed, get to a Shake Shake Fresh Noodle staff member or manager NOW. If an EpiPen is available, use it. Do not eat or drink anything else. I'm Benu, only a menu assistant — I cannot handle medical situations or incident reports. Please contact emergency services and restaurant management directly."
 - DO NOT respond with a generic "I'm sorry to hear that" / "we take allergies very seriously" / corporate apology — that is unsafe. Use ONLY the canned message above.
 - dish_names must be an empty array. Do NOT suggest food until the guest explicitly says they're OK now AND no harm-report language is present.
 
@@ -227,8 +223,13 @@ export async function POST(req: Request) {
   // detector is now conservative to avoid false positives (the prior
   // version flagged "Hi sick my dic" as anaphylaxis).
   if (isMedicalEmergency(question)) {
+    // Detect the user's language from their message and respond in it.
+    // The emergency intercept bypasses the LLM, so we cannot rely on the
+    // model to translate at runtime — we keep canned messages for ~20
+    // languages in lib/emergency-messages.ts.
+    const lang = detectLanguage(question);
     return NextResponse.json({
-      text: EMERGENCY_TEXT_EN,
+      text: getEmergencyMessage(lang),
       dishes: [],
       // Send the full effective sets so allergens persist even on
       // emergency turns (user might have just stated an allergy in the
@@ -236,6 +237,7 @@ export async function POST(req: Request) {
       detectedAllergens: preferences,
       detectedCustomAllergens: customAllergens,
       isEmergency: true,
+      emergencyLang: lang,
     });
   }
 

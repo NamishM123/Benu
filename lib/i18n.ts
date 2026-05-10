@@ -297,13 +297,14 @@ const TRANSLATIONS = {
   chatInputAria: { en: "Ask the menu assistant", zh: "向菜单助手提问" },
   chatSendAria: { en: "Send message", zh: "发送消息" },
 
-  // Medical emergency response (intercepts the chat before any LLM call).
-  // Covers BOTH active distress ("I can't breathe") AND incident reports
-  // ("the client died", "you killed me") — same response, because either
-  // demands immediate human escalation.
+  // Medical emergency / harm-report response. Covers active distress
+  // and incident reports — both demand immediate human escalation.
+  // The server picks a localized version based on the message language;
+  // these are the EN/ZH variants used as fallback when the client UI
+  // language is set explicitly.
   emergencyMessage: {
-    en: "🚨 STOP — if there is any medical emergency right now, call 911 immediately. If you or someone with you has had an allergic reaction or anyone has been harmed, get to a Benu staff member or manager NOW and call 911. If an EpiPen is available, use it. Do not eat or drink anything else.\n\nI'm only a menu assistant and cannot handle medical situations or incident reports. Please contact emergency services and restaurant management directly.",
-    zh: "🚨 请立即停止 — 如果有任何医疗紧急情况，请立刻拨打 120（中国）或 911（美国）。如果您或同行人出现过敏反应或任何人受伤，请立即找到 Benu 工作人员或经理并拨打急救电话。如有肾上腺素自动注射器（EpiPen），请立即使用。请勿再进食或饮水。\n\n我只是一个菜单助手，无法处理医疗情况或事故报告。请直接联系急救服务和餐厅管理人员。",
+    en: "🚨 STOP — if there is any medical emergency right now, call 911 (or your local emergency number) immediately. If you or someone with you has had an allergic reaction, get a Shake Shake Fresh Noodle staff member or manager NOW. If an EpiPen is available, use it. Do not eat or drink anything else.\n\nI'm Benu, only a menu assistant — I cannot handle medical situations or incident reports. Please contact emergency services and restaurant management directly.",
+    zh: "🚨 请立即停止 — 如果有任何医疗紧急情况，请立刻拨打 120（中国）/ 911（美国）或当地急救电话。如果您或同行人出现过敏反应，请立即找到 Shake Shake Fresh Noodle 工作人员或经理。如有肾上腺素自动注射器（EpiPen），请立即使用。请勿再进食或饮水。\n\n我是 Benu，只是一个菜单助手 — 无法处理医疗情况或事故报告。请直接联系急救服务和餐厅管理人员。",
   },
 
   // Order-placed confirmation (in cart drawer after sending)

@@ -19,6 +19,8 @@ import {
   extractCustomAllergens,
 } from "@/lib/allergen-detect";
 import { isMedicalEmergency } from "@/lib/emergency-detect";
+import { getEmergencyMessage } from "@/lib/emergency-messages";
+import { detectLanguage } from "@/lib/lang-detect";
 import { containsOffensiveLanguage } from "@/lib/profanity";
 import { useTranslation } from "@/lib/i18n";
 
@@ -298,6 +300,11 @@ export default function ChatWidget({
     // responded "what flavors are you in the mood for?" to "I'm dying
     // could you help me" — never trust it for this case.
     if (isMedicalEmergency(text)) {
+      // Detect the user's language from THEIR message (not the UI
+      // language), so a French speaker who hasn't toggled the chat
+      // language picker still gets a French emergency response.
+      const detectedLang = detectLanguage(text);
+      const emergencyText = getEmergencyMessage(detectedLang);
       const userMsg: ChatMessage = { id: Date.now(), role: "user", text };
       setInput("");
       setMessages((m) => [
@@ -306,7 +313,7 @@ export default function ChatWidget({
         {
           id: Date.now() + 1,
           role: "bot",
-          text: t("emergencyMessage"),
+          text: emergencyText,
           emergency: true,
         },
       ]);
@@ -397,9 +404,11 @@ export default function ChatWidget({
         {
           id: Date.now() + 1,
           role: "bot",
-          // The server ships an English emergency string; if the user is
-          // on the Chinese view, prefer the localized i18n version.
-          text: isEmergency ? t("emergencyMessage") : data.text,
+          // For emergencies the server has already localized the message
+          // to the language detected from the user's text; trust it and
+          // render as-is. For normal replies, the LLM responds in the
+          // user's language so data.text is also already correct.
+          text: data.text,
           // Suppress dish cards entirely on emergency replies — no menu
           // suggestions while someone might be in anaphylaxis.
           dishes: isEmergency
