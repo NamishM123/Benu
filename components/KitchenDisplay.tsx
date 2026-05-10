@@ -93,7 +93,12 @@ export default function KitchenDisplay() {
             <button
               type="button"
               onClick={() => setShow86Panel((v) => !v)}
-              className="rounded-full border border-neutral-300 bg-white px-3 py-1.5 text-xs text-neutral-700 hover:bg-neutral-100"
+              className={[
+                "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+                show86Panel
+                  ? "border-[#C4A882] bg-[#C4A882] text-white"
+                  : "border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-100",
+              ].join(" ")}
             >
               Toggle
             </button>
