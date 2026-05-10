@@ -13,8 +13,7 @@ import {
   type OptionGroup,
 } from "@/lib/menu-options";
 import { findFlaggedPreferences } from "@/lib/preferences";
-import { addToCart, getCart, clearCart } from "@/lib/cart-store";
-import { getCurrentTableNumber, placeOrder } from "@/lib/order-store";
+import { addToCart } from "@/lib/cart-store";
 import { useTranslation } from "@/lib/i18n";
 import { useAutoTranslate } from "@/lib/auto-translate";
 import { containsOffensiveLanguage } from "@/lib/profanity";
@@ -63,8 +62,6 @@ export default function ItemDetailSheet({ item, preferences, onClose, onCartOpen
   const [quantity, setQuantity] = useState(1);
   const [specialRequest, setSpecialRequest] = useState("");
   const [justAdded, setJustAdded] = useState(false);
-  const [orderId, setOrderId] = useState<string | null>(null);
-  const [orderError, setOrderError] = useState<string | null>(null);
   const [fadeOpacity, setFadeOpacity] = useState(0);
 
   const supportsSpecialRequest = item ? itemSupportsSpecialRequest(item) : false;
@@ -175,7 +172,7 @@ export default function ItemDetailSheet({ item, preferences, onClose, onCartOpen
     });
   }
 
-  async function handleAdd() {
+  function handleAdd() {
     if (!canAdd) return;
     const lineSelections = groups
       .map((g) => {
@@ -204,20 +201,7 @@ export default function ItemDetailSheet({ item, preferences, onClose, onCartOpen
         ? { specialRequest: trimmedRequest }
         : {}),
     });
-
-    setOrderError(null);
-    try {
-      const cart = getCart();
-      const order = await placeOrder(cart, preferences, getCurrentTableNumber());
-      clearCart();
-      setOrderId(order.id);
-      setTimeout(() => {
-        setOrderId(null);
-        onClose();
-      }, 4000);
-    } catch {
-      setOrderError("Couldn't reach the kitchen — please try again.");
-    }
+    setJustAdded(true);
   }
 
   return (
@@ -247,24 +231,6 @@ export default function ItemDetailSheet({ item, preferences, onClose, onCartOpen
         className="popup-scroll relative w-full max-w-[480px] h-[100dvh] overflow-y-auto overscroll-none bg-cream shadow-xl sm:h-auto sm:max-h-[92vh] sm:rounded-3xl"
         style={{ WebkitOverflowScrolling: "auto" }}
       >
-        {orderId && (
-          <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-cream px-6 text-center">
-            <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-sage-dark text-3xl">✓</div>
-            <h3 className="font-serif text-2xl text-neutral-900">Order placed!</h3>
-            <p className="mt-2 text-sm text-neutral-600">Show this to your server if needed</p>
-            <div className="mt-5 rounded-2xl border border-neutral-200 bg-white px-8 py-4">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">Order ID</p>
-              <p className="mt-1 font-mono text-3xl font-bold tracking-widest text-neutral-900">
-                #{orderId.slice(0, 6).toUpperCase()}
-              </p>
-            </div>
-          </div>
-        )}
-        {orderError && (
-          <div className="absolute inset-x-0 top-4 z-50 mx-6">
-            <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-2 text-sm text-red-600">{orderError}</p>
-          </div>
-        )}
         {/* Soft fade strip at top: image scrolls into this instead of being cut sharply */}
         <div
           aria-hidden="true"
@@ -521,16 +487,16 @@ export default function ItemDetailSheet({ item, preferences, onClose, onCartOpen
           <div className="sticky bottom-0 -mx-6 mt-8 bg-cream-light/95 px-6 py-5 backdrop-blur">
             <button
               type="button"
-              onClick={handleAdd}
-              disabled={!canAdd}
+              onClick={justAdded ? () => { onClose(); onCartOpen?.(); } : handleAdd}
+              disabled={!canAdd && !justAdded}
               className={[
                 "flex w-full items-center justify-between rounded-full px-6 py-4 text-base font-medium shadow-md transition-colors",
-                canAdd
+                canAdd || justAdded
                   ? "bg-neutral-900 text-cream hover:bg-neutral-800"
                   : "bg-neutral-300 text-neutral-500",
               ].join(" ")}
             >
-              <span>{t("addToCart")}</span>
+              <span>{justAdded ? t("viewCart") : t("addToCart")}</span>
               <span>{formatPrice(totalPrice)}</span>
             </button>
           </div>
