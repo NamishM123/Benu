@@ -39,6 +39,7 @@ export default function KitchenDisplay() {
   const [etaDrafts, setEtaDrafts] = useState<Record<string, string>>({});
   const [menuItems, setMenuItems] = useState<(MenuItem & { id: string })[]>([]);
   const [show86Panel, setShow86Panel] = useState(false);
+  const [tab, setTab] = useState<"active" | "completed">("active");
 
   useEffect(() => {
     fetch("/api/menu/items")
@@ -145,13 +146,44 @@ export default function KitchenDisplay() {
       )}
 
       <main className="mx-auto max-w-6xl px-6 py-6">
-        {orders.length === 0 ? (
+        <div className="mb-5 flex gap-1 rounded-full border border-neutral-200 bg-white p-1 w-fit">
+          <button
+            type="button"
+            onClick={() => setTab("active")}
+            className={[
+              "rounded-full px-5 py-1.5 text-sm font-medium transition-colors",
+              tab === "active"
+                ? "bg-neutral-900 text-cream"
+                : "text-neutral-600 hover:text-neutral-900",
+            ].join(" ")}
+          >
+            Active
+          </button>
+          <button
+            type="button"
+            onClick={() => setTab("completed")}
+            className={[
+              "rounded-full px-5 py-1.5 text-sm font-medium transition-colors",
+              tab === "completed"
+                ? "bg-neutral-900 text-cream"
+                : "text-neutral-600 hover:text-neutral-900",
+            ].join(" ")}
+          >
+            Completed
+          </button>
+        </div>
+
+        {(() => {
+          const filtered = orders.filter((o) =>
+            tab === "active" ? o.status !== "ready" : o.status === "ready"
+          );
+          return filtered.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-neutral-300 bg-white px-6 py-16 text-center text-sm text-neutral-600">
-            {t("noOrders")}
+            {tab === "active" ? "No active orders" : "No completed orders"}
           </div>
         ) : (
           <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {orders.map((order) => {
+            {filtered.map((order) => {
               const shortId = order.id.slice(0, 6).toUpperCase();
               const etaValue =
                 etaDrafts[order.id] ??
@@ -302,7 +334,8 @@ export default function KitchenDisplay() {
               );
             })}
           </ul>
-        )}
+        );
+        })()}
       </main>
     </div>
   );
