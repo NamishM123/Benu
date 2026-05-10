@@ -420,7 +420,7 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
                 onChange={(e) => setInput(e.target.value)}
                 placeholder={isSending ? "Thinking…" : "Let's find something you'll love."}
                 disabled={isSending}
-                className="relative z-[2] block w-full rounded-full border border-cantaloupe-soft bg-white px-4 py-2 text-sm text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-cantaloupe/40 disabled:opacity-60"
+                className="relative z-[2] block w-full rounded-full border border-cantaloupe-soft bg-white px-4 py-2 text-base text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-cantaloupe/40 disabled:opacity-60 sm:text-sm"
               />
             </div>
             <button
