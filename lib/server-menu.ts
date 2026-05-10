@@ -55,11 +55,24 @@ const CATEGORY_ORDER: Record<string, number> = (() => {
   return map;
 })();
 
+// Preserve the curated order from the static MENU array. Items added later
+// via the admin UI fall to the end of their category, then break ties by name.
+const SEED_ORDER: Record<string, number> = (() => {
+  const map: Record<string, number> = {};
+  STATIC_MENU.forEach((item, i) => {
+    map[item.name] = i;
+  });
+  return map;
+})();
+
 function sortMenu(items: StoredMenuItem[]): StoredMenuItem[] {
   return [...items].sort((a, b) => {
     const ai = CATEGORY_ORDER[a.category] ?? 99;
     const bi = CATEGORY_ORDER[b.category] ?? 99;
     if (ai !== bi) return ai - bi;
+    const ao = SEED_ORDER[a.name] ?? Number.MAX_SAFE_INTEGER;
+    const bo = SEED_ORDER[b.name] ?? Number.MAX_SAFE_INTEGER;
+    if (ao !== bo) return ao - bo;
     return a.name.localeCompare(b.name);
   });
 }
