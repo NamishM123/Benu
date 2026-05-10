@@ -171,30 +171,16 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
 
   return (
     <>
-      <button
-        type="button"
-        aria-label={open ? "Close menu assistant" : "Open menu assistant"}
-        aria-expanded={open}
-        onClick={() => setOpen((v) => !v)}
-        className="fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-neutral-900 text-neutral-50 shadow-lg transition-colors duration-150 ease-out hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-700/30"
-      >
-        {open ? (
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden="true"
-          >
-            <line x1="18" y1="6" x2="6" y2="18" />
-            <line x1="6" y1="6" x2="18" y2="18" />
-          </svg>
-        ) : (
+      {/* Floating launcher — hidden while the panel is open so the user
+          collapses the chat with the dash button in the header instead. */}
+      {!open && (
+        <button
+          type="button"
+          aria-label="Open menu assistant"
+          aria-expanded={false}
+          onClick={() => setOpen(true)}
+          className="fixed bottom-5 right-5 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-neutral-900 text-neutral-50 shadow-lg transition-colors duration-150 ease-out hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-700/30"
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="22"
@@ -209,19 +195,19 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
           >
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
           </svg>
-        )}
-      </button>
+        </button>
+      )}
 
       {open && (
         <section
           aria-label="Menu assistant"
-          className="fixed bottom-24 right-4 z-40 flex w-[calc(100vw-2rem)] max-w-[460px] flex-col overflow-hidden rounded-2xl border border-neutral-300/70 bg-white shadow-2xl sm:h-[min(660px,calc(100vh-8rem))]"
-          style={{ maxHeight: "min(660px, calc(100vh - 8rem))" }}
+          className="fixed bottom-5 right-4 z-40 flex h-[calc(100dvh-2.5rem)] w-[calc(100vw-2rem)] max-w-[460px] flex-col overflow-hidden rounded-2xl border border-neutral-300/70 bg-white shadow-2xl sm:bottom-5 sm:h-[min(820px,calc(100vh-2.5rem))]"
+          style={{ maxHeight: "calc(100dvh - 2.5rem)" }}
         >
-          <div className="flex items-center justify-between border-b border-neutral-200 px-4 pt-4 pb-3">
-            <div>
-              <h2 className="font-serif text-2xl tracking-tight text-neutral-900">
-                Ask Benu
+          <div className="flex items-start justify-between gap-3 border-b border-neutral-200 px-4 pt-4 pb-3">
+            <div className="min-w-0">
+              <h2 className="font-serif text-2xl leading-tight tracking-tight text-neutral-900">
+                Ask Benu In Any Language
               </h2>
               {preferences.length > 0 && (
                 <p className="mt-0.5 text-xs text-neutral-500">
@@ -229,6 +215,27 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
                 </p>
               )}
             </div>
+            {/* Hide / minimise — collapses the chat back to the launcher */}
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              aria-label="Hide chat"
+              className="mt-1 flex h-9 w-9 flex-none items-center justify-center rounded-full text-neutral-500 hover:bg-neutral-100 hover:text-neutral-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                aria-hidden="true"
+              >
+                <line x1="6" y1="13" x2="18" y2="13" />
+              </svg>
+            </button>
           </div>
 
           <div
