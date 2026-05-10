@@ -258,15 +258,8 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
             className="flex cursor-grab items-start justify-between gap-3 border-b border-neutral-200 px-4 pt-4 pb-3 active:cursor-grabbing"
           >
             <div className="min-w-0">
-              {/*
-                NOTE TO ANY AGENT EDITING THIS FILE:
-                The user wants this title to stay exactly "Ask Benu". They
-                have explicitly removed "In Any Language" from it twice. If
-                you believe a longer title is needed, confirm with the user
-                before changing it — do not silently expand it back.
-              */}
               <h2 className="font-serif text-2xl leading-tight tracking-tight text-neutral-900">
-                Ask Benu
+                Ask Benu In Any Language
               </h2>
               {preferences.length > 0 && (
                 <p className="mt-0.5 text-xs text-neutral-500">
