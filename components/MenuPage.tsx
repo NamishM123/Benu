@@ -114,7 +114,7 @@ export default function MenuPage({ menu }: Props) {
     <>
       <main className="min-h-screen w-full bg-cream pb-28">
         <div className="mx-auto w-full max-w-6xl">
-          <div className="flex items-center justify-between gap-3 px-4 pt-4 sm:px-10 sm:pt-3">
+          <div className="flex items-center justify-between gap-3 px-3 pt-4 sm:px-10 sm:pt-3">
             <button
               type="button"
               onClick={() => {
@@ -127,7 +127,7 @@ export default function MenuPage({ menu }: Props) {
               className="flex-none cursor-default rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
             >
               {/* PNG has ~43% transparent whitespace below the artwork; clip it. */}
-              <div className="block overflow-hidden h-9 sm:h-[78px] flex-none">
+              <div className="block overflow-hidden h-[46px] sm:h-[78px] flex-none">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/shake-shake-logo.png"
@@ -137,7 +137,7 @@ export default function MenuPage({ menu }: Props) {
                   fetchPriority="high"
                   decoding="sync"
                   loading="eager"
-                  className="block h-16 w-auto max-w-none sm:h-36 -mt-0.5 sm:-mt-2 flex-none"
+                  className="block h-20 w-auto max-w-none sm:h-36 -mt-0.5 sm:-mt-2 flex-none"
                 />
               </div>
             </button>
@@ -159,13 +159,29 @@ export default function MenuPage({ menu }: Props) {
               onClick={() => setFiltersOpen(true)}
               aria-label={t("filters")}
               className={[
-                "hidden sm:inline-flex w-[8.5rem] items-center justify-center whitespace-nowrap rounded-full px-3 py-2 text-base font-medium shadow-sm transition-colors",
+                "hidden sm:inline-flex h-11 w-[7rem] items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-3 text-base font-medium shadow-sm transition-colors",
                 "focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30",
                 preferences.length > 0
                   ? "bg-cantaloupe text-neutral-900 hover:bg-cantaloupe-soft"
                   : "border border-neutral-300 bg-white text-neutral-800 hover:bg-neutral-100",
               ].join(" ")}
             >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <line x1="4" y1="6" x2="20" y2="6" />
+                <line x1="7" y1="12" x2="17" y2="12" />
+                <line x1="10" y1="18" x2="14" y2="18" />
+              </svg>
               <span>
                 {t("filters")}
                 {preferences.length > 0 ? ` · ${preferences.length}` : ""}
@@ -175,7 +191,7 @@ export default function MenuPage({ menu }: Props) {
                 type="button"
                 onClick={() => setCartOpen(true)}
                 aria-label={t("yourCart")}
-                className="relative inline-flex h-9 w-9 items-center justify-center rounded-full border border-neutral-300 bg-white text-neutral-800 shadow-sm transition-colors hover:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30 sm:h-10 sm:w-10"
+                className="relative inline-flex h-11 w-11 items-center justify-center rounded-full border border-neutral-300 bg-white text-neutral-800 shadow-sm transition-colors hover:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
