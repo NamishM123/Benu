@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import QRCode from "qrcode";
 import { TABLE_COUNT } from "@/lib/prep-time";
+import SignOutButton from "./SignOutButton";
 
 type Card = { table: number; url: string; dataUrl: string };
 
@@ -71,6 +72,7 @@ export default function QrAdmin() {
             >
               Print
             </button>
+            <SignOutButton />
           </div>
         </div>
       </header>

@@ -12,6 +12,7 @@ import {
 } from "@/lib/order-store";
 import { useTranslation, t as translate, type Lang } from "@/lib/i18n";
 import LanguageSwitcher from "./LanguageSwitcher";
+import SignOutButton from "./SignOutButton";
 
 function formatTime(ts: number): string {
   const d = new Date(ts);
@@ -65,11 +66,14 @@ export default function KitchenDisplay() {
   return (
     <div className="min-h-screen bg-cream">
       <header className="sticky top-0 z-10 border-b border-neutral-200 bg-cream/95 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-6 py-4">
           <h1 className="font-serif text-2xl text-neutral-900 sm:text-3xl">
             {t("kitchenTitle")}
           </h1>
-          <LanguageSwitcher />
+          <div className="flex items-center gap-3">
+            <LanguageSwitcher />
+            <SignOutButton />
+          </div>
         </div>
       </header>
 
