@@ -148,10 +148,13 @@ export default function ChatWidget({
     if (open) setDragOffset(0);
   }, [open]);
 
-  // Lock page scroll while the chat is open so the menu underneath can't
-  // drift (and never expose dish photos above the sticky category tabs).
+  // Lock page scroll while the chat is open ONLY on mobile, where the chat
+  // is a fullscreen-feel overlay. On desktop the panel sits in the corner
+  // and the menu should stay scrollable behind it.
   useEffect(() => {
     if (!open) return;
+    if (typeof window === "undefined") return;
+    if (!window.matchMedia("(max-width: 639px)").matches) return;
     const orig = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
@@ -315,11 +318,14 @@ export default function ChatWidget({
 
       {open && (
         <>
-          {/* Backdrop. Mobile: fully opaque cream so the menu cards are
-              completely hidden behind the chat. Desktop: keeps the soft
-              translucent feel. Clicks dismiss the panel. */}
+          {/* Mobile-only backdrop. On phones the chat is a fullscreen-feel
+              overlay so we hide the menu cards behind an opaque cream
+              backdrop and let outside-tap dismiss the panel. On desktop
+              (sm:hidden) there's no backdrop — the small right-pinned chat
+              panel is opaque on its own and the rest of the menu stays
+              fully visible AND interactive. */}
           <div
-            className="fixed inset-0 z-30 bg-cream sm:bg-cream/85 sm:backdrop-blur-md"
+            className="fixed inset-0 z-30 bg-cream sm:hidden"
             onClick={() => setOpen(false)}
             aria-hidden="true"
           >
