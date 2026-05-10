@@ -3,6 +3,7 @@ import { kv } from "@vercel/kv";
 import type { CartLine } from "./cart-store";
 import type { Order, OrderStatus } from "./order-store";
 import { estimateOrderMinutes } from "./prep-time";
+import { listMenuItems } from "./server-menu";
 
 // Storage strategy:
 // - In production (Vercel KV env vars present), all orders live in a single
@@ -74,7 +75,7 @@ export async function getOrder(id: string): Promise<Order | undefined> {
 }
 
 export async function createOrder(input: CreateOrderInput): Promise<Order> {
-  const all = await listOrders();
+  const [all, menu] = await Promise.all([listOrders(), listMenuItems()]);
   const activeAhead = all.filter(
     (o) => o.status === "new" || o.status === "cooking",
   ).length;
@@ -86,7 +87,7 @@ export async function createOrder(input: CreateOrderInput): Promise<Order> {
     lines: input.lines,
     preferences: input.preferences,
     tableNumber: input.tableNumber,
-    etaMinutes: estimateOrderMinutes(input.lines, activeAhead),
+    etaMinutes: estimateOrderMinutes(input.lines, activeAhead, menu),
     clientId: input.clientId,
   };
 

@@ -1,13 +1,15 @@
 import OpenAI from "openai";
 import { NextResponse } from "next/server";
-import { MENU } from "@/lib/menu";
 import { answerMenuQuestion } from "@/lib/chatbot";
 import { findFlaggedPreferences } from "@/lib/preferences";
 import { searchPhoto } from "@/lib/unsplash";
+import { listMenuItems } from "@/lib/server-menu";
+import type { MenuItem } from "@/lib/menu";
 
 export const runtime = "nodejs";
 
-const SYSTEM_PROMPT = `You are the friendly menu assistant for Benu, a modern noodle restaurant. Your job is to help guests pick dishes, explain flavors, and flag allergens.
+function buildSystemPrompt(menu: MenuItem[]): string {
+  return `You are the friendly menu assistant for Benu, a modern noodle restaurant. Your job is to help guests pick dishes, explain flavors, and flag allergens.
 
 Guidelines:
 - Only recommend dishes from the MENU below. Never invent dishes, prices, or ingredients.
@@ -17,7 +19,8 @@ Guidelines:
 - If the guest asks something the menu can't answer, say so briefly and steer them back to the menu.
 
 MENU (JSON):
-${JSON.stringify(MENU, null, 2)}`;
+${JSON.stringify(menu, null, 2)}`;
+}
 
 const RESPONSE_SCHEMA = {
   type: "object",
@@ -68,6 +71,7 @@ export async function POST(req: Request) {
   }
 
   const apiKey = process.env.OPENAI_API_KEY;
+  const menu = await listMenuItems();
   if (!apiKey) {
     return NextResponse.json(localFallback(question, preferences));
   }
@@ -84,7 +88,7 @@ export async function POST(req: Request) {
       model: "gpt-4o-mini",
       max_tokens: 1024,
       messages: [
-        { role: "system", content: SYSTEM_PROMPT },
+        { role: "system", content: buildSystemPrompt(menu) },
         {
           role: "user",
           content: `${userContext}\n\nGuest question: ${question}`,
@@ -110,10 +114,12 @@ export async function POST(req: Request) {
       dish_names: string[];
     };
 
-    const dishMap = new Map(MENU.map((m) => [m.name.toLowerCase(), m]));
-    const dishes = parsed.dish_names
+    const dishMap = new Map<string, MenuItem>(
+      menu.map((m) => [m.name.toLowerCase(), m]),
+    );
+    const dishes: MenuItem[] = parsed.dish_names
       .map((name) => dishMap.get(name.toLowerCase()))
-      .filter((d): d is (typeof MENU)[number] => Boolean(d));
+      .filter((d): d is MenuItem => Boolean(d));
 
     const enrichedDishes = await Promise.all(
       dishes.map(async (d) => ({

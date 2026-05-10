@@ -5,7 +5,9 @@ import { COOKIE_NAME, verifyCookieValue } from "@/lib/staff-auth";
 // Public endpoints customers need:
 //   GET  /api/orders?clientId=...    (their own orders)
 //   POST /api/orders                  (place a new order)
-// Everything else under /kitchen, /admin/*, or /api/orders is staff-only.
+//   GET  /api/menu/items[/<id>]       (read the menu)
+// Everything else under /kitchen, /admin/*, /api/orders, or /api/menu is
+// staff-only.
 function needsStaffAuth(pathname: string, method: string, hasClientId: boolean): boolean {
   if (pathname === "/kitchen") return true;
   if (pathname.startsWith("/admin/")) return true;
@@ -17,6 +19,10 @@ function needsStaffAuth(pathname: string, method: string, hasClientId: boolean):
   if (pathname.startsWith("/api/orders/")) {
     // GET/PATCH/DELETE on a specific order — kitchen-only
     return true;
+  }
+  if (pathname === "/api/menu/items" || pathname.startsWith("/api/menu/items/")) {
+    // GET is public (customers + chat). Mutations are staff-only.
+    return method !== "GET";
   }
   return false;
 }
@@ -46,5 +52,12 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/kitchen", "/admin/:path*", "/api/orders", "/api/orders/:path*"],
+  matcher: [
+    "/kitchen",
+    "/admin/:path*",
+    "/api/orders",
+    "/api/orders/:path*",
+    "/api/menu/items",
+    "/api/menu/items/:path*",
+  ],
 };

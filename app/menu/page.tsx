@@ -1,10 +1,12 @@
 import MenuPage from "@/components/MenuPage";
-import { MENU } from "@/lib/menu";
+import { listMenuItems } from "@/lib/server-menu";
 import { resolveDishPhotos } from "@/lib/unsplash";
 
-export const revalidate = 604800; // 7 days, in seconds
+// Staff edits to the menu must show up immediately, so don't cache the page.
+export const dynamic = "force-dynamic";
 
 export default async function Menu() {
-  const enriched = await resolveDishPhotos(MENU);
+  const items = await listMenuItems();
+  const enriched = await resolveDishPhotos(items);
   return <MenuPage menu={enriched} />;
 }

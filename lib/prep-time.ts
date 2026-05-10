@@ -1,11 +1,17 @@
 import { MENU, type MenuItem } from "./menu";
 import type { CartLine } from "./cart-store";
 
-const ITEMS_BY_NAME: Record<string, MenuItem> = (() => {
+const STATIC_ITEMS_BY_NAME: Record<string, MenuItem> = (() => {
   const map: Record<string, MenuItem> = {};
   for (const m of MENU) map[m.name] = m;
   return map;
 })();
+
+function indexByName(menu: MenuItem[]): Record<string, MenuItem> {
+  const map: Record<string, MenuItem> = {};
+  for (const m of menu) map[m.name] = m;
+  return map;
+}
 
 const CATEGORY_BASE_MINUTES: Record<string, number> = {
   Beverages: 1,
@@ -53,8 +59,11 @@ function isCold(item: MenuItem): boolean {
   return false;
 }
 
-function lineMinutes(line: CartLine): { minutes: number; cold: boolean } {
-  const item = ITEMS_BY_NAME[line.itemName];
+function lineMinutes(
+  line: CartLine,
+  itemsByName: Record<string, MenuItem>,
+): { minutes: number; cold: boolean } {
+  const item = itemsByName[line.itemName];
   if (!item) {
     return { minutes: 6, cold: false };
   }
@@ -74,10 +83,12 @@ function lineMinutes(line: CartLine): { minutes: number; cold: boolean } {
 export function estimateOrderMinutes(
   lines: CartLine[],
   activeOrdersAhead = 0,
+  menu?: MenuItem[],
 ): number {
   if (lines.length === 0) return MIN_ETA;
 
-  const perLine = lines.map(lineMinutes);
+  const itemsByName = menu ? indexByName(menu) : STATIC_ITEMS_BY_NAME;
+  const perLine = lines.map((line) => lineMinutes(line, itemsByName));
   const hot = perLine.filter((l) => !l.cold).map((l) => l.minutes);
   const cold = perLine.filter((l) => l.cold).map((l) => l.minutes);
 

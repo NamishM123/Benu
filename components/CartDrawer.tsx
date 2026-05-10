@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { formatPrice } from "@/lib/menu";
+import { formatPrice, type MenuItem } from "@/lib/menu";
 import {
   addToCart,
   cartTotal,
@@ -20,6 +20,7 @@ type Props = {
   open: boolean;
   cart: CartLine[];
   preferences?: string[];
+  menu: MenuItem[];
   onClose: () => void;
 };
 
@@ -29,6 +30,7 @@ export default function CartDrawer({
   open,
   cart,
   preferences = [],
+  menu,
   onClose,
 }: Props) {
   const { t, lang } = useTranslation();
@@ -79,8 +81,8 @@ export default function CartDrawer({
   }, [open]);
 
   const pairings = useMemo(
-    () => pickPairings(cart, preferences),
-    [cart, preferences],
+    () => pickPairings(cart, preferences, menu),
+    [cart, preferences, menu],
   );
 
   if (!open) return null;
@@ -270,7 +272,7 @@ export default function CartDrawer({
                       </p>
                     </div>
                     <p className="mt-1 text-xs text-neutral-500">
-                      {pairingReason(p, cart)}
+                      {pairingReason(p, cart, menu)}
                     </p>
                     <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-neutral-500">
                       {lang === "zh" && p.descriptionZh ? p.descriptionZh : p.description}

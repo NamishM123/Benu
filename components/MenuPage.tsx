@@ -400,6 +400,7 @@ export default function MenuPage({ menu }: Props) {
         open={cartOpen}
         cart={cart}
         preferences={preferences}
+        menu={menu}
         onClose={() => setCartOpen(false)}
       />
       <FilterSheet
