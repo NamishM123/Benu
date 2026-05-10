@@ -259,7 +259,7 @@ export default function ChatWidget({ hidden = false }: ChatWidgetProps = {}) {
           >
             <div className="min-w-0">
               <h2 className="font-serif text-2xl leading-tight tracking-tight text-neutral-900">
-                Ask Benu In Any Language
+                Ask Benu
               </h2>
               {preferences.length > 0 && (
                 <p className="mt-0.5 text-xs text-neutral-500">
