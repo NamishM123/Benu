@@ -168,7 +168,7 @@ export default function FilterSheet({ open, preferences, onClose }: Props) {
         >
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <h2 className="font-serif text-2xl text-neutral-900">
+              <h2 className="text-xl font-semibold uppercase tracking-[0.08em] text-neutral-900">
                 {t("filterMenuTitle")}
               </h2>
               {draft.size > 0 && (
