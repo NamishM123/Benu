@@ -71,9 +71,11 @@ export async function middleware(req: NextRequest) {
   const method = req.method;
   const hasClientId = searchParams.has("clientId");
 
-  const host = req.headers.get("host") || "";
-  const staffHost = process.env.STAFF_HOST;
-  const customerHost = process.env.CUSTOMER_HOST;
+  const host = (req.headers.get("host") || "").trim().toLowerCase();
+  // Trim/lowercase env values defensively: pasting a hostname into the
+  // Vercel UI is easy to accidentally do with a trailing space.
+  const staffHost = process.env.STAFF_HOST?.trim().toLowerCase();
+  const customerHost = process.env.CUSTOMER_HOST?.trim().toLowerCase();
   const onStaffHost = !!staffHost && host === staffHost;
   const onCustomerHost = !!customerHost && host === customerHost;
 
