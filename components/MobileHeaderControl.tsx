@@ -20,13 +20,13 @@ export default function MobileHeaderControl({
   const { t, lang, setLang } = useTranslation();
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-1.5">
       {/* Language toggle: tap to switch between EN and 中 */}
       <button
         type="button"
         onClick={() => setLang(lang === "en" ? "zh" : "en")}
         aria-label="Toggle language"
-        className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-neutral-300 bg-white text-base font-semibold text-neutral-900 shadow-sm transition-colors hover:bg-neutral-100"
+        className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-neutral-300 bg-white text-base font-semibold text-neutral-900 shadow-sm transition-colors hover:bg-neutral-100"
       >
         {lang === "en" ? "EN" : "中"}
       </button>
@@ -37,7 +37,7 @@ export default function MobileHeaderControl({
         onClick={onFiltersOpen}
         aria-label={t("dietaryFilter")}
         className={[
-          "relative inline-flex h-11 items-center justify-center whitespace-nowrap rounded-full px-2.5 text-base font-medium shadow-sm transition-colors",
+          "relative inline-flex h-10 items-center justify-center whitespace-nowrap rounded-full px-2.5 text-base font-medium shadow-sm transition-colors",
           "focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30",
           preferencesCount > 0
             ? "bg-cantaloupe text-neutral-900 hover:bg-cantaloupe-soft"

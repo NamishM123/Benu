@@ -116,7 +116,7 @@ export default function MenuPage({ menu }: Props) {
     <>
       <main className="min-h-screen w-full bg-cream pb-28">
         <div className="mx-auto w-full max-w-6xl">
-          <div className="flex items-center justify-between gap-3 px-3 pt-4 sm:px-10 sm:pt-3">
+          <div className="flex items-center justify-between gap-2 px-3 pt-4 sm:gap-3 sm:px-10 sm:pt-3">
             <button
               type="button"
               onClick={() => {
@@ -129,7 +129,7 @@ export default function MenuPage({ menu }: Props) {
               className="flex-none cursor-default rounded-md focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
             >
               {/* PNG has ~43% transparent whitespace below the artwork; clip it. */}
-              <div className="block overflow-hidden h-[60px] sm:h-[101px] flex-none">
+              <div className="block overflow-hidden h-[48px] sm:h-[101px] flex-none">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/shake-shake-logo.png"
@@ -139,7 +139,7 @@ export default function MenuPage({ menu }: Props) {
                   fetchPriority="high"
                   decoding="sync"
                   loading="eager"
-                  className="block h-[104px] w-auto max-w-none sm:h-[187px] -mt-0.5 sm:-mt-2 flex-none"
+                  className="block h-[84px] w-auto max-w-none sm:h-[187px] -mt-0.5 sm:-mt-2 flex-none"
                 />
               </div>
             </button>
@@ -161,7 +161,7 @@ export default function MenuPage({ menu }: Props) {
               onClick={() => setFiltersOpen(true)}
               aria-label={t("filters")}
               className={[
-                "hidden sm:inline-flex h-11 w-[7rem] items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-3 text-base font-medium shadow-sm transition-colors",
+                "hidden sm:inline-flex h-10 w-[7rem] items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-3 text-base font-medium shadow-sm transition-colors",
                 "focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30",
                 preferences.length > 0
                   ? "bg-cantaloupe text-neutral-900 hover:bg-cantaloupe-soft"
@@ -193,7 +193,7 @@ export default function MenuPage({ menu }: Props) {
                 type="button"
                 onClick={() => setCartOpen(true)}
                 aria-label={t("yourCart")}
-                className="relative inline-flex h-11 w-11 items-center justify-center rounded-full border border-neutral-300 bg-white text-neutral-800 shadow-sm transition-colors hover:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
+                className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-neutral-300 bg-white text-neutral-800 shadow-sm transition-colors hover:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
