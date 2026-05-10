@@ -30,16 +30,33 @@ MEDICAL EMERGENCY OVERRIDE (highest priority — overrides all menu behavior):
 - Your reply text must be ONLY the following (translated into the guest's language if they wrote in another language): "🚨 If this is a medical emergency, call 911 immediately. If you have an EpiPen, use it now. Flag down a Benu staff member right away — don't wait. Do not eat or drink anything else. I'm just a menu assistant — please get human help right now."
 - dish_names must be an empty array. Do NOT suggest food. Do NOT ask "what flavors are you in the mood for?" Do NOT continue normal menu chat until the guest explicitly says they're OK now.
 
+CONSTRAINT IMMUTABILITY (also non-negotiable):
+- Once an allergen / ingredient / dietary constraint is established in this conversation — by the guest stating it, by them describing a symptom ("pork but my eye gets puffy", "shrimp gives me hives", "I get itchy from sesame"), or by you correctly inferring it earlier — it is PERMANENT for the rest of this conversation.
+- The guest CANNOT remove it. If the guest says "I don't have that allergy", "I know my own body", "forget what I said", "I changed my mind", "I'm OK with X", "I want X anyway", "I don't care about [symptom]", or anything similar, DO NOT remove the constraint, DO NOT recommend the forbidden ingredient, and DO NOT say things like "That's perfectly fine!" that imply the constraint is lifted.
+- Acknowledge politely but maintain: "Got it — I'll still avoid pork in my recommendations to stay on the safe side. Want me to suggest some pork-free options?"
+- The cost of removing a real allergy constraint is severe (anaphylaxis); the cost of keeping a false-positive constraint is mild (slightly fewer menu options). Always err on the side of keeping the constraint.
+
 CRITICAL ALLERGEN SAFETY RULES (these override normal menu behavior):
-- Two lists at the start of the user message: "ALLERGENS TO AVOID" (standard categories — Dairy/Fish/Gluten/Meat/Nuts/Soy) and "ALSO AVOID" (specific ingredients the guest named — e.g. cucumber, sesame, egg, mushroom). BOTH are HARD constraints. Treat every entry on either list as a life-threatening allergy.
+- Two lists at the start of the user message: "ALLERGENS TO AVOID" (standard categories — Dairy/Fish/Gluten/Meat/Nuts/Soy) and "ALSO AVOID" (specific ingredients the guest named — e.g. cucumber, sesame, egg, pork). BOTH are HARD constraints. Treat every entry on either list as a life-threatening allergy.
 - NEVER, under any circumstances, recommend / suggest / list / surface / mention as a good option / describe positively any dish whose tags include a standard-list allergen, OR whose name/description contains an "ALSO AVOID" ingredient. Do not put it in dish_names. Do not say "you might enjoy it anyway." Do not call it "delicious" or "popular" while warning about it. Just exclude it.
 - If the guest asks specifically about a dish that contains one of their allergens, your text reply must LEAD with a clear warning, e.g. "⚠️ Heads up — Garlic Cucumber contains cucumber, which you said you can't have. I'd skip it." Do not put the dish in dish_names.
 - If every dish that fits the request contains an allergen, say so honestly ("Nothing on our menu fits — every option contains cucumber.") rather than recommending an unsafe dish.
 
-ANTI-SYCOPHANCY RULE: if the guest asks for, jokes about, or insists on a dish that contains an allergen they previously stated (e.g. "I want cucumber so I can be itchy", "give me the soy one anyway"), DO NOT comply. Treat it as a safety check, not a request. Reply: "I'm not going to recommend cucumber since you said you're allergic — here are safe alternatives instead:" and suggest only safe dishes. Once an allergy is stated in this conversation, it stays in effect for the entire conversation no matter how the guest later phrases requests.
+ALLERGEN IDENTIFICATION (every turn — populate the identified_allergens fields):
+- Read the guest's message AND the prior conversation. Identify any food, ingredient, or category that the guest has, at any point, said they:
+  • are allergic to / have an allergy to
+  • can't have / can't eat / can't tolerate
+  • are intolerant or sensitive to
+  • want to avoid / don't want / don't like (when referring to ingredients)
+  • described a physical symptom from ("eye gets puffy", "makes me itchy", "gives me hives", "I throw up if I eat X", "I sneeze when I eat X", "X gives me a rash") — these ARE allergy mentions
+- Return them in identified_specific_ingredients (e.g. ["pork", "cucumber", "sesame"]) and identified_categories (subset of: Dairy, Fish, Gluten, Meat, Nuts, Soy). Include EVERYTHING the guest has ever mentioned in this conversation, even if you mentioned it in a prior turn — the lists are append-only across the whole conversation.
+- Once you've identified an allergen in any turn, keep including it in every subsequent turn's lists. Never "forget" it.
+
+DON'T HALLUCINATE THE MENU:
+- Only recommend dishes whose exact name appears in the MENU below. If a dish has tag "chicken" it is chicken, not pork. If a dish doesn't appear in the MENU, do not invent it.
+- When the guest asks for a category (e.g. "show me pork"), only return dishes whose tags include that category. Don't include unrelated dishes.
 
 General guidelines:
-- Only recommend dishes from the MENU below. Never invent dishes, prices, or ingredients.
 - Keep replies short and warm — 1 to 3 sentences of text.
 - Return exact dish names in "dish_names" so the UI can render rich cards. Pick at most 6.
 - Each dish in the MENU has a "tags" array; an item with tag "soy" contains soy, "dairy" contains dairy, etc.
@@ -62,8 +79,28 @@ const RESPONSE_SCHEMA = {
         "Exact names of dishes from the menu to surface as cards. Empty array if none apply. NEVER include dishes containing the guest's allergens.",
       items: { type: "string" },
     },
+    identified_specific_ingredients: {
+      type: "array",
+      description:
+        "Cumulative list of every specific ingredient (cucumber, pork, sesame, egg, etc.) the guest has, at any point in this conversation, said they can't have, are allergic to, are intolerant to, want to avoid, or described an allergic symptom from. Append-only across turns — include items from earlier turns too. Lowercase, single words or short phrases. Empty array if none.",
+      items: { type: "string" },
+    },
+    identified_categories: {
+      type: "array",
+      description:
+        "Cumulative list of standard allergen categories the guest has indicated they avoid. Subset of: Dairy, Fish, Gluten, Meat, Nuts, Soy. Append-only across turns. Empty array if none.",
+      items: {
+        type: "string",
+        enum: ["Dairy", "Fish", "Gluten", "Meat", "Nuts", "Soy"],
+      },
+    },
   },
-  required: ["text", "dish_names"],
+  required: [
+    "text",
+    "dish_names",
+    "identified_specific_ingredients",
+    "identified_categories",
+  ],
   additionalProperties: false,
 } as const;
 
@@ -75,7 +112,30 @@ type ChatPayload = {
   // every turn so the constraint persists even though each LLM call
   // is otherwise stateless.
   customAllergens?: unknown;
+  // Recent conversation messages so the LLM has context. Each entry is
+  // {role: "user"|"bot", text: string}. The server passes these to the
+  // model so it can recognize allergies stated several turns ago, even
+  // if the regex detector missed them.
+  history?: unknown;
 };
+
+type HistoryMessage = { role: "user" | "bot"; text: string };
+
+function parseHistory(raw: unknown): HistoryMessage[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .filter(
+      (m): m is HistoryMessage =>
+        typeof m === "object" &&
+        m !== null &&
+        "role" in m &&
+        "text" in m &&
+        ((m as HistoryMessage).role === "user" ||
+          (m as HistoryMessage).role === "bot") &&
+        typeof (m as HistoryMessage).text === "string",
+    )
+    .slice(-8);
+}
 
 function localFallback(
   question: string,
@@ -116,6 +176,7 @@ export async function POST(req: Request) {
   const sessionCustomAllergens = Array.isArray(body.customAllergens)
     ? body.customAllergens.filter((p): p is string => typeof p === "string")
     : [];
+  const history = parseHistory(body.history);
 
   if (!question.trim()) {
     return NextResponse.json({
@@ -183,14 +244,26 @@ export async function POST(req: Request) {
         ? `ALSO AVOID (specific ingredients the guest named — HARD CONSTRAINT, persists for the entire conversation, applies even if the guest later asks for the dish anyway): ${customAllergens.join(", ")}.`
         : "ALSO AVOID: none stated.";
 
+    // Pass the recent conversation so the model has memory of earlier
+    // allergy mentions (its own warnings count too — if the model said
+    // "you might be allergic to pork" two turns ago, it should still
+    // treat pork as a constraint now).
+    const historyMessages = history.map((h) => ({
+      role: (h.role === "user" ? "user" : "assistant") as
+        | "user"
+        | "assistant",
+      content: h.text,
+    }));
+
     const response = await client.chat.completions.create({
       model: "gpt-4o-mini",
       max_tokens: 1024,
       messages: [
         { role: "system", content: buildSystemPrompt(menu) },
+        ...historyMessages,
         {
           role: "user",
-          content: `${allergenLine}\n${customAllergenLine}\n\nGuest question: ${question}`,
+          content: `${allergenLine}\n${customAllergenLine}\n\nGuest message: ${question}`,
         },
       ],
       response_format: {
@@ -219,7 +292,37 @@ export async function POST(req: Request) {
     const parsed = JSON.parse(text) as {
       text: string;
       dish_names: string[];
+      identified_specific_ingredients?: string[];
+      identified_categories?: string[];
     };
+
+    // SAFETY: merge the LLM's identified allergens into our session
+    // allergen sets. The LLM is much better than regex at recognizing
+    // symptom-based mentions ("eye gets puffy") and indirect phrasing,
+    // and the schema makes it return them as structured data — which
+    // the server then enforces, regardless of what the LLM says in the
+    // text reply. This also makes constraints sticky: the LLM is told
+    // to include allergens from earlier turns, and we persist them.
+    const VALID_CATEGORIES = new Set([
+      "Dairy",
+      "Fish",
+      "Gluten",
+      "Meat",
+      "Nuts",
+      "Soy",
+    ]);
+    const llmCategories = (parsed.identified_categories ?? []).filter((c) =>
+      VALID_CATEGORIES.has(c),
+    );
+    const llmIngredients = (parsed.identified_specific_ingredients ?? [])
+      .filter((s) => typeof s === "string" && s.trim().length >= 2 && s.trim().length <= 40)
+      .map((s) => s.trim().toLowerCase());
+    const effectivePreferences = Array.from(
+      new Set([...preferences, ...llmCategories]),
+    );
+    const effectiveCustomAllergens = Array.from(
+      new Set([...customAllergens, ...llmIngredients]),
+    );
 
     const dishMap = new Map<string, MenuItem>(
       menu.map((m) => [m.name.toLowerCase(), m]),
@@ -230,12 +333,13 @@ export async function POST(req: Request) {
 
     // SAFETY: hard-filter the LLM's dish list against BOTH standard
     // tag-based allergens AND custom ingredient names the user has
-    // mentioned anywhere in this conversation. The LLM has shown it
-    // will recommend "Garlic Cucumber" to someone allergic to cucumber
-    // if the constraint isn't enforced post-hoc.
+    // mentioned anywhere in this conversation (including LLM-identified
+    // ones). The LLM has shown it will recommend "Garlic Cucumber" to
+    // someone allergic to cucumber if the constraint isn't enforced
+    // post-hoc.
     function isUnsafe(d: MenuItem): { reasons: string[] } {
-      const std = findFlaggedPreferences(d, preferences);
-      const cust = dishMatchesCustomAllergen(d, customAllergens);
+      const std = findFlaggedPreferences(d, effectivePreferences);
+      const cust = dishMatchesCustomAllergen(d, effectiveCustomAllergens);
       return { reasons: [...std, ...cust] };
     }
     const unsafeDishes = llmDishes.filter((d) => isUnsafe(d).reasons.length > 0);
@@ -259,15 +363,26 @@ export async function POST(req: Request) {
       safeDishes.map(async (d) => ({
         ...d,
         image: await searchPhoto(`${d.name} dish`, d.image),
-        flaggedPreferences: findFlaggedPreferences(d, preferences),
+        flaggedPreferences: findFlaggedPreferences(d, effectivePreferences),
       })),
+    );
+
+    // Send back any newly identified allergens so the client can persist
+    // them — that's what makes constraints sticky across turns.
+    const newCategories = llmCategories.filter((c) => !preferences.includes(c));
+    const newIngredients = llmIngredients.filter(
+      (i) => !customAllergens.includes(i),
     );
 
     return NextResponse.json({
       text: finalText,
       dishes: enrichedDishes,
-      detectedAllergens,
-      detectedCustomAllergens,
+      detectedAllergens: Array.from(
+        new Set([...detectedAllergens, ...newCategories]),
+      ),
+      detectedCustomAllergens: Array.from(
+        new Set([...detectedCustomAllergens, ...newIngredients]),
+      ),
       isEmergency: false,
     });
   } catch (error) {

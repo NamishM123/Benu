@@ -366,6 +366,16 @@ export default function ChatWidget({
       );
     }
 
+    // Send the recent conversation so the LLM has memory. Last 8
+    // messages (excluding the brand-new user message we're about to
+    // ask about) covers ~4 turns of back-and-forth — enough for the
+    // model to recognize allergies stated several turns ago, even if
+    // the regex detector missed them.
+    const history = messages
+      .filter((m) => m.text && m.text.length < 600)
+      .slice(-8)
+      .map((m) => ({ role: m.role, text: m.text }));
+
     try {
       const res = await fetch("/api/chat", {
         method: "POST",
@@ -374,6 +384,7 @@ export default function ChatWidget({
           question: text,
           preferences: mergedPrefs,
           customAllergens: mergedCustom,
+          history,
         }),
       });
       if (!res.ok) throw new Error("api error");
