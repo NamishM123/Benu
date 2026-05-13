@@ -23,9 +23,14 @@ import LanguageSwitcher from "./LanguageSwitcher";
 import SignOutButton from "./SignOutButton";
 import { type MenuItem } from "@/lib/menu";
 
-function formatTime(ts: number): string {
-  const d = new Date(ts);
-  return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+function formatPlacedAt(ts: number, lang: Lang): string {
+  const locale = lang === "zh" ? "zh-CN" : "en-US";
+  return new Date(ts).toLocaleString(locale, {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 function statusLabel(status: OrderStatus, lang: Lang): string {
@@ -314,7 +319,7 @@ export default function KitchenDisplay() {
                           {t("orderNumber")} #{shortId}
                         </p>
                         <p className="mt-0.5 text-xs text-neutral-500">
-                          {t("placedAt")} · {formatTime(order.placedAt)}
+                          {t("placedAt")} · {formatPlacedAt(order.placedAt, lang)}
                         </p>
                       </div>
                     </div>
