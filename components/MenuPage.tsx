@@ -41,6 +41,14 @@ const CATEGORY_ORDER = [
 // appear instantly instead of going opacity-0 -> opacity-1 every remount.
 const loadedImages = new Set<string>();
 
+// Product-on-white photos. These items get a white card background and
+// object-contain so the full can shows without cropping and the image's
+// white blends seamlessly with the card. All other items — including the
+// other Beverages whose photos are styled scenes (Coffee Meets Milk Tea,
+// Handmade Fragrance Lemon Tea, Peach Sparkling Water) — use object-cover
+// over a cream gradient.
+const SODA_CAN_NAMES = new Set(["Coke", "Diet Coke", "Sprite"]);
+
 type Props = {
   menu: MenuItem[];
 };
@@ -297,7 +305,13 @@ export default function MenuPage({ menu }: Props) {
                         : "group-hover:bg-butter-soft group-hover:shadow-lg group-hover:ring-butter group-focus-visible:ring-butter",
                     ].join(" ")}
                   >
-                    <div className="relative aspect-square w-full bg-gradient-to-br from-cream-light to-neutral-200/60">
+                    <div
+                      className={`relative aspect-square w-full ${
+                        SODA_CAN_NAMES.has(d.name)
+                          ? "bg-white"
+                          : "bg-gradient-to-br from-cream-light to-neutral-200/60"
+                      }`}
+                    >
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
@@ -320,8 +334,8 @@ export default function MenuPage({ menu }: Props) {
                         }}
                         style={{ filter: "blur(8px)" }}
                         className={`menu-img h-full w-full opacity-0 transition-[opacity,filter] duration-500 ease-out ${
-                          d.category === "Beverages"
-                            ? "object-contain p-4"
+                          SODA_CAN_NAMES.has(d.name)
+                            ? "object-contain"
                             : "object-cover"
                         }`}
                         onLoad={(e) => {
