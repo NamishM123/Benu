@@ -331,7 +331,7 @@ export async function POST(req: Request) {
     // static) and dwarfs the per-turn user message. Identical-menu requests
     // get a ~90% cost reduction and faster TTFB on the cached portion.
     const response = await client.messages.create({
-      model: "claude-sonnet-4-6",
+      model: "claude-haiku-4-5",
       max_tokens: 2048,
       system: [
         {

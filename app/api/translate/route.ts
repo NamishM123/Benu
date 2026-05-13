@@ -49,7 +49,7 @@ ${JSON.stringify(texts)}`;
 
   try {
     const response = await client.messages.create({
-      model: "claude-sonnet-4-6",
+      model: "claude-haiku-4-5",
       max_tokens: 4096,
       system:
         "You are a precise translation engine for restaurant menus. Output valid JSON only.",
