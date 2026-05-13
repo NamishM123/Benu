@@ -59,7 +59,7 @@ ALLERGEN IDENTIFICATION (every turn — populate the identified_allergens fields
   • can't have / can't eat / can't tolerate
   • are intolerant or sensitive to
   • want to avoid / don't want / don't like (when referring to ingredients)
-  • described a physical symptom from ("eye gets puffy", "makes me itchy", "gives me hives", "I throw up if I eat X", "I sneeze when I eat X", "X gives me a rash") — these ARE allergy mentions
+  • described a physical symptom from a food ("eye gets puffy", "makes me itchy", "gives me hives", "throat gets itchy", "throat closes up", "tongue feels swollen", "skin gets red", "I throw up if I eat X", "I sneeze when I eat X", "X gives me a rash", "I get a stomachache from X") — these ARE allergy mentions, treat the named food as a hard constraint even if the guest also says they "want" it ("I want chicken but my throat gets itchy" = chicken is OUT, do not recommend chicken)
 - Return them in identified_specific_ingredients (e.g. ["pork", "cucumber", "sesame"]) and identified_categories (subset of: Dairy, Fish, Gluten, Meat, Nuts, Soy). Include EVERYTHING the guest has ever mentioned in this conversation, even if you mentioned it in a prior turn — the lists are append-only across the whole conversation.
 - Once you've identified an allergen in any turn, keep including it in every subsequent turn's lists. Never "forget" it.
 

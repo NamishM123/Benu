@@ -644,10 +644,10 @@ export default function ChatWidget({
                     🍜
                   </div>
                 )}
-                <div className="flex flex-col gap-1">
+                <div className="flex min-w-0 flex-1 flex-col gap-1">
                 <div
                   className={[
-                    "px-4 py-2 text-sm leading-relaxed shadow-sm whitespace-pre-line",
+                    "px-4 py-2 text-sm leading-relaxed shadow-sm whitespace-pre-line break-words",
                     m.emergency
                       ? "rounded-xl border-2 border-red-600 bg-red-50 text-red-900 font-medium"
                       : "rounded-3xl",

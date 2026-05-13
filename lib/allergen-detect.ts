@@ -21,11 +21,23 @@ const ALLERGEN_KEYWORDS: Record<string, string[]> = {
 
 // "a+l+erg" matches "alerg", "allerg", "aalerg" — handles common typos
 // like "alergic" (single L) which the previous strict pattern missed.
+//
+// Symptom-from-food phrasings we deliberately match:
+//   - "makes me itch" / "makes me sneeze"               (existing)
+//   - "gives me hives"                                   (existing)
+//   - "my throat gets itchy" / "skin gets red"           ← added "gets <symptom>"
+//   - "my throat feels itchy" / "tongue feels swollen"   ← added "feels <symptom>"
+//   - "started to itch" / "started to swell"             ← added "started to <verb>"
 const AVOIDANCE_RE =
-  /\b(?:a+l+erg(?:ic|y|ies)?|intoleran(?:t|ce)|sensitiv(?:e|ity)|can'?t\s+(?:have|eat|do|tolerate)|cannot\s+(?:have|eat|do|tolerate)|don'?t\s+(?:eat|do)|do\s+not\s+(?:eat|do)|avoid(?:ing)?|without|hold\s+the|skip\s+the|hate|exclud(?:e|ing)|free\s+of|stay\s+away\s+from|never\s+eat|gives?\s+me|makes?\s+me\s+(?:itch|swell|sneeze|sick|nauseous|puffy|hives|breakout)|breakout|hives|puffy|swelling)\b/i;
+  /\b(?:a+l+erg(?:ic|y|ies)?|intoleran(?:t|ce)|sensitiv(?:e|ity)|can'?t\s+(?:have|eat|do|tolerate)|cannot\s+(?:have|eat|do|tolerate)|don'?t\s+(?:eat|do)|do\s+not\s+(?:eat|do)|avoid(?:ing)?|without|hold\s+the|skip\s+the|hate|exclud(?:e|ing)|free\s+of|stay\s+away\s+from|never\s+eat|gives?\s+me|makes?\s+me\s+(?:itch|swell|sneeze|sick|nauseous|puffy|hives|breakout)|gets?\s+(?:itch|itchy|swollen|puffy|red|hives|rash|sore|inflamed)|feels?\s+(?:itchy|swollen|puffy|sore|tingly|numb)|started\s+to\s+(?:itch|swell|tingle|sneeze)|breakout|hives|puffy|swelling)\b/i;
 
+// "I want X" is too neutral to count as a positive endorsement that
+// cancels an allergen mention — "I want chicken but my throat gets
+// itchy" is a clear flag of chicken, not a craving to honour. Removed
+// "want" from the negation set so symptom + ingredient in the same
+// sentence still fires.
 const NEGATION_RE =
-  /\bnot\s+allergic\b|\bnot\s+(?:intolerant|sensitive)\b|\bi\s+(?:can|do|love|like|enjoy|want)\s+(?:have|eat)?/i;
+  /\bnot\s+allergic\b|\bnot\s+(?:intolerant|sensitive)\b|\bi\s+(?:can|do|love|like|enjoy)\s+(?:have|eat)?/i;
 
 export function extractAllergensFromText(text: string): string[] {
   if (!text) return [];
