@@ -525,7 +525,7 @@ export default function ChatWidget({
                   } as React.CSSProperties)
                 : undefined
             }
-            className="fixed inset-0 z-50 flex flex-col bg-cream sm:inset-0 sm:block sm:bg-cream/85 sm:backdrop-blur-md"
+            className="fixed inset-0 z-50 flex flex-col bg-cream sm:inset-0 sm:block sm:bg-transparent sm:backdrop-blur-none sm:pointer-events-none"
           >
             {/* Logo: mobile only. PNG has ~43% transparent whitespace below
                 the artwork; clip it. */}
@@ -557,7 +557,7 @@ export default function ChatWidget({
                   ? { paddingBottom: `${keyboardInset}px` }
                   : null),
               }}
-              className="flex min-h-0 flex-1 flex-col overflow-hidden bg-white sm:fixed sm:bottom-5 sm:right-5 sm:left-auto sm:m-0 sm:h-[min(720px,82dvh)] sm:w-[min(420px,calc(100vw-2.5rem))] sm:max-w-none sm:flex-none sm:rounded-2xl sm:border sm:border-neutral-300/70 sm:shadow-2xl"
+              className="flex min-h-0 flex-1 flex-col overflow-hidden bg-white sm:fixed sm:bottom-5 sm:right-5 sm:left-auto sm:m-0 sm:h-[min(880px,92dvh)] sm:w-[min(480px,calc(100vw-2.5rem))] sm:max-w-none sm:flex-none sm:rounded-2xl sm:border sm:border-neutral-300/70 sm:shadow-2xl sm:pointer-events-auto"
             >
           <div
             onTouchStart={handleTouchStart}
