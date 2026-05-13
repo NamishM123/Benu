@@ -6,6 +6,7 @@ import {
   localDescription,
   localName,
   type MenuItem,
+  type SpiceLevel,
 } from "@/lib/menu";
 import {
   getOptionGroupsForItem,
@@ -19,6 +20,14 @@ import { addToCart } from "@/lib/cart-store";
 import { useTranslation } from "@/lib/i18n";
 import { useAutoTranslate } from "@/lib/auto-translate";
 import { containsOffensiveLanguage } from "@/lib/profanity";
+import SpiceChilis from "./SpiceChilis";
+
+// Spice option choices → number of chili icons to render next to the label.
+const SPICE_CHOICE_LEVEL: Record<string, SpiceLevel> = {
+  mild: 1,
+  default: 2,
+  extra: 3,
+};
 
 type Props = {
   item: MenuItem | null;
@@ -413,7 +422,12 @@ export default function ItemDetailSheet({ item, preferences, onClose, onCartOpen
                               </span>
                             )}
                           </span>
-                          <span className="font-medium">{t(`choice_${c.id}`) !== `choice_${c.id}` ? t(`choice_${c.id}`) : c.label}</span>
+                          <span className="font-medium">
+                            {t(`choice_${c.id}`) !== `choice_${c.id}` ? t(`choice_${c.id}`) : c.label}
+                            {g.id === "spice" && SPICE_CHOICE_LEVEL[c.id] && (
+                              <SpiceChilis level={SPICE_CHOICE_LEVEL[c.id]} size={18} />
+                            )}
+                          </span>
                         </div>
                         <div className="mt-1 ml-6 flex min-h-[1rem] flex-wrap items-center gap-x-2 text-xs text-neutral-500">
                           {hasMeta && c.priceModifier != null && c.priceModifier !== 0 && (
