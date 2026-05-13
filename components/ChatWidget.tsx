@@ -529,7 +529,7 @@ export default function ChatWidget({
           >
             {/* Logo: mobile only. PNG has ~43% transparent whitespace below
                 the artwork; clip it. */}
-            <div className="pointer-events-none flex flex-none justify-center pt-2 sm:hidden">
+            <div className="pointer-events-none flex flex-none justify-center pt-0 pb-3 sm:hidden">
               <div className="block overflow-hidden h-[64px]">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
