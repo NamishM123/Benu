@@ -1,4 +1,4 @@
-import OpenAI from "openai";
+import Anthropic from "@anthropic-ai/sdk";
 import { NextResponse } from "next/server";
 import { answerMenuQuestion } from "@/lib/chatbot";
 import { findFlaggedPreferences } from "@/lib/preferences";
@@ -290,7 +290,7 @@ export async function POST(req: Request) {
     });
   }
 
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = process.env.ANTHROPIC_API_KEY;
   const menu = await listMenuItems();
   if (!apiKey) {
     return NextResponse.json(
@@ -305,7 +305,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const client = new OpenAI({ apiKey });
+    const client = new Anthropic({ apiKey });
 
     const allergenLine =
       preferences.length > 0
@@ -320,36 +320,49 @@ export async function POST(req: Request) {
     // allergy mentions (its own warnings count too — if the model said
     // "you might be allergic to pork" two turns ago, it should still
     // treat pork as a constraint now).
-    const historyMessages = history.map((h) => ({
+    const historyMessages: Anthropic.MessageParam[] = history.map((h) => ({
       role: (h.role === "user" ? "user" : "assistant") as
         | "user"
         | "assistant",
       content: h.text,
     }));
 
-    const response = await client.chat.completions.create({
-      model: "gpt-4o-mini",
-      max_tokens: 1024,
+    // Cache the system prompt — it embeds the full menu JSON (large, mostly
+    // static) and dwarfs the per-turn user message. Identical-menu requests
+    // get a ~90% cost reduction and faster TTFB on the cached portion.
+    const response = await client.messages.create({
+      model: "claude-sonnet-4-6",
+      max_tokens: 2048,
+      system: [
+        {
+          type: "text",
+          text: buildSystemPrompt(menu),
+          cache_control: { type: "ephemeral" },
+        },
+      ],
       messages: [
-        { role: "system", content: buildSystemPrompt(menu) },
         ...historyMessages,
         {
           role: "user",
           content: `${allergenLine}\n${customAllergenLine}\n\nGuest message: ${question}`,
         },
       ],
-      response_format: {
-        type: "json_schema",
-        json_schema: {
-          name: "menu_reply",
-          strict: true,
+      output_config: {
+        format: {
+          type: "json_schema",
           schema: RESPONSE_SCHEMA,
         },
       },
     });
 
-    const text = response.choices[0]?.message?.content;
-    if (!text) {
+    let jsonText: string | null = null;
+    for (const block of response.content) {
+      if (block.type === "text") {
+        jsonText = block.text;
+        break;
+      }
+    }
+    if (!jsonText || response.stop_reason === "refusal") {
       return NextResponse.json(
         localFallback(
           question,
@@ -361,12 +374,25 @@ export async function POST(req: Request) {
       );
     }
 
-    const parsed = JSON.parse(text) as {
+    let parsed: {
       text: string;
       dish_names: string[];
       identified_specific_ingredients?: string[];
       identified_categories?: string[];
     };
+    try {
+      parsed = JSON.parse(jsonText);
+    } catch {
+      return NextResponse.json(
+        localFallback(
+          question,
+          preferences,
+          customAllergens,
+          detectedAllergens,
+          detectedCustomAllergens,
+        ),
+      );
+    }
 
     // SAFETY: merge the LLM's identified allergens into our session
     // allergen sets. The LLM is much better than regex at recognizing
@@ -452,7 +478,11 @@ export async function POST(req: Request) {
       isEmergency: false,
     });
   } catch (error) {
-    console.error("chat api error:", error);
+    if (error instanceof Anthropic.APIError) {
+      console.error("anthropic api error:", error.status, error.message);
+    } else {
+      console.error("chat api error:", error);
+    }
     return NextResponse.json(
       localFallback(
         question,
