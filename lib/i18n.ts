@@ -181,6 +181,23 @@ const TRANSLATIONS = {
   },
   containsAllergen: { en: "allergy", zh: "过敏" },
   filteredBadge: { en: "Filtered", zh: "已过滤" },
+
+  // Nutrition & ingredients
+  nutrition: { en: "Nutrition", zh: "营养信息" },
+  calories: { en: "Calories", zh: "热量" },
+  caloriesUnit: { en: "cal", zh: "千卡" },
+  protein: { en: "Protein", zh: "蛋白质" },
+  carbs: { en: "Carbs", zh: "碳水" },
+  fat: { en: "Fat", zh: "脂肪" },
+  sodium: { en: "Sodium", zh: "钠" },
+  gramsUnit: { en: "g", zh: "克" },
+  milligramsUnit: { en: "mg", zh: "毫克" },
+  ingredients: { en: "Ingredients", zh: "原料" },
+  nutritionDisclaimer: {
+    en: "Estimated values for a regular portion. Add-ons not included.",
+    zh: "为正常份量的估算值，不含加料。",
+  },
+
   specialRequest: { en: "Special Request", zh: "特别要求" },
   optional: { en: "Optional", zh: "选填" },
   specialRequestPlaceholder: {
