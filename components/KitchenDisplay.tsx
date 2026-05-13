@@ -66,6 +66,7 @@ function sortKitchenOrders(
 export default function KitchenDisplay() {
   const { t, lang } = useTranslation();
   const [orders, setOrders] = useState<Order[]>([]);
+  const [ordersLoaded, setOrdersLoaded] = useState(false);
   const [etaDrafts, setEtaDrafts] = useState<Record<string, string>>({});
   const [menuItems, setMenuItems] = useState<(MenuItem & { id: string })[]>([]);
   const [show86Panel, setShow86Panel] = useState(false);
@@ -80,10 +81,16 @@ export default function KitchenDisplay() {
   }, []);
 
   useEffect(() => {
-    setOrders(getOrders());
+    const initial = getOrders();
+    setOrders(initial);
+    // If the cache already has data (warm mount), skip the loading flash.
+    if (initial.length > 0) setOrdersLoaded(true);
     function onChange(e: Event) {
       const detail = (e as CustomEvent<Order[]>).detail;
-      if (Array.isArray(detail)) setOrders(detail);
+      if (Array.isArray(detail)) {
+        setOrders(detail);
+        setOrdersLoaded(true);
+      }
     }
     window.addEventListener(ORDERS_EVENT, onChange);
     const unsubscribe = subscribeToOrders({ scope: "all" });
@@ -231,6 +238,7 @@ export default function KitchenDisplay() {
         </div>
 
         {(() => {
+          if (!ordersLoaded) return null;
           const filtered = sortKitchenOrders(
             orders.filter((o) =>
               tab === "active" ? o.status !== "ready" : o.status === "ready",
