@@ -389,13 +389,13 @@ export default function ItemDetailSheet({ item, preferences, onClose, onCartOpen
                     aria-controls="nutrition-panel"
                     className="flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left transition-colors hover:bg-neutral-50/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/20"
                   >
-                    <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-600">
+                    <h3 className="text-base font-semibold uppercase tracking-wider text-neutral-700">
                       {t("nutritionAndIngredients")}
-                    </span>
+                    </h3>
                     <span className="flex items-baseline gap-3">
                       {n && (
                         <span className="flex items-baseline gap-1">
-                          <span className="text-base font-semibold text-neutral-900 tabular-nums">
+                          <span className="text-base font-medium text-neutral-800 tabular-nums">
                             {n.calories}
                           </span>
                           <span className="text-[10px] uppercase tracking-wider text-neutral-500">
@@ -405,8 +405,8 @@ export default function ItemDetailSheet({ item, preferences, onClose, onCartOpen
                       )}
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
-                        width="16"
-                        height="16"
+                        width="18"
+                        height="18"
                         viewBox="0 0 24 24"
                         fill="none"
                         stroke="currentColor"
@@ -433,23 +433,23 @@ export default function ItemDetailSheet({ item, preferences, onClose, onCartOpen
                     <div className="overflow-hidden">
                       <div className="space-y-4 border-t border-neutral-200/70 px-4 pt-3.5 pb-4">
                         {n && (
-                          <dl className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
+                          <dl className="grid grid-cols-2 gap-x-8 gap-y-2 text-base">
                             <div className="flex items-baseline justify-between">
-                              <dt className="text-neutral-500">{t("protein")}</dt>
+                              <dt className="text-neutral-700">{t("protein")}</dt>
                               <dd className="font-medium text-neutral-900 tabular-nums">
                                 {n.protein}
                                 {t("gramsUnit")}
                               </dd>
                             </div>
                             <div className="flex items-baseline justify-between">
-                              <dt className="text-neutral-500">{t("carbs")}</dt>
+                              <dt className="text-neutral-700">{t("carbs")}</dt>
                               <dd className="font-medium text-neutral-900 tabular-nums">
                                 {n.carbs}
                                 {t("gramsUnit")}
                               </dd>
                             </div>
                             <div className="flex items-baseline justify-between">
-                              <dt className="text-neutral-500">{t("fat")}</dt>
+                              <dt className="text-neutral-700">{t("fat")}</dt>
                               <dd className="font-medium text-neutral-900 tabular-nums">
                                 {n.fat}
                                 {t("gramsUnit")}
@@ -457,7 +457,7 @@ export default function ItemDetailSheet({ item, preferences, onClose, onCartOpen
                             </div>
                             {n.sodium != null && (
                               <div className="flex items-baseline justify-between">
-                                <dt className="text-neutral-500">{t("sodium")}</dt>
+                                <dt className="text-neutral-700">{t("sodium")}</dt>
                                 <dd className="font-medium text-neutral-900 tabular-nums">
                                   {n.sodium}
                                   {t("milligramsUnit")}
@@ -468,16 +468,16 @@ export default function ItemDetailSheet({ item, preferences, onClose, onCartOpen
                         )}
                         {ingredientsText && (
                           <section className={n ? "border-t border-neutral-200/70 pt-3" : ""}>
-                            <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
+                            <h3 className="text-base font-semibold uppercase tracking-wider text-neutral-700">
                               {t("ingredients")}
                             </h3>
-                            <p className="mt-1.5 text-sm leading-relaxed text-neutral-700">
+                            <p className="mt-2 text-base leading-relaxed text-neutral-800">
                               {ingredientsText}
                             </p>
                           </section>
                         )}
                         {n && (
-                          <p className="text-[10px] italic leading-relaxed text-neutral-400">
+                          <p className="text-sm leading-relaxed text-neutral-500">
                             {t("nutritionDisclaimer")}
                           </p>
                         )}
