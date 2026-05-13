@@ -14,6 +14,7 @@ import { isMedicalEmergency } from "@/lib/emergency-detect";
 import { getEmergencyMessage } from "@/lib/emergency-messages";
 import { detectLanguage } from "@/lib/lang-detect";
 import type { MenuItem } from "@/lib/menu";
+import { RECIPE_KNOWLEDGE } from "@/lib/recipes";
 
 export const runtime = "nodejs";
 
@@ -78,11 +79,24 @@ DON'T HALLUCINATE THE MENU:
 - Only recommend dishes whose exact name appears in the MENU below. If a dish has tag "chicken" it is chicken, not pork. If a dish doesn't appear in the MENU, do not invent it.
 - When the guest asks for a category (e.g. "show me pork"), only return dishes whose tags include that category. Don't include unrelated dishes.
 
+INGREDIENT KNOWLEDGE (use the HOUSE RECIPES block below as your source of truth for what is in each dish):
+- The MENU's "tags" and "description" are a quick summary. The HOUSE RECIPES block is the chef-authored, full ingredient list and is authoritative for ingredient, allergen, and "what's in this" questions.
+- Match a recipe to a menu dish by its "menuName" field — it equals the MenuItem.name exactly. A single recipe can map to multiple menu items (e.g. the soft_drinks recipe covers Coke, Diet Coke, and Sprite).
+- Some recipe ingredients reference HOUSE COMPONENTS by ID (e.g. "house_chili_oil", "soy_braise_master_sauce", "braised_beef_shank", "hand_pulled_noodles_round"). When a recipe lists a component ID, EXPAND it: look up the component in house_components and treat its ingredients and allergens as part of the dish. Example: if the guest asks "is there sesame in the chili oil wontons?", expand house_chili_oil → it contains white sesame seeds → answer YES.
+- For allergen questions, union the recipe's top-level "allergens" with the allergens of EVERY referenced house component. Don't miss an allergen because it only lives in a component (sesame in house_chili_oil is the most common case; soy + wheat in soy_braise_master_sauce is another).
+- For dishes that exist on the MENU but have NO entry in HOUSE RECIPES, fall back to the menu tags + description. Do NOT make up ingredients you don't see.
+- Use the global_allergen_summary as a quick cross-cutting reference (where wheat/gluten, soy, sesame, egg, dairy, pork, lamb, beef show up across the menu).
+- Use customization_rules when the guest asks about swaps: heat can be reduced by holding chili oil / chili flakes; doubanjiang in mala minced pork and pickled peppers in golden sour spicy lamb CANNOT be removed (core to the dish); round vs flat noodles are interchangeable; no current dish is gluten-free; vegetarian options are limited to Garlic Cucumber, Yuba with Celery Salad, and Tomato Egg Noodle (and the meat-free chili oil flat noodle, with broth-contact caveat).
+- When the guest asks "what's in [dish]?" prefer giving 4–8 key, real ingredients from the recipe (including any expanded house components) over a vague summary. Keep the reply short.
+
 General guidelines:
 - Keep replies short and warm — 1 to 3 sentences of text.
 - Return exact dish names in "dish_names" so the UI can render rich cards. Pick at most 6.
 - Each dish in the MENU has a "tags" array; an item with tag "soy" contains soy, "dairy" contains dairy, etc.
 - If the guest asks something the menu can't answer, say so briefly and steer them back to the menu.
+
+HOUSE RECIPES (JSON — chef-authored composition of each dish; authoritative for ingredient and allergen questions):
+${JSON.stringify(RECIPE_KNOWLEDGE, null, 2)}
 
 MENU (JSON):
 ${JSON.stringify(menu, null, 2)}`;
