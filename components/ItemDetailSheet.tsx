@@ -303,7 +303,11 @@ export default function ItemDetailSheet({ item, preferences, onClose, onCartOpen
           </button>
         </div>
 
-        {/* Hero: image as a rounded card on darker cream */}
+        {/* Hero: image as a rounded card on darker cream.
+            Beverages (canned drinks) are product photos on white — we use
+            object-contain + small padding so the whole can is visible. Food
+            dishes are framed photos and look better filling the card via
+            object-cover. */}
         <div className="relative">
           <div className="relative z-10 px-6 pt-16 pb-2 sm:pt-14">
             <div className="relative aspect-square w-full overflow-hidden rounded-3xl bg-white shadow-md sm:aspect-[4/3]">
@@ -320,7 +324,11 @@ export default function ItemDetailSheet({ item, preferences, onClose, onCartOpen
                   }
                 }}
                 style={{ filter: "blur(8px)" }}
-                className="h-full w-full object-cover opacity-0 transition-[opacity,filter] duration-500 ease-out"
+                className={`h-full w-full opacity-0 transition-[opacity,filter] duration-500 ease-out ${
+                  item.category === "Beverages"
+                    ? "object-contain p-6"
+                    : "object-cover"
+                }`}
                 onLoad={(e) => {
                   e.currentTarget.style.opacity = "1";
                   e.currentTarget.style.filter = "blur(0px)";
