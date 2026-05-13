@@ -513,14 +513,15 @@ export default function ChatWidget({
             onClick={() => setOpen(false)}
             aria-hidden="true"
             style={
-              // Reserve space at the top/bottom of the overlay so the chat
-              // content sits exactly inside the visualViewport (above the
-              // keyboard, below the URL bar). The outer bg-cream still
-              // covers everything — only the inner layout shifts.
+              // Reserve space at the top of the overlay so the logo lines up
+              // with the visible viewport during iOS keyboard transitions.
+              // We deliberately do NOT pad the bottom here — the section's
+              // bg-white needs to extend all the way to the bottom of the
+              // overlay so the area under the input form blends with the
+              // chat panel instead of showing a cream strip.
               isMobile
                 ? ({
                     paddingTop: `${vvOffsetTop}px`,
-                    paddingBottom: `${keyboardInset}px`,
                   } as React.CSSProperties)
                 : undefined
             }
@@ -548,6 +549,13 @@ export default function ChatWidget({
                 transition: draggingRef.current
                   ? "none"
                   : "transform 200ms ease-out",
+                // Push the form (last child) up by the keyboard height so it
+                // stays right above the iOS keyboard. The section's bg-white
+                // fills the padding area below — replacing the old cream
+                // strip with a continuous white surface.
+                ...(isMobile
+                  ? { paddingBottom: `${keyboardInset}px` }
+                  : null),
               }}
               className="flex min-h-0 flex-1 flex-col overflow-hidden bg-white sm:fixed sm:bottom-5 sm:right-5 sm:left-auto sm:m-0 sm:h-[min(720px,82dvh)] sm:w-[min(420px,calc(100vw-2.5rem))] sm:max-w-none sm:flex-none sm:rounded-2xl sm:border sm:border-neutral-300/70 sm:shadow-2xl"
             >
@@ -765,7 +773,12 @@ export default function ChatWidget({
             <div className="benu-input-glow flex-1 rounded-full">
               <input
                 id="chat-widget-input"
+                name="chat-message"
                 type="text"
+                inputMode="text"
+                autoComplete="off"
+                autoCorrect="off"
+                spellCheck={false}
                 value={input}
                 onChange={(e) => setInput(e.target.value.slice(0, 2000))}
                 maxLength={2000}
