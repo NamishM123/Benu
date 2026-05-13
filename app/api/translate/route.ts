@@ -1,4 +1,4 @@
-import OpenAI from "openai";
+import Anthropic from "@anthropic-ai/sdk";
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
@@ -22,7 +22,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ translations: {} });
   }
 
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
     return NextResponse.json({ translations: {} });
   }
@@ -30,7 +30,7 @@ export async function POST(req: Request) {
   // Hard-cap input size for safety
   if (texts.length > 60) texts.length = 60;
 
-  const openai = new OpenAI({ apiKey });
+  const client = new Anthropic({ apiKey });
 
   const targetLang =
     target === "zh"
@@ -48,21 +48,34 @@ Texts to translate:
 ${JSON.stringify(texts)}`;
 
   try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      response_format: { type: "json_object" },
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are a precise translation engine for restaurant menus. Output valid JSON only.",
+    const response = await client.messages.create({
+      model: "claude-sonnet-4-6",
+      max_tokens: 4096,
+      system:
+        "You are a precise translation engine for restaurant menus. Output valid JSON only.",
+      messages: [{ role: "user", content: userPrompt }],
+      output_config: {
+        format: {
+          type: "json_schema",
+          schema: {
+            type: "object",
+            additionalProperties: { type: "string" },
+          },
         },
-        { role: "user", content: userPrompt },
-      ],
-      temperature: 0.2,
+      },
     });
 
-    const raw = completion.choices[0]?.message?.content ?? "{}";
+    let raw: string | null = null;
+    for (const block of response.content) {
+      if (block.type === "text") {
+        raw = block.text;
+        break;
+      }
+    }
+    if (!raw) {
+      return NextResponse.json({ translations: {} });
+    }
+
     let map: Record<string, unknown>;
     try {
       map = JSON.parse(raw);
