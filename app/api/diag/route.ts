@@ -6,6 +6,7 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   const hasUnsplashKey = Boolean(process.env.UNSPLASH_ACCESS_KEY);
   const hasOpenAIKey = Boolean(process.env.OPENAI_API_KEY);
+  const hasAnthropicKey = Boolean(process.env.ANTHROPIC_API_KEY);
 
   let unsplashCheck:
     | { ok: true; sampleUrl: string }
@@ -47,6 +48,7 @@ export async function GET() {
     env: {
       UNSPLASH_ACCESS_KEY: hasUnsplashKey ? "set" : "missing",
       OPENAI_API_KEY: hasOpenAIKey ? "set" : "missing",
+      ANTHROPIC_API_KEY: hasAnthropicKey ? "set" : "missing",
     },
     unsplash: unsplashCheck,
   });
