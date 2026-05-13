@@ -500,9 +500,12 @@ export default function ChatWidget({
 
       {open && (
         <>
-          {/* Mobile: full-screen "Ask Benu" page (logo + chat panel inside
-              one fixed container that sizes itself to the dynamic viewport
-              so the keyboard never exposes the menu underneath).
+          {/* Mobile: full-screen "Ask Benu" overlay. The OUTER container is
+              locked to `inset-0` with an opaque `bg-cream` and never moves,
+              so even if iOS briefly scrolls the visualViewport during
+              keyboard transitions, the menu page can never peek through.
+              The keyboard-aware sizing is done via padding instead of by
+              moving the container.
               Desktop (sm:): the same container becomes a thin translucent
               backdrop and the chat panel below floats out as a fixed
               bottom-right widget. */}
@@ -510,18 +513,18 @@ export default function ChatWidget({
             onClick={() => setOpen(false)}
             aria-hidden="true"
             style={
-              // On mobile, lock the container exactly to the visualViewport
-              // so iOS Safari's keyboard auto-scroll never exposes the menu
-              // page behind the chat. On desktop the inline style is
-              // skipped and the sm: classes (inset-0) take over.
-              isMobile && vvHeight != null
+              // Reserve space at the top/bottom of the overlay so the chat
+              // content sits exactly inside the visualViewport (above the
+              // keyboard, below the URL bar). The outer bg-cream still
+              // covers everything — only the inner layout shifts.
+              isMobile
                 ? ({
-                    top: `${vvOffsetTop}px`,
-                    height: `${vvHeight}px`,
+                    paddingTop: `${vvOffsetTop}px`,
+                    paddingBottom: `${keyboardInset}px`,
                   } as React.CSSProperties)
                 : undefined
             }
-            className="fixed inset-x-0 top-0 z-50 flex h-[100dvh] flex-col bg-cream sm:inset-0 sm:block sm:h-auto sm:bg-cream/85 sm:backdrop-blur-md"
+            className="fixed inset-0 z-50 flex flex-col bg-cream sm:inset-0 sm:block sm:bg-cream/85 sm:backdrop-blur-md"
           >
             {/* Logo: mobile only. PNG has ~43% transparent whitespace below
                 the artwork; clip it. */}
@@ -546,7 +549,7 @@ export default function ChatWidget({
                   ? "none"
                   : "transform 200ms ease-out",
               }}
-              className="mx-3 mt-3 mb-2 flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl border border-neutral-300/70 bg-white sm:fixed sm:bottom-5 sm:right-5 sm:left-auto sm:m-0 sm:h-[min(720px,82dvh)] sm:w-[min(420px,calc(100vw-2.5rem))] sm:max-w-none sm:flex-none sm:shadow-2xl"
+              className="flex min-h-0 flex-1 flex-col overflow-hidden bg-white sm:fixed sm:bottom-5 sm:right-5 sm:left-auto sm:m-0 sm:h-[min(720px,82dvh)] sm:w-[min(420px,calc(100vw-2.5rem))] sm:max-w-none sm:flex-none sm:rounded-2xl sm:border sm:border-neutral-300/70 sm:shadow-2xl"
             >
           <div
             onTouchStart={handleTouchStart}
