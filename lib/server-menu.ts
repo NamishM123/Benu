@@ -101,13 +101,57 @@ async function ensureSeeded(): Promise<void> {
 
 // ---- public API --------------------------------------------------------
 
+// Reconcile stale local image paths with the static MENU. KV was seeded
+// once and never re-syncs, so when a bundled image is renamed (e.g.
+// coke.avif → coke.jpg) the KV entry keeps pointing at the gone file
+// and the menu card falls back to the broken-image SVG. We only touch
+// items whose KV image is a local /menu/* path — admin-uploaded URLs
+// (http://, https://) and any custom paths are left alone.
+function reconcileImagesFromStatic(
+  items: StoredMenuItem[],
+): StoredMenuItem[] {
+  const staticImageByName = new Map<string, string>(
+    STATIC_MENU.map((m) => [m.name, m.image]),
+  );
+  const updates: StoredMenuItem[] = [];
+  const reconciled = items.map((item) => {
+    const staticImage = staticImageByName.get(item.name);
+    if (!staticImage) return item;
+    if (item.image && !item.image.startsWith("/menu/")) return item;
+    if (item.image === staticImage) return item;
+    const fixed: StoredMenuItem = { ...item, image: staticImage };
+    updates.push(fixed);
+    return fixed;
+  });
+  if (updates.length > 0) {
+    if (useKv) {
+      const payload: Record<string, StoredMenuItem> = {};
+      for (const u of updates) payload[u.id] = u;
+      // Fire-and-forget so a slow KV write doesn't add latency to the page
+      // response. Next page load will read the corrected values either way.
+      void kv.hset(HASH_KEY, payload).catch((err: unknown) => {
+        console.warn(
+          "[menu] failed to persist image reconciliation:",
+          err,
+        );
+      });
+    } else {
+      const store = memStore();
+      for (const u of updates) store.items.set(u.id, u);
+    }
+  }
+  return reconciled;
+}
+
 export async function listMenuItems(): Promise<StoredMenuItem[]> {
   await ensureSeeded();
   if (useKv) {
     const all = (await kv.hvals(HASH_KEY)) as StoredMenuItem[] | null;
-    return sortMenu(Array.isArray(all) ? all : []);
+    return reconcileImagesFromStatic(
+      sortMenu(Array.isArray(all) ? all : []),
+    );
   }
-  return sortMenu([...memStore().items.values()]);
+  return reconcileImagesFromStatic(sortMenu([...memStore().items.values()]));
 }
 
 export async function getMenuItem(
