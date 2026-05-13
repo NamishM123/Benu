@@ -176,7 +176,7 @@ export default function MenuPage({ menu }: Props) {
               <button
                 type="button"
                 onClick={() => setCartOpen(true)}
-                aria-label={t("yourCart")}
+                aria-label={totalCount > 0 ? `${t("yourCart")} (${totalCount})` : t("yourCart")}
                 className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-neutral-300 bg-white text-neutral-800 shadow-sm transition-colors hover:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
               >
                 <svg
@@ -195,6 +195,14 @@ export default function MenuPage({ menu }: Props) {
                   <circle cx="20" cy="21" r="1" />
                   <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
                 </svg>
+                {totalCount > 0 && (
+                  <span
+                    aria-hidden="true"
+                    className="pointer-events-none absolute -right-1.5 -top-1.5 inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full border-2 border-white bg-cantaloupe px-1 text-[11px] font-bold leading-none text-neutral-900 shadow-sm"
+                  >
+                    {totalCount > 99 ? "99+" : totalCount}
+                  </span>
+                )}
               </button>
             </div>
           </div>
