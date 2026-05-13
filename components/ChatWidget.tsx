@@ -557,7 +557,7 @@ export default function ChatWidget({
                   ? { paddingBottom: `${keyboardInset}px` }
                   : null),
               }}
-              className="flex min-h-0 flex-1 flex-col overflow-hidden bg-white sm:fixed sm:top-[140px] sm:bottom-5 sm:right-5 sm:left-auto sm:m-0 sm:h-auto sm:max-h-[calc(100dvh-160px)] sm:w-[min(480px,calc(100vw-2.5rem))] sm:max-w-none sm:flex-none sm:rounded-2xl sm:border sm:border-neutral-300/70 sm:shadow-2xl sm:pointer-events-auto"
+              className="flex min-h-0 flex-1 flex-col overflow-hidden bg-white sm:fixed sm:top-[195px] sm:bottom-5 sm:right-5 sm:left-auto sm:m-0 sm:h-auto sm:max-h-[calc(100dvh-215px)] sm:w-[min(480px,calc(100vw-2.5rem))] sm:max-w-none sm:flex-none sm:rounded-2xl sm:border sm:border-neutral-300/70 sm:shadow-2xl sm:pointer-events-auto"
             >
           <div
             onTouchStart={handleTouchStart}
