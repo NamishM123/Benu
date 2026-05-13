@@ -101,7 +101,7 @@ export async function createOrder(input: CreateOrderInput): Promise<Order> {
 
 export async function patchOrder(
   id: string,
-  patch: Partial<Pick<Order, "status" | "etaMinutes">>,
+  patch: Partial<Pick<Order, "status" | "etaMinutes" | "priority">>,
 ): Promise<Order | undefined> {
   const existing = await getOrder(id);
   if (!existing) return undefined;

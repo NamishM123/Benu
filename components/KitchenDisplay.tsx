@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import {
   getOrders,
+  isOrderPriority,
   ORDERS_EVENT,
   removeOrder,
   subscribeToOrders,
@@ -37,6 +38,29 @@ function statusClasses(status: OrderStatus): string {
   if (status === "new") return "bg-cantaloupe text-neutral-900";
   if (status === "cooking") return "bg-butter text-neutral-900";
   return "bg-sage-dark text-neutral-900";
+}
+
+function minutesSince(ts: number, now: number = Date.now()): number {
+  return Math.max(0, Math.floor((now - ts) / 60000));
+}
+
+// Priority orders float to the top, oldest first (most overdue is most urgent).
+// Within each group, active-tab default is newest-first.
+function sortKitchenOrders(
+  orders: Order[],
+  tab: "active" | "completed",
+): Order[] {
+  if (tab === "completed") {
+    return [...orders].sort((a, b) => b.placedAt - a.placedAt);
+  }
+  const now = Date.now();
+  return [...orders].sort((a, b) => {
+    const pa = isOrderPriority(a, now);
+    const pb = isOrderPriority(b, now);
+    if (pa !== pb) return pa ? -1 : 1;
+    if (pa) return a.placedAt - b.placedAt;
+    return b.placedAt - a.placedAt;
+  });
 }
 
 export default function KitchenDisplay() {
@@ -207,8 +231,11 @@ export default function KitchenDisplay() {
         </div>
 
         {(() => {
-          const filtered = orders.filter((o) =>
-            tab === "active" ? o.status !== "ready" : o.status === "ready"
+          const filtered = sortKitchenOrders(
+            orders.filter((o) =>
+              tab === "active" ? o.status !== "ready" : o.status === "ready",
+            ),
+            tab,
           );
           return filtered.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-neutral-300 bg-white px-6 py-16 text-center text-sm text-neutral-600">
@@ -223,12 +250,47 @@ export default function KitchenDisplay() {
                 (order.etaMinutes !== undefined
                   ? String(order.etaMinutes)
                   : "");
+              const priority = isOrderPriority(order);
+              const manualPriority = order.priority === true;
 
               return (
                 <li
                   key={order.id}
-                  className="flex flex-col gap-3 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm"
+                  className={[
+                    "flex flex-col gap-3 rounded-2xl border bg-white p-5 shadow-sm",
+                    priority
+                      ? "border-red-300 ring-1 ring-red-200"
+                      : "border-neutral-200",
+                  ].join(" ")}
                 >
+                  {priority && (
+                    <div className="flex items-center gap-2 rounded-lg bg-red-50 px-3 py-1.5 text-red-700">
+                      <svg
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                        aria-hidden
+                        className="h-4 w-4 flex-none"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495ZM10 6a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 10 6Zm0 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      <span className="text-[11px] font-semibold uppercase tracking-wider">
+                        {t("priorityBadge")}
+                      </span>
+                      {!manualPriority && (
+                        <span className="text-[11px] font-medium text-red-600/80">
+                          ·{" "}
+                          {t("priorityWaiting").replace(
+                            "{n}",
+                            String(minutesSince(order.placedAt)),
+                          )}
+                        </span>
+                      )}
+                    </div>
+                  )}
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-start gap-3">
                       <div className="flex h-12 w-12 flex-none flex-col items-center justify-center rounded-xl bg-neutral-900 text-cream">
@@ -248,14 +310,45 @@ export default function KitchenDisplay() {
                         </p>
                       </div>
                     </div>
-                    <span
-                      className={[
-                        "rounded-full px-3 py-1 text-xs font-medium",
-                        statusClasses(order.status),
-                      ].join(" ")}
-                    >
-                      {statusLabel(order.status, lang)}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      {order.status !== "ready" && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            updateOrder(order.id, { priority: !manualPriority })
+                          }
+                          title={
+                            manualPriority
+                              ? t("unmarkPriority")
+                              : t("markPriority")
+                          }
+                          aria-label={
+                            manualPriority
+                              ? t("unmarkPriority")
+                              : t("markPriority")
+                          }
+                          aria-pressed={manualPriority}
+                          className={[
+                            "flex h-7 w-7 items-center justify-center rounded-full border text-sm leading-none transition-colors",
+                            manualPriority
+                              ? "border-red-300 bg-red-100 text-red-600 hover:bg-red-200"
+                              : "border-neutral-300 bg-white text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700",
+                          ].join(" ")}
+                        >
+                          <span aria-hidden>
+                            {manualPriority ? "★" : "☆"}
+                          </span>
+                        </button>
+                      )}
+                      <span
+                        className={[
+                          "rounded-full px-3 py-1 text-xs font-medium",
+                          statusClasses(order.status),
+                        ].join(" ")}
+                      >
+                        {statusLabel(order.status, lang)}
+                      </span>
+                    </div>
                   </div>
 
                   {order.preferences.length > 0 && (

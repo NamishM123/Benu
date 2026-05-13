@@ -49,7 +49,21 @@ export type Order = {
   tableNumber: number;
   etaMinutes?: number;
   clientId?: string;
+  priority?: boolean;
 };
+
+// Auto-flag an order as priority once it has been waiting this long without
+// being marked ready. Manual `order.priority === true` always wins.
+export const AUTO_PRIORITY_AFTER_MINUTES = 15;
+
+export function isOrderPriority(
+  order: Order,
+  now: number = Date.now(),
+): boolean {
+  if (order.status === "ready") return false;
+  if (order.priority === true) return true;
+  return now - order.placedAt > AUTO_PRIORITY_AFTER_MINUTES * 60 * 1000;
+}
 
 // Client-side cache of the latest server snapshot. Components read this
 // synchronously via getOrders() and re-render when ORDERS_EVENT fires.
@@ -193,7 +207,7 @@ export async function placeOrder(
 
 export async function updateOrder(
   id: string,
-  patch: Partial<Pick<Order, "status" | "etaMinutes">>,
+  patch: Partial<Pick<Order, "status" | "etaMinutes" | "priority">>,
 ): Promise<void> {
   const res = await fetch(`/api/orders/${encodeURIComponent(id)}`, {
     method: "PATCH",
