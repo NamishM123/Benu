@@ -379,76 +379,68 @@ export default function ItemDetailSheet({ item, preferences, onClose, onCartOpen
                   : info.ingredients;
               if (!n && !ingredientsText) return null;
               return (
-                <div className="mt-5 rounded-2xl border border-neutral-200 bg-white/60 p-4">
+                <div className="mt-6 space-y-5">
                   {n && (
-                    <>
-                      <div className="flex items-baseline justify-between gap-3">
-                        <h3 className="text-sm font-semibold uppercase tracking-wider text-neutral-700">
+                    <section>
+                      <div className="flex items-baseline justify-between border-b border-neutral-200/70 pb-2">
+                        <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
                           {t("nutrition")}
                         </h3>
-                        <div className="flex items-baseline gap-1">
+                        <div className="flex items-baseline gap-1.5">
                           <span className="text-2xl font-semibold text-neutral-900 tabular-nums">
                             {n.calories}
                           </span>
-                          <span className="text-xs uppercase tracking-wider text-neutral-500">
+                          <span className="text-[11px] uppercase tracking-wider text-neutral-500">
                             {t("caloriesUnit")}
                           </span>
                         </div>
                       </div>
-                      <dl className="mt-3 grid grid-cols-3 gap-2 text-center sm:grid-cols-4">
-                        <div className="rounded-xl bg-neutral-50 px-2 py-2">
-                          <dt className="text-[10px] uppercase tracking-wider text-neutral-500">
-                            {t("protein")}
-                          </dt>
-                          <dd className="mt-0.5 text-sm font-medium text-neutral-900 tabular-nums">
+                      <dl className="mt-3 grid grid-cols-1 gap-x-8 gap-y-1.5 text-sm sm:grid-cols-2">
+                        <div className="flex items-baseline justify-between">
+                          <dt className="text-neutral-500">{t("protein")}</dt>
+                          <dd className="font-medium text-neutral-900 tabular-nums">
                             {n.protein}
                             {t("gramsUnit")}
                           </dd>
                         </div>
-                        <div className="rounded-xl bg-neutral-50 px-2 py-2">
-                          <dt className="text-[10px] uppercase tracking-wider text-neutral-500">
-                            {t("carbs")}
-                          </dt>
-                          <dd className="mt-0.5 text-sm font-medium text-neutral-900 tabular-nums">
+                        <div className="flex items-baseline justify-between">
+                          <dt className="text-neutral-500">{t("carbs")}</dt>
+                          <dd className="font-medium text-neutral-900 tabular-nums">
                             {n.carbs}
                             {t("gramsUnit")}
                           </dd>
                         </div>
-                        <div className="rounded-xl bg-neutral-50 px-2 py-2">
-                          <dt className="text-[10px] uppercase tracking-wider text-neutral-500">
-                            {t("fat")}
-                          </dt>
-                          <dd className="mt-0.5 text-sm font-medium text-neutral-900 tabular-nums">
+                        <div className="flex items-baseline justify-between">
+                          <dt className="text-neutral-500">{t("fat")}</dt>
+                          <dd className="font-medium text-neutral-900 tabular-nums">
                             {n.fat}
                             {t("gramsUnit")}
                           </dd>
                         </div>
                         {n.sodium != null && (
-                          <div className="rounded-xl bg-neutral-50 px-2 py-2">
-                            <dt className="text-[10px] uppercase tracking-wider text-neutral-500">
-                              {t("sodium")}
-                            </dt>
-                            <dd className="mt-0.5 text-sm font-medium text-neutral-900 tabular-nums">
+                          <div className="flex items-baseline justify-between">
+                            <dt className="text-neutral-500">{t("sodium")}</dt>
+                            <dd className="font-medium text-neutral-900 tabular-nums">
                               {n.sodium}
                               {t("milligramsUnit")}
                             </dd>
                           </div>
                         )}
                       </dl>
-                    </>
+                    </section>
                   )}
                   {ingredientsText && (
-                    <div className={n ? "mt-4 border-t border-neutral-200 pt-3" : ""}>
-                      <h3 className="text-sm font-semibold uppercase tracking-wider text-neutral-700">
+                    <section>
+                      <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
                         {t("ingredients")}
                       </h3>
-                      <p className="mt-1.5 text-xs leading-relaxed text-neutral-600">
+                      <p className="mt-1.5 text-sm leading-relaxed text-neutral-700">
                         {ingredientsText}
                       </p>
-                    </div>
+                    </section>
                   )}
                   {n && (
-                    <p className="mt-3 text-[10px] leading-relaxed text-neutral-400">
+                    <p className="text-[10px] italic leading-relaxed text-neutral-400">
                       {t("nutritionDisclaimer")}
                     </p>
                   )}
