@@ -143,15 +143,68 @@ function reconcileImagesFromStatic(
   return reconciled;
 }
 
+// If KV somehow ends up with multiple entries that share a dish name
+// (e.g. an admin deleted a built-in dish and re-created it with a new id,
+// or an old import left stragglers), collapse them down to one. The
+// surviving id is preferred in this order:
+//   1. The id used by ensureSeeded() (slugify of the static MENU name).
+//   2. The lowest id lexicographically (stable tiebreaker).
+// The losers are deleted so the next load doesn't see them at all.
+function dedupeByName(items: StoredMenuItem[]): {
+  kept: StoredMenuItem[];
+  toDelete: string[];
+} {
+  const byName = new Map<string, StoredMenuItem[]>();
+  for (const item of items) {
+    const list = byName.get(item.name) ?? [];
+    list.push(item);
+    byName.set(item.name, list);
+  }
+  const kept: StoredMenuItem[] = [];
+  const toDelete: string[] = [];
+  const staticSlugByName = new Map<string, string>(
+    STATIC_MENU.map((m) => [m.name, slugify(m.name)]),
+  );
+  for (const [name, list] of byName.entries()) {
+    if (list.length === 1) {
+      kept.push(list[0]!);
+      continue;
+    }
+    const sorted = [...list].sort((a, b) => a.id.localeCompare(b.id));
+    const preferredId = staticSlugByName.get(name);
+    const winner = sorted.find((it) => it.id === preferredId) ?? sorted[0]!;
+    kept.push(winner);
+    for (const it of list) {
+      if (it.id !== winner.id) toDelete.push(it.id);
+    }
+  }
+  return { kept, toDelete };
+}
+
 export async function listMenuItems(): Promise<StoredMenuItem[]> {
   await ensureSeeded();
+  let raw: StoredMenuItem[];
   if (useKv) {
     const all = (await kv.hvals(HASH_KEY)) as StoredMenuItem[] | null;
-    return reconcileImagesFromStatic(
-      sortMenu(Array.isArray(all) ? all : []),
-    );
+    raw = Array.isArray(all) ? all : [];
+  } else {
+    raw = [...memStore().items.values()];
   }
-  return reconcileImagesFromStatic(sortMenu([...memStore().items.values()]));
+  const { kept, toDelete } = dedupeByName(raw);
+  if (toDelete.length > 0) {
+    if (useKv) {
+      // Fire-and-forget; next load will see them gone either way.
+      void kv
+        .hdel(HASH_KEY, ...toDelete)
+        .catch((err: unknown) => {
+          console.warn("[menu] failed to delete duplicate KV items:", err);
+        });
+    } else {
+      const store = memStore();
+      for (const id of toDelete) store.items.delete(id);
+    }
+  }
+  return reconcileImagesFromStatic(sortMenu(kept));
 }
 
 export async function getMenuItem(
