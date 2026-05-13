@@ -75,6 +75,7 @@ export default function ItemDetailSheet({ item, preferences, onClose, onCartOpen
   const [specialRequest, setSpecialRequest] = useState("");
   const [justAdded, setJustAdded] = useState(false);
   const [fadeOpacity, setFadeOpacity] = useState(0);
+  const [nutritionOpen, setNutritionOpen] = useState(false);
   // Custom (chat-stated) allergens — load from localStorage so the detail
   // sheet warns about the same ingredients the chat is filtering.
   const [customAllergens, setCustomAllergens] = useState<string[]>([]);
@@ -123,6 +124,7 @@ export default function ItemDetailSheet({ item, preferences, onClose, onCartOpen
     setSpecialRequest("");
     setJustAdded(false);
     setFadeOpacity(0);
+    setNutritionOpen(false);
   }, [item, groups]);
 
   // Lock body scroll + match the iOS safe-area / status bar to the dialog bg.
@@ -379,71 +381,109 @@ export default function ItemDetailSheet({ item, preferences, onClose, onCartOpen
                   : info.ingredients;
               if (!n && !ingredientsText) return null;
               return (
-                <div className="mt-6 space-y-5">
-                  {n && (
-                    <section>
-                      <div className="flex items-baseline justify-between border-b border-neutral-200/70 pb-2">
-                        <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
-                          {t("nutrition")}
-                        </h3>
-                        <div className="flex items-baseline gap-1.5">
-                          <span className="text-2xl font-semibold text-neutral-900 tabular-nums">
+                <div className="mt-5 overflow-hidden rounded-2xl border border-neutral-200/80 bg-white/70 shadow-sm">
+                  <button
+                    type="button"
+                    onClick={() => setNutritionOpen((o) => !o)}
+                    aria-expanded={nutritionOpen}
+                    aria-controls="nutrition-panel"
+                    className="flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left transition-colors hover:bg-neutral-50/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/20"
+                  >
+                    <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-600">
+                      {t("nutritionAndIngredients")}
+                    </span>
+                    <span className="flex items-baseline gap-3">
+                      {n && (
+                        <span className="flex items-baseline gap-1">
+                          <span className="text-base font-semibold text-neutral-900 tabular-nums">
                             {n.calories}
                           </span>
-                          <span className="text-[11px] uppercase tracking-wider text-neutral-500">
+                          <span className="text-[10px] uppercase tracking-wider text-neutral-500">
                             {t("caloriesUnit")}
                           </span>
-                        </div>
-                      </div>
-                      <dl className="mt-3 grid grid-cols-1 gap-x-8 gap-y-1.5 text-sm sm:grid-cols-2">
-                        <div className="flex items-baseline justify-between">
-                          <dt className="text-neutral-500">{t("protein")}</dt>
-                          <dd className="font-medium text-neutral-900 tabular-nums">
-                            {n.protein}
-                            {t("gramsUnit")}
-                          </dd>
-                        </div>
-                        <div className="flex items-baseline justify-between">
-                          <dt className="text-neutral-500">{t("carbs")}</dt>
-                          <dd className="font-medium text-neutral-900 tabular-nums">
-                            {n.carbs}
-                            {t("gramsUnit")}
-                          </dd>
-                        </div>
-                        <div className="flex items-baseline justify-between">
-                          <dt className="text-neutral-500">{t("fat")}</dt>
-                          <dd className="font-medium text-neutral-900 tabular-nums">
-                            {n.fat}
-                            {t("gramsUnit")}
-                          </dd>
-                        </div>
-                        {n.sodium != null && (
-                          <div className="flex items-baseline justify-between">
-                            <dt className="text-neutral-500">{t("sodium")}</dt>
-                            <dd className="font-medium text-neutral-900 tabular-nums">
-                              {n.sodium}
-                              {t("milligramsUnit")}
-                            </dd>
-                          </div>
+                        </span>
+                      )}
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.25"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                        className={[
+                          "self-center text-neutral-500 transition-transform duration-200 ease-out",
+                          nutritionOpen ? "rotate-180" : "",
+                        ].join(" ")}
+                      >
+                        <polyline points="6 9 12 15 18 9" />
+                      </svg>
+                    </span>
+                  </button>
+                  <div
+                    id="nutrition-panel"
+                    className={[
+                      "grid transition-[grid-template-rows] duration-300 ease-out",
+                      nutritionOpen ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+                    ].join(" ")}
+                  >
+                    <div className="overflow-hidden">
+                      <div className="space-y-4 border-t border-neutral-200/70 px-4 pt-3.5 pb-4">
+                        {n && (
+                          <dl className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
+                            <div className="flex items-baseline justify-between">
+                              <dt className="text-neutral-500">{t("protein")}</dt>
+                              <dd className="font-medium text-neutral-900 tabular-nums">
+                                {n.protein}
+                                {t("gramsUnit")}
+                              </dd>
+                            </div>
+                            <div className="flex items-baseline justify-between">
+                              <dt className="text-neutral-500">{t("carbs")}</dt>
+                              <dd className="font-medium text-neutral-900 tabular-nums">
+                                {n.carbs}
+                                {t("gramsUnit")}
+                              </dd>
+                            </div>
+                            <div className="flex items-baseline justify-between">
+                              <dt className="text-neutral-500">{t("fat")}</dt>
+                              <dd className="font-medium text-neutral-900 tabular-nums">
+                                {n.fat}
+                                {t("gramsUnit")}
+                              </dd>
+                            </div>
+                            {n.sodium != null && (
+                              <div className="flex items-baseline justify-between">
+                                <dt className="text-neutral-500">{t("sodium")}</dt>
+                                <dd className="font-medium text-neutral-900 tabular-nums">
+                                  {n.sodium}
+                                  {t("milligramsUnit")}
+                                </dd>
+                              </div>
+                            )}
+                          </dl>
                         )}
-                      </dl>
-                    </section>
-                  )}
-                  {ingredientsText && (
-                    <section>
-                      <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
-                        {t("ingredients")}
-                      </h3>
-                      <p className="mt-1.5 text-sm leading-relaxed text-neutral-700">
-                        {ingredientsText}
-                      </p>
-                    </section>
-                  )}
-                  {n && (
-                    <p className="text-[10px] italic leading-relaxed text-neutral-400">
-                      {t("nutritionDisclaimer")}
-                    </p>
-                  )}
+                        {ingredientsText && (
+                          <section className={n ? "border-t border-neutral-200/70 pt-3" : ""}>
+                            <h3 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
+                              {t("ingredients")}
+                            </h3>
+                            <p className="mt-1.5 text-sm leading-relaxed text-neutral-700">
+                              {ingredientsText}
+                            </p>
+                          </section>
+                        )}
+                        {n && (
+                          <p className="text-[10px] italic leading-relaxed text-neutral-400">
+                            {t("nutritionDisclaimer")}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
                 </div>
               );
             })()}

@@ -184,6 +184,10 @@ const TRANSLATIONS = {
 
   // Nutrition & ingredients
   nutrition: { en: "Nutrition", zh: "营养信息" },
+  nutritionAndIngredients: {
+    en: "Nutrition & Ingredients",
+    zh: "营养与原料",
+  },
   calories: { en: "Calories", zh: "热量" },
   caloriesUnit: { en: "cal", zh: "千卡" },
   protein: { en: "Protein", zh: "蛋白质" },
