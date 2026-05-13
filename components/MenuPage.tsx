@@ -161,7 +161,7 @@ export default function MenuPage({ menu }: Props) {
               onClick={() => setFiltersOpen(true)}
               aria-label={t("dietaryFilter")}
               className={[
-                "hidden sm:inline-flex h-10 w-[11rem] items-center justify-center whitespace-nowrap rounded-full px-3 text-base font-medium shadow-sm transition-colors",
+                "hidden sm:inline-flex h-10 w-[9rem] items-center justify-center whitespace-nowrap rounded-full px-3 text-base font-medium shadow-sm transition-colors",
                 "focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30",
                 preferences.length > 0
                   ? "bg-cantaloupe text-neutral-900 hover:bg-cantaloupe-soft"
