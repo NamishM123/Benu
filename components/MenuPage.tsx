@@ -198,7 +198,7 @@ export default function MenuPage({ menu }: Props) {
                 {totalCount > 0 && (
                   <span
                     aria-hidden="true"
-                    className="pointer-events-none absolute -right-1.5 -top-1.5 inline-flex h-5 min-w-[1.25rem] items-center justify-center rounded-full border-2 border-white bg-cantaloupe px-1 text-[11px] font-bold leading-none text-neutral-900 shadow-sm"
+                    className="pointer-events-none absolute -right-0.5 -top-0.5 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-cantaloupe px-1 text-[10px] font-semibold leading-none text-neutral-900"
                   >
                     {totalCount > 99 ? "99+" : totalCount}
                   </span>
