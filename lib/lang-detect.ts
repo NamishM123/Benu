@@ -49,8 +49,19 @@ const LATIN_KEYWORDS: Record<string, string[]> = {
   id: ["saya", "kamu", "dia", "untuk", "dengan", "tetapi", "ya", "tidak", "terima", "kasih", "tanpa", "daging", "makan"],
 };
 
+// Farsi-only letters within the Perso-Arabic block. If any of these are
+// present, the text is Persian (Farsi / Dari / Tajik written in Arabic
+// script), not Arabic — Arabic itself never uses پ چ ژ گ. We special-case
+// this BEFORE the general script-range scan because the Arabic range
+// regex also matches Farsi letters (it'd otherwise win on character
+// count and mis-label every Farsi message as Arabic).
+const FARSI_ONLY_RE = /[پچژگ]/;
+
 export function detectLanguage(text: string): string {
   if (!text) return "en";
+
+  // Farsi short-circuit — even one Farsi-only letter is unambiguous.
+  if (FARSI_ONLY_RE.test(text)) return "fa";
 
   // Sample longer messages by character count to avoid weighting toward
   // a single CJK character in an otherwise English message.
