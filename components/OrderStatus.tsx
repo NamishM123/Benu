@@ -109,7 +109,10 @@ export default function OrderStatus({ id }: Props) {
   }
 
   const headline = statusHeadline(order.status, lang);
-  const shortId = order.id.slice(0, 6).toUpperCase();
+  const ticketLabel =
+    order.ticketNumber !== undefined
+      ? String(order.ticketNumber).padStart(3, "0")
+      : order.id.slice(0, 6).toUpperCase();
 
   return (
     <div className="min-h-screen bg-cream">
@@ -132,7 +135,7 @@ export default function OrderStatus({ id }: Props) {
           ].join(" ")}
         >
           <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
-            {t("orderNumber")} #{shortId}
+            {t("orderNumber")} #{ticketLabel}
             {order.tableNumber !== undefined &&
               ` · ${t("tableLabel")} ${order.tableNumber}`}
           </p>

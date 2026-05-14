@@ -20,11 +20,21 @@ import {
 } from "@/lib/i18n";
 import LanguageSwitcher from "./LanguageSwitcher";
 import SignOutButton from "./SignOutButton";
+import BusyHeatmap from "./BusyHeatmap";
 import { type MenuItem } from "@/lib/menu";
 
-function formatTime(ts: number): string {
-  const d = new Date(ts);
-  return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+function minutesSince(ts: number, now: number = Date.now()): number {
+  return Math.max(0, Math.floor((now - ts) / 60000));
+}
+
+function formatPlacedAt(ts: number, lang: Lang): string {
+  const locale = lang === "zh" ? "zh-CN" : "en-US";
+  return new Date(ts).toLocaleString(locale, {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
 function statusLabel(status: OrderStatus, lang: Lang): string {
@@ -39,14 +49,62 @@ function statusClasses(status: OrderStatus): string {
   return "bg-sage-dark text-neutral-900";
 }
 
+// Substring match across the human-visible fields: ticket number (with and
+// without leading zeros), table number, item name (en + zh), and the UUID
+// short prefix as a fallback.
+function matchesSearch(order: Order, raw: string): boolean {
+  const q = raw.trim().toLowerCase();
+  if (q === "") return true;
+  if (order.ticketNumber !== undefined) {
+    const tn = String(order.ticketNumber);
+    if (tn.includes(q)) return true;
+    if (String(order.ticketNumber).padStart(3, "0").includes(q)) return true;
+  }
+  if (order.id.slice(0, 8).toLowerCase().includes(q)) return true;
+  if (String(order.tableNumber) === q) return true;
+  for (const line of order.lines) {
+    if (line.itemName.toLowerCase().includes(q)) return true;
+    if (line.itemNameZh?.toLowerCase().includes(q)) return true;
+  }
+  return false;
+}
+
+// Active tab: starred orders first, then strict FIFO (oldest order = next to cook).
+// Completed tab: newest first so just-finished tickets are at the top.
+function sortKitchenOrders(
+  orders: Order[],
+  tab: "active" | "completed",
+): Order[] {
+  if (tab === "completed") {
+    return [...orders].sort((a, b) => b.placedAt - a.placedAt);
+  }
+  return [...orders].sort((a, b) => {
+    const pa = a.priority === true;
+    const pb = b.priority === true;
+    if (pa !== pb) return pa ? -1 : 1;
+    return a.placedAt - b.placedAt;
+  });
+}
+
 export default function KitchenDisplay() {
   const { t, lang } = useTranslation();
   const [orders, setOrders] = useState<Order[]>([]);
+  const [ordersLoaded, setOrdersLoaded] = useState(false);
   const [etaDrafts, setEtaDrafts] = useState<Record<string, string>>({});
   const [menuItems, setMenuItems] = useState<(MenuItem & { id: string })[]>([]);
   const [show86Panel, setShow86Panel] = useState(false);
   const [itemSearch, setItemSearch] = useState("");
   const [tab, setTab] = useState<"active" | "completed">("active");
+  const [orderSearch, setOrderSearch] = useState("");
+  const [showBusyHeatmap, setShowBusyHeatmap] = useState(false);
+  const [confirmClearId, setConfirmClearId] = useState<string | null>(null);
+  // Tick once a minute so the per-card "Nm" pill stays current even when the
+  // orders list isn't changing.
+  const [, setMinuteTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setMinuteTick((n) => n + 1), 30_000);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     fetch("/api/menu/items")
@@ -56,10 +114,16 @@ export default function KitchenDisplay() {
   }, []);
 
   useEffect(() => {
-    setOrders(getOrders());
+    const initial = getOrders();
+    setOrders(initial);
+    // If the cache already has data (warm mount), skip the loading flash.
+    if (initial.length > 0) setOrdersLoaded(true);
     function onChange(e: Event) {
       const detail = (e as CustomEvent<Order[]>).detail;
-      if (Array.isArray(detail)) setOrders(detail);
+      if (Array.isArray(detail)) {
+        setOrders(detail);
+        setOrdersLoaded(true);
+      }
     }
     window.addEventListener(ORDERS_EVENT, onChange);
     const unsubscribe = subscribeToOrders({ scope: "all" });
@@ -108,6 +172,13 @@ export default function KitchenDisplay() {
             >
               QR codes
             </Link>
+            <button
+              type="button"
+              onClick={() => setShowBusyHeatmap(true)}
+              className="rounded-full border border-neutral-300 bg-white px-3 py-1.5 text-xs text-neutral-700 hover:bg-neutral-100"
+            >
+              {t("busyTimes")}
+            </button>
             <LanguageSwitcher />
             <SignOutButton />
           </div>
@@ -179,7 +250,8 @@ export default function KitchenDisplay() {
       )}
 
       <main className="mx-auto max-w-6xl px-6 py-6">
-        <div className="mb-5 flex gap-1 rounded-full border border-neutral-200 bg-white p-1 w-fit">
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex gap-1 rounded-full border border-neutral-200 bg-white p-1 w-fit">
           <button
             type="button"
             onClick={() => setTab("active")}
@@ -204,31 +276,139 @@ export default function KitchenDisplay() {
           >
             Completed
           </button>
+          </div>
+
+          <div className="relative w-full sm:w-72">
+            <svg
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              aria-hidden
+              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400"
+            >
+              <path
+                fillRule="evenodd"
+                d="M9 3.5a5.5 5.5 0 1 0 3.59 9.67l3.12 3.12a.75.75 0 1 0 1.06-1.06l-3.12-3.12A5.5 5.5 0 0 0 9 3.5ZM5 9a4 4 0 1 1 8 0 4 4 0 0 1-8 0Z"
+                clipRule="evenodd"
+              />
+            </svg>
+            <input
+              type="search"
+              value={orderSearch}
+              onChange={(e) => setOrderSearch(e.target.value)}
+              placeholder={t("searchOrders")}
+              className="w-full rounded-full border border-neutral-300 bg-white pl-9 pr-9 py-2 text-sm text-neutral-900 placeholder-neutral-400 focus:border-neutral-900 focus:outline-none"
+            />
+            {orderSearch && (
+              <button
+                type="button"
+                onClick={() => setOrderSearch("")}
+                aria-label={t("clear")}
+                className="absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"
+              >
+                <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
+                  <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
+                </svg>
+              </button>
+            )}
+          </div>
         </div>
 
         {(() => {
-          const filtered = orders.filter((o) =>
-            tab === "active" ? o.status !== "ready" : o.status === "ready"
+          if (!ordersLoaded) return null;
+          const tabPool = orders.filter((o) =>
+            tab === "active" ? o.status !== "ready" : o.status === "ready",
           );
+          const filtered = sortKitchenOrders(
+            tabPool.filter((o) => matchesSearch(o, orderSearch)),
+            tab,
+          );
+          const otherTabMatches = orderSearch.trim()
+            ? orders.filter(
+                (o) =>
+                  (tab === "active"
+                    ? o.status === "ready"
+                    : o.status !== "ready") && matchesSearch(o, orderSearch),
+              ).length
+            : 0;
+          const emptyMessage = orderSearch.trim()
+            ? t("noOrdersMatchSearch").replace("{q}", orderSearch.trim())
+            : tab === "active"
+              ? "No active orders"
+              : "No completed orders";
           return filtered.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-neutral-300 bg-white px-6 py-16 text-center text-sm text-neutral-600">
-            {tab === "active" ? "No active orders" : "No completed orders"}
+            {emptyMessage}
+            {otherTabMatches > 0 && (
+              <div className="mt-2 text-xs text-neutral-500">
+                {t("searchOtherTabHint")
+                  .replace("{n}", String(otherTabMatches))
+                  .replace(
+                    "{tab}",
+                    tab === "active" ? "Completed" : "Active",
+                  )}
+              </div>
+            )}
           </div>
         ) : (
+          <>
+          {orderSearch.trim() && (
+            <p className="mb-3 text-xs text-neutral-500">
+              {t("searchMatchCount").replace("{n}", String(filtered.length))}
+              {otherTabMatches > 0 && (
+                <>
+                  {" · "}
+                  {t("searchOtherTabHint")
+                    .replace("{n}", String(otherTabMatches))
+                    .replace(
+                      "{tab}",
+                      tab === "active" ? "Completed" : "Active",
+                    )}
+                </>
+              )}
+            </p>
+          )}
           <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {filtered.map((order) => {
-              const shortId = order.id.slice(0, 6).toUpperCase();
+              const ticketLabel =
+                order.ticketNumber !== undefined
+                  ? String(order.ticketNumber).padStart(3, "0")
+                  : order.id.slice(0, 6).toUpperCase();
               const etaValue =
                 etaDrafts[order.id] ??
                 (order.etaMinutes !== undefined
                   ? String(order.etaMinutes)
                   : "");
+              const isPriority = order.priority === true;
 
               return (
                 <li
                   key={order.id}
-                  className="flex flex-col gap-3 rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm"
+                  className={[
+                    "flex flex-col gap-3 rounded-2xl border bg-white p-5 shadow-sm",
+                    isPriority
+                      ? "border-red-300 ring-1 ring-red-200"
+                      : "border-neutral-200",
+                  ].join(" ")}
                 >
+                  {isPriority && (
+                    <div className="flex items-center gap-2 rounded-lg bg-red-50 px-3 py-1.5 text-red-700">
+                      <svg
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                        aria-hidden
+                        className="h-4 w-4 flex-none"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495ZM10 6a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 10 6Zm0 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                      <span className="text-[11px] font-semibold uppercase tracking-wider">
+                        {t("priorityBadge")}
+                      </span>
+                    </div>
+                  )}
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-start gap-3">
                       <div className="flex h-12 w-12 flex-none flex-col items-center justify-center rounded-xl bg-neutral-900 text-cream">
@@ -241,21 +421,66 @@ export default function KitchenDisplay() {
                       </div>
                       <div>
                         <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
-                          {t("orderNumber")} #{shortId}
+                          {t("orderNumber")} #{ticketLabel}
                         </p>
                         <p className="mt-0.5 text-xs text-neutral-500">
-                          {t("placedAt")} · {formatTime(order.placedAt)}
+                          {t("placedAt")} · {formatPlacedAt(order.placedAt, lang)}
                         </p>
                       </div>
                     </div>
-                    <span
-                      className={[
-                        "rounded-full px-3 py-1 text-xs font-medium",
-                        statusClasses(order.status),
-                      ].join(" ")}
-                    >
-                      {statusLabel(order.status, lang)}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      {order.status !== "ready" && (
+                        <span
+                          className="rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-medium tabular-nums text-neutral-700"
+                          aria-label={t("waitedMinutes").replace(
+                            "{n}",
+                            String(minutesSince(order.placedAt)),
+                          )}
+                        >
+                          {t("waitedShort").replace(
+                            "{n}",
+                            String(minutesSince(order.placedAt)),
+                          )}
+                        </span>
+                      )}
+                      {order.status !== "ready" && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            updateOrder(order.id, { priority: !isPriority })
+                          }
+                          title={
+                            isPriority
+                              ? t("unmarkPriority")
+                              : t("markPriority")
+                          }
+                          aria-label={
+                            isPriority
+                              ? t("unmarkPriority")
+                              : t("markPriority")
+                          }
+                          aria-pressed={isPriority}
+                          className={[
+                            "flex h-7 w-7 items-center justify-center rounded-full border text-sm leading-none transition-colors",
+                            isPriority
+                              ? "border-red-300 bg-red-100 text-red-600 hover:bg-red-200"
+                              : "border-neutral-300 bg-white text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700",
+                          ].join(" ")}
+                        >
+                          <span aria-hidden>
+                            {isPriority ? "★" : "☆"}
+                          </span>
+                        </button>
+                      )}
+                      <span
+                        className={[
+                          "rounded-full px-3 py-1 text-xs font-medium",
+                          statusClasses(order.status),
+                        ].join(" ")}
+                      >
+                        {statusLabel(order.status, lang)}
+                      </span>
+                    </div>
                   </div>
 
                   {order.preferences.length > 0 && (
@@ -337,7 +562,7 @@ export default function KitchenDisplay() {
                     </div>
                   )}
 
-                  <div className="flex flex-wrap gap-2">
+                  <div className="mt-auto flex flex-wrap gap-2 pt-2">
                     {order.status === "new" && (
                       <button
                         type="button"
@@ -362,7 +587,7 @@ export default function KitchenDisplay() {
                     )}
                     <button
                       type="button"
-                      onClick={() => removeOrder(order.id)}
+                      onClick={() => setConfirmClearId(order.id)}
                       className="rounded-full border border-neutral-300 px-4 py-2 text-xs text-neutral-700 hover:bg-neutral-100"
                     >
                       {t("clearOrder")}
@@ -372,9 +597,104 @@ export default function KitchenDisplay() {
               );
             })}
           </ul>
+          </>
         );
         })()}
       </main>
+
+      <BusyHeatmap
+        open={showBusyHeatmap}
+        onClose={() => setShowBusyHeatmap(false)}
+      />
+
+      {(() => {
+        const target = confirmClearId
+          ? orders.find((o) => o.id === confirmClearId)
+          : null;
+        if (!target) return null;
+        const label =
+          target.ticketNumber !== undefined
+            ? String(target.ticketNumber).padStart(3, "0")
+            : target.id.slice(0, 6).toUpperCase();
+        return (
+          <ClearOrderConfirm
+            ticketLabel={label}
+            tableNumber={target.tableNumber}
+            onCancel={() => setConfirmClearId(null)}
+            onConfirm={() => {
+              const id = confirmClearId!;
+              setConfirmClearId(null);
+              void removeOrder(id);
+            }}
+          />
+        );
+      })()}
+    </div>
+  );
+}
+
+function ClearOrderConfirm({
+  ticketLabel,
+  tableNumber,
+  onCancel,
+  onConfirm,
+}: {
+  ticketLabel: string;
+  tableNumber: number;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  const { t } = useTranslation();
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onCancel();
+      if (e.key === "Enter") onConfirm();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onCancel, onConfirm]);
+
+  return (
+    <div
+      className="fixed inset-0 z-[60] flex items-end justify-center bg-black/40 backdrop-blur-sm sm:items-center"
+      onClick={onCancel}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={t("clearOrderTitle")}
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-sm bg-white shadow-xl sm:rounded-2xl"
+      >
+        <div className="px-6 pt-6 pb-3">
+          <h3 className="font-serif text-xl text-neutral-900">
+            {t("clearOrderTitle")}
+          </h3>
+          <p className="mt-2 text-sm text-neutral-600">
+            {t("clearOrderBody")
+              .replace("{ticket}", ticketLabel)
+              .replace("{table}", String(tableNumber))}
+          </p>
+        </div>
+        <div className="flex items-center justify-end gap-2 border-t border-neutral-200 px-6 py-3">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-100"
+          >
+            {t("cancel")}
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            autoFocus
+            className="rounded-full bg-neutral-900 px-4 py-2 text-sm font-medium text-cream hover:bg-neutral-800"
+          >
+            {t("clearOrder")}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

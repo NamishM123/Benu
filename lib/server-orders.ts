@@ -13,20 +13,58 @@ import { listMenuItems } from "./server-menu";
 //   globalThis so it survives Next.js dev HMR.
 
 const HASH_KEY = "benu:orders";
+// Append-only archive feeding the busy-times heatmap. Survives `deleteOrder`.
+const ARCHIVE_KEY = "benu:orders:archive";
+// Monotonically-increasing counter for human-readable ticket numbers.
+const TICKET_COUNTER_KEY = "benu:orders:ticket-counter";
 
 const useKv =
   !!process.env.KV_REST_API_URL && !!process.env.KV_REST_API_TOKEN;
 
 // ---- in-memory fallback ------------------------------------------------
 
-type MemStore = { orders: Map<string, Order> };
+type MemStore = {
+  orders: Map<string, Order>;
+  archive: Map<string, ArchivedOrder>;
+  ticketCounter: number;
+};
 const MEM_GLOBAL_KEY = "__benu_order_store_v2__";
 
 function memStore(): MemStore {
   const g = globalThis as unknown as { [MEM_GLOBAL_KEY]?: MemStore };
-  if (!g[MEM_GLOBAL_KEY]) g[MEM_GLOBAL_KEY] = { orders: new Map() };
+  if (!g[MEM_GLOBAL_KEY])
+    g[MEM_GLOBAL_KEY] = {
+      orders: new Map(),
+      archive: new Map(),
+      ticketCounter: 0,
+    };
+  if (!g[MEM_GLOBAL_KEY]!.archive) g[MEM_GLOBAL_KEY]!.archive = new Map();
+  if (typeof g[MEM_GLOBAL_KEY]!.ticketCounter !== "number") {
+    g[MEM_GLOBAL_KEY]!.ticketCounter = 0;
+  }
   return g[MEM_GLOBAL_KEY]!;
 }
+
+async function nextTicketNumber(): Promise<number> {
+  if (useKv) {
+    const n = await kv.incr(TICKET_COUNTER_KEY);
+    return typeof n === "number" ? n : 1;
+  }
+  const m = memStore();
+  m.ticketCounter += 1;
+  return m.ticketCounter;
+}
+
+export type ArchivedOrderItem = { name: string; quantity: number };
+
+export type ArchivedOrder = {
+  id: string;
+  placedAt: number;
+  tableNumber?: number;
+  lineCount?: number;
+  items?: ArchivedOrderItem[];
+  simulated?: boolean;
+};
 
 // ---- shared helpers ----------------------------------------------------
 
@@ -75,7 +113,11 @@ export async function getOrder(id: string): Promise<Order | undefined> {
 }
 
 export async function createOrder(input: CreateOrderInput): Promise<Order> {
-  const [all, menu] = await Promise.all([listOrders(), listMenuItems()]);
+  const [all, menu, ticketNumber] = await Promise.all([
+    listOrders(),
+    listMenuItems(),
+    nextTicketNumber(),
+  ]);
   const activeAhead = all.filter(
     (o) => o.status === "new" || o.status === "cooking",
   ).length;
@@ -89,6 +131,7 @@ export async function createOrder(input: CreateOrderInput): Promise<Order> {
     tableNumber: input.tableNumber,
     etaMinutes: estimateOrderMinutes(input.lines, activeAhead, menu),
     clientId: input.clientId,
+    ticketNumber,
   };
 
   if (useKv) {
@@ -96,12 +139,69 @@ export async function createOrder(input: CreateOrderInput): Promise<Order> {
   } else {
     memStore().orders.set(order.id, order);
   }
+  await archiveCreated(order);
   return order;
+}
+
+async function archiveCreated(order: Order): Promise<void> {
+  const rec: ArchivedOrder = {
+    id: order.id,
+    placedAt: order.placedAt,
+    tableNumber: order.tableNumber,
+    lineCount: order.lines.length,
+    items: order.lines.map((l) => ({
+      name: l.itemName,
+      quantity: l.quantity,
+    })),
+  };
+  if (useKv) {
+    await kv.hset(ARCHIVE_KEY, { [rec.id]: rec });
+  } else {
+    memStore().archive.set(rec.id, rec);
+  }
+}
+
+export async function listArchive(): Promise<ArchivedOrder[]> {
+  if (useKv) {
+    const all = (await kv.hvals(ARCHIVE_KEY)) as ArchivedOrder[] | null;
+    return Array.isArray(all) ? all : [];
+  }
+  return [...memStore().archive.values()];
+}
+
+export async function appendSimulatedArchive(
+  records: ArchivedOrder[],
+): Promise<number> {
+  if (records.length === 0) return 0;
+  if (useKv) {
+    const payload: Record<string, ArchivedOrder> = {};
+    for (const r of records) payload[r.id] = r;
+    await kv.hset(ARCHIVE_KEY, payload);
+  } else {
+    const store = memStore().archive;
+    for (const r of records) store.set(r.id, r);
+  }
+  return records.length;
+}
+
+export async function clearSimulatedArchive(): Promise<number> {
+  const all = await listArchive();
+  const simulatedIds = all
+    .filter((r) => r.simulated === true)
+    .map((r) => r.id);
+  if (simulatedIds.length === 0) return 0;
+  if (useKv) {
+    await kv.hdel(ARCHIVE_KEY, ...simulatedIds);
+  } else {
+    const store = memStore().archive;
+    for (const id of simulatedIds) store.delete(id);
+  }
+  return simulatedIds.length;
 }
 
 export async function patchOrder(
   id: string,
-  patch: Partial<Pick<Order, "status" | "etaMinutes">>,
+  patch: Partial<Pick<Order, "status" | "etaMinutes" | "priority">>,
 ): Promise<Order | undefined> {
   const existing = await getOrder(id);
   if (!existing) return undefined;

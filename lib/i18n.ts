@@ -122,6 +122,65 @@ const TRANSLATIONS = {
   startCooking: { en: "Start cooking", zh: "开始制作" },
   markReady: { en: "Mark ready", zh: "标记完成" },
   clearOrder: { en: "Clear", zh: "清除" },
+  priorityBadge: { en: "Priority", zh: "优先" },
+  waitedShort: { en: "{n}m", zh: "{n}分" },
+  waitedMinutes: { en: "Waited {n} minutes", zh: "已等候 {n} 分钟" },
+  searchOrders: {
+    en: "Search ticket #, table, or item…",
+    zh: "搜索订单号、桌号或菜品…",
+  },
+  searchMatchCount: {
+    en: "Showing {n} matches",
+    zh: "显示 {n} 条匹配",
+  },
+  searchOtherTabHint: {
+    en: "{n} more in {tab}",
+    zh: "{tab} 标签内还有 {n} 条",
+  },
+  noOrdersMatchSearch: {
+    en: 'No orders match "{q}".',
+    zh: '没有匹配「{q}」的订单。',
+  },
+  clearOrderTitle: { en: "Clear this order?", zh: "清除此订单？" },
+  clearOrderBody: {
+    en: "Removes order #{ticket} (table {table}) from the kitchen board. The heatmap will still have the record.",
+    zh: "将订单 #{ticket}（桌号 {table}）从厨房面板移除。热力图仍会保留记录。",
+  },
+  markPriority: { en: "Mark as priority", zh: "标为优先" },
+  unmarkPriority: { en: "Remove priority", zh: "取消优先" },
+  busyTimes: { en: "Busy times", zh: "繁忙时段" },
+  busyTimesTitle: {
+    en: "When are we busiest?",
+    zh: "什么时候最繁忙？",
+  },
+  busyTimesSubtitle: {
+    en: "Based on {n} orders in the kitchen archive.",
+    zh: "基于厨房归档中的 {n} 笔订单。",
+  },
+  busyTimesEmpty: {
+    en: "No order history yet. Add test data below to see the heatmap in action.",
+    zh: "暂无订单历史。可在下方添加测试数据以查看热力图效果。",
+  },
+  includesTestData: {
+    en: "Includes {n} simulated.",
+    zh: "包含 {n} 笔模拟订单。",
+  },
+  addTestData: { en: "Add test data", zh: "添加测试数据" },
+  clearTestData: { en: "Clear test data", zh: "清除测试数据" },
+  simulating: { en: "Generating…", zh: "生成中…" },
+  clearing: { en: "Clearing…", zh: "清除中…" },
+  loading: { en: "Loading…", zh: "加载中…" },
+  legendLess: { en: "Less", zh: "较少" },
+  legendMore: { en: "More", zh: "较多" },
+  slotOrderCount: {
+    en: "{n} orders in this hour",
+    zh: "此时段订单数：{n}",
+  },
+  slotTopItems: { en: "Top items", zh: "热门菜品" },
+  slotNoItemBreakdown: {
+    en: "No item breakdown is available for these orders.",
+    zh: "此时段订单暂无菜品明细。",
+  },
   qty: { en: "Qty", zh: "数量" },
   staffKitchen: { en: "Staff · Kitchen", zh: "员工 · 厨房" },
 

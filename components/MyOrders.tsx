@@ -73,7 +73,10 @@ export default function MyOrders() {
         ) : (
           <ul className="space-y-4">
             {orders.map((order) => {
-              const shortId = order.id.slice(0, 6).toUpperCase();
+              const ticketLabel =
+                order.ticketNumber !== undefined
+                  ? String(order.ticketNumber).padStart(3, "0")
+                  : order.id.slice(0, 6).toUpperCase();
               const itemCount = order.lines.reduce(
                 (sum, l) => sum + l.quantity,
                 0,
@@ -91,7 +94,7 @@ export default function MyOrders() {
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
-                        {t("orderNumber")} #{shortId}
+                        {t("orderNumber")} #{ticketLabel}
                         {order.tableNumber !== undefined &&
                           ` · ${t("tableLabel")} ${order.tableNumber}`}
                       </p>

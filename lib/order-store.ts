@@ -49,6 +49,10 @@ export type Order = {
   tableNumber: number;
   etaMinutes?: number;
   clientId?: string;
+  priority?: boolean;
+  // Human-readable sequential number minted at create time. Optional because
+  // pre-existing orders in KV won't have one until they're recycled.
+  ticketNumber?: number;
 };
 
 // Client-side cache of the latest server snapshot. Components read this
@@ -193,7 +197,7 @@ export async function placeOrder(
 
 export async function updateOrder(
   id: string,
-  patch: Partial<Pick<Order, "status" | "etaMinutes">>,
+  patch: Partial<Pick<Order, "status" | "etaMinutes" | "priority">>,
 ): Promise<void> {
   const res = await fetch(`/api/orders/${encodeURIComponent(id)}`, {
     method: "PATCH",

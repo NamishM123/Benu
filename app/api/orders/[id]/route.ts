@@ -28,7 +28,11 @@ export async function PATCH(req: Request, { params }: Ctx) {
   }
   const b = (body ?? {}) as Record<string, unknown>;
 
-  const patch: { status?: OrderStatus; etaMinutes?: number } = {};
+  const patch: {
+    status?: OrderStatus;
+    etaMinutes?: number;
+    priority?: boolean;
+  } = {};
   if ("status" in b) {
     if (
       typeof b.status !== "string" ||
@@ -46,6 +50,12 @@ export async function PATCH(req: Request, { params }: Ctx) {
     } else {
       return NextResponse.json({ error: "invalid etaMinutes" }, { status: 400 });
     }
+  }
+  if ("priority" in b) {
+    if (typeof b.priority !== "boolean") {
+      return NextResponse.json({ error: "invalid priority" }, { status: 400 });
+    }
+    patch.priority = b.priority;
   }
 
   const updated = await patchOrder(id, patch);
