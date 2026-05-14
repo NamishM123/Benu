@@ -296,7 +296,7 @@ function SlotDetail({
       }
     }
     const ranked = [...tally.entries()]
-      .sort((a, b) => b[1] - a[1])
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
       .slice(0, 8)
       .map(([name, qty]) => ({ name, qty }));
     return { matching: bucket, items: ranked };
