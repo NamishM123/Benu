@@ -125,6 +125,21 @@ const TRANSLATIONS = {
   priorityBadge: { en: "Priority", zh: "优先" },
   markPriority: { en: "Mark as priority", zh: "标为优先" },
   unmarkPriority: { en: "Remove priority", zh: "取消优先" },
+  busyTimes: { en: "Busy times", zh: "繁忙时段" },
+  busyTimesTitle: {
+    en: "When are we busiest?",
+    zh: "什么时候最繁忙？",
+  },
+  busyTimesSubtitle: {
+    en: "Based on {n} orders in the kitchen log.",
+    zh: "基于厨房记录中的 {n} 笔订单。",
+  },
+  busyTimesEmpty: {
+    en: "Not enough order history yet — check back after a few shifts.",
+    zh: "订单历史尚不充足 — 几次轮班后再来查看。",
+  },
+  legendLess: { en: "Less", zh: "较少" },
+  legendMore: { en: "More", zh: "较多" },
   qty: { en: "Qty", zh: "数量" },
   staffKitchen: { en: "Staff · Kitchen", zh: "员工 · 厨房" },
 

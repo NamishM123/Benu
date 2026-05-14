@@ -20,6 +20,7 @@ import {
 } from "@/lib/i18n";
 import LanguageSwitcher from "./LanguageSwitcher";
 import SignOutButton from "./SignOutButton";
+import BusyHeatmap from "./BusyHeatmap";
 import { type MenuItem } from "@/lib/menu";
 
 function formatPlacedAt(ts: number, lang: Lang): string {
@@ -70,6 +71,7 @@ export default function KitchenDisplay() {
   const [show86Panel, setShow86Panel] = useState(false);
   const [itemSearch, setItemSearch] = useState("");
   const [tab, setTab] = useState<"active" | "completed">("active");
+  const [showBusyHeatmap, setShowBusyHeatmap] = useState(false);
 
   useEffect(() => {
     fetch("/api/menu/items")
@@ -137,6 +139,13 @@ export default function KitchenDisplay() {
             >
               QR codes
             </Link>
+            <button
+              type="button"
+              onClick={() => setShowBusyHeatmap(true)}
+              className="rounded-full border border-neutral-300 bg-white px-3 py-1.5 text-xs text-neutral-700 hover:bg-neutral-100"
+            >
+              {t("busyTimes")}
+            </button>
             <LanguageSwitcher />
             <SignOutButton />
           </div>
@@ -464,6 +473,12 @@ export default function KitchenDisplay() {
         );
         })()}
       </main>
+
+      <BusyHeatmap
+        open={showBusyHeatmap}
+        orders={orders}
+        onClose={() => setShowBusyHeatmap(false)}
+      />
     </div>
   );
 }
