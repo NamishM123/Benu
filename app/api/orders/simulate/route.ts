@@ -20,16 +20,35 @@ const HOUR_WEIGHTS = [
 // 0=Sun..6=Sat. Weekends and Friday slightly busier.
 const DAY_WEIGHTS = [1.2, 0.7, 0.9, 1.0, 1.0, 1.4, 1.5];
 
-function makeId(): string {
-  return typeof crypto !== "undefined" && "randomUUID" in crypto
-    ? crypto.randomUUID()
-    : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+// Seeded so every call generates the same dataset. Idempotent overwrite into KV.
+const SIM_SEED = 0x5e7;
+
+// mulberry32 PRNG — small and adequate for visualization seed data.
+function mulberry32(seed: number): () => number {
+  let s = seed >>> 0;
+  return () => {
+    s = (s + 0x6d2b79f5) >>> 0;
+    let t = s;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
 }
 
-// Pick an index from `weights` proportional to its value.
-function weightedPick(weights: number[]): number {
+// Stable per-item popularity multiplier derived from the item name. Same name
+// always maps to the same weight, so "house specials" stay #1 across runs.
+function nameWeight(name: string): number {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) {
+    h = (Math.imul(h, 31) + name.charCodeAt(i)) | 0;
+  }
+  // Map hash to a multiplier in [0.4, 3.0] so the spread is wide but bounded.
+  return 0.4 + (Math.abs(h) % 27) / 10;
+}
+
+function weightedPick(weights: number[], rng: () => number): number {
   const sum = weights.reduce((a, b) => a + b, 0);
-  let r = Math.random() * sum;
+  let r = rng() * sum;
   for (let i = 0; i < weights.length; i++) {
     r -= weights[i];
     if (r <= 0) return i;
@@ -37,22 +56,12 @@ function weightedPick(weights: number[]): number {
   return weights.length - 1;
 }
 
-// Picks 1-3 distinct items from the menu, weighted by category (noodle dishes
-// the star, beverages a side). Each line gets a quantity of 1-2.
-function pickItems(menu: { name: string; category: string }[]): ArchivedOrderItem[] {
-  if (menu.length === 0) return [];
-  const categoryWeight: Record<string, number> = {
-    "Noodle Soup": 3,
-    "Dry Noodles": 2.5,
-    Rice: 1.5,
-    Appetizers: 1.5,
-    Beverages: 1,
-  };
-  const weighted = menu.map((m) => ({
-    item: m,
-    w: categoryWeight[m.category] ?? 1,
-  }));
-  const lineCount = 1 + Math.floor(Math.random() * 3);
+function pickItems(
+  weighted: { item: { name: string; category: string }; w: number }[],
+  rng: () => number,
+): ArchivedOrderItem[] {
+  if (weighted.length === 0) return [];
+  const lineCount = 1 + Math.floor(rng() * 3);
   const out: ArchivedOrderItem[] = [];
   const used = new Set<string>();
   for (let i = 0; i < lineCount && i < weighted.length; i++) {
@@ -61,7 +70,7 @@ function pickItems(menu: { name: string; category: string }[]): ArchivedOrderIte
       0,
     );
     if (totalW <= 0) break;
-    let r = Math.random() * totalW;
+    let r = rng() * totalW;
     let picked: (typeof weighted)[number] | null = null;
     for (const e of weighted) {
       if (used.has(e.item.name)) continue;
@@ -75,7 +84,7 @@ function pickItems(menu: { name: string; category: string }[]): ArchivedOrderIte
     used.add(picked.item.name);
     out.push({
       name: picked.item.name,
-      quantity: 1 + Math.floor(Math.random() * 2),
+      quantity: 1 + Math.floor(rng() * 2),
     });
   }
   return out;
@@ -85,27 +94,40 @@ function generateRecords(
   count: number,
   daysBack: number,
   menu: { name: string; category: string }[],
+  rng: () => number,
 ): ArchivedOrder[] {
+  const categoryWeight: Record<string, number> = {
+    "Noodle Soup": 3,
+    "Dry Noodles": 2.5,
+    Rice: 1.5,
+    Appetizers: 1.5,
+    Beverages: 1,
+  };
+  // Combine category weight with stable per-name popularity. Result is fixed
+  // for a given menu, so the top items are identical across runs.
+  const weighted = menu.map((m) => ({
+    item: m,
+    w: (categoryWeight[m.category] ?? 1) * nameWeight(m.name),
+  }));
+
   const now = Date.now();
   const out: ArchivedOrder[] = [];
   for (let i = 0; i < count; i++) {
-    const daysAgo = Math.floor(Math.random() * daysBack);
+    const daysAgo = Math.floor(rng() * daysBack);
     const baseDay = new Date(now - daysAgo * 24 * 60 * 60 * 1000);
-    // Resample target day-of-week according to weights — shift the base day
-    // forward/backward up to a few days to land on a busier weekday more often.
-    const targetDow = weightedPick(DAY_WEIGHTS);
+    const targetDow = weightedPick(DAY_WEIGHTS, rng);
     const dowDelta = ((targetDow - baseDay.getDay()) + 7) % 7;
     baseDay.setDate(baseDay.getDate() + dowDelta - 3);
     if (baseDay.getTime() > now) continue;
-    const hour = weightedPick(HOUR_WEIGHTS);
-    const minute = Math.floor(Math.random() * 60);
-    baseDay.setHours(hour, minute, Math.floor(Math.random() * 60), 0);
+    const hour = weightedPick(HOUR_WEIGHTS, rng);
+    const minute = Math.floor(rng() * 60);
+    baseDay.setHours(hour, minute, Math.floor(rng() * 60), 0);
     if (baseDay.getTime() > now) continue;
-    const items = pickItems(menu);
+    const items = pickItems(weighted, rng);
     out.push({
-      id: `sim-${makeId()}`,
+      id: `sim-${i}`,
       placedAt: baseDay.getTime(),
-      tableNumber: 1 + Math.floor(Math.random() * TABLE_COUNT),
+      tableNumber: 1 + Math.floor(rng() * TABLE_COUNT),
       lineCount: items.length || 1,
       items,
       simulated: true,
@@ -124,7 +146,8 @@ export async function POST(req: Request) {
   const count = clampInt(body.count, 200, 1, 5000);
   const days = clampInt(body.days, 30, 1, 365);
   const menu = await listMenuItems();
-  const records = generateRecords(count, days, menu);
+  const rng = mulberry32(SIM_SEED);
+  const records = generateRecords(count, days, menu, rng);
   const added = await appendSimulatedArchive(records);
   return NextResponse.json({ added, count, days });
 }
