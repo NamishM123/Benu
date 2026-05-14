@@ -15,6 +15,8 @@ import { listMenuItems } from "./server-menu";
 const HASH_KEY = "benu:orders";
 // Append-only archive feeding the busy-times heatmap. Survives `deleteOrder`.
 const ARCHIVE_KEY = "benu:orders:archive";
+// Monotonically-increasing counter for human-readable ticket numbers.
+const TICKET_COUNTER_KEY = "benu:orders:ticket-counter";
 
 const useKv =
   !!process.env.KV_REST_API_URL && !!process.env.KV_REST_API_TOKEN;
@@ -24,15 +26,33 @@ const useKv =
 type MemStore = {
   orders: Map<string, Order>;
   archive: Map<string, ArchivedOrder>;
+  ticketCounter: number;
 };
 const MEM_GLOBAL_KEY = "__benu_order_store_v2__";
 
 function memStore(): MemStore {
   const g = globalThis as unknown as { [MEM_GLOBAL_KEY]?: MemStore };
   if (!g[MEM_GLOBAL_KEY])
-    g[MEM_GLOBAL_KEY] = { orders: new Map(), archive: new Map() };
+    g[MEM_GLOBAL_KEY] = {
+      orders: new Map(),
+      archive: new Map(),
+      ticketCounter: 0,
+    };
   if (!g[MEM_GLOBAL_KEY]!.archive) g[MEM_GLOBAL_KEY]!.archive = new Map();
+  if (typeof g[MEM_GLOBAL_KEY]!.ticketCounter !== "number") {
+    g[MEM_GLOBAL_KEY]!.ticketCounter = 0;
+  }
   return g[MEM_GLOBAL_KEY]!;
+}
+
+async function nextTicketNumber(): Promise<number> {
+  if (useKv) {
+    const n = await kv.incr(TICKET_COUNTER_KEY);
+    return typeof n === "number" ? n : 1;
+  }
+  const m = memStore();
+  m.ticketCounter += 1;
+  return m.ticketCounter;
 }
 
 export type ArchivedOrderItem = { name: string; quantity: number };
@@ -93,7 +113,11 @@ export async function getOrder(id: string): Promise<Order | undefined> {
 }
 
 export async function createOrder(input: CreateOrderInput): Promise<Order> {
-  const [all, menu] = await Promise.all([listOrders(), listMenuItems()]);
+  const [all, menu, ticketNumber] = await Promise.all([
+    listOrders(),
+    listMenuItems(),
+    nextTicketNumber(),
+  ]);
   const activeAhead = all.filter(
     (o) => o.status === "new" || o.status === "cooking",
   ).length;
@@ -107,6 +131,7 @@ export async function createOrder(input: CreateOrderInput): Promise<Order> {
     tableNumber: input.tableNumber,
     etaMinutes: estimateOrderMinutes(input.lines, activeAhead, menu),
     clientId: input.clientId,
+    ticketNumber,
   };
 
   if (useKv) {

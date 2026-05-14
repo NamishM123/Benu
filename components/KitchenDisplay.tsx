@@ -270,7 +270,10 @@ export default function KitchenDisplay() {
         ) : (
           <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {filtered.map((order) => {
-              const shortId = order.id.slice(0, 6).toUpperCase();
+              const ticketLabel =
+                order.ticketNumber !== undefined
+                  ? String(order.ticketNumber).padStart(3, "0")
+                  : order.id.slice(0, 6).toUpperCase();
               const etaValue =
                 etaDrafts[order.id] ??
                 (order.etaMinutes !== undefined
@@ -319,7 +322,7 @@ export default function KitchenDisplay() {
                       </div>
                       <div>
                         <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
-                          {t("orderNumber")} #{shortId}
+                          {t("orderNumber")} #{ticketLabel}
                         </p>
                         <p className="mt-0.5 text-xs text-neutral-500">
                           {t("placedAt")} · {formatPlacedAt(order.placedAt, lang)}

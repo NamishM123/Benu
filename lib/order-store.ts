@@ -50,6 +50,9 @@ export type Order = {
   etaMinutes?: number;
   clientId?: string;
   priority?: boolean;
+  // Human-readable sequential number minted at create time. Optional because
+  // pre-existing orders in KV won't have one until they're recycled.
+  ticketNumber?: number;
 };
 
 // Client-side cache of the latest server snapshot. Components read this
