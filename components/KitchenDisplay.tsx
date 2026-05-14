@@ -49,6 +49,26 @@ function statusClasses(status: OrderStatus): string {
   return "bg-sage-dark text-neutral-900";
 }
 
+// Substring match across the human-visible fields: ticket number (with and
+// without leading zeros), table number, item name (en + zh), and the UUID
+// short prefix as a fallback.
+function matchesSearch(order: Order, raw: string): boolean {
+  const q = raw.trim().toLowerCase();
+  if (q === "") return true;
+  if (order.ticketNumber !== undefined) {
+    const tn = String(order.ticketNumber);
+    if (tn.includes(q)) return true;
+    if (String(order.ticketNumber).padStart(3, "0").includes(q)) return true;
+  }
+  if (order.id.slice(0, 8).toLowerCase().includes(q)) return true;
+  if (String(order.tableNumber) === q) return true;
+  for (const line of order.lines) {
+    if (line.itemName.toLowerCase().includes(q)) return true;
+    if (line.itemNameZh?.toLowerCase().includes(q)) return true;
+  }
+  return false;
+}
+
 // Active tab: starred orders first, then strict FIFO (oldest order = next to cook).
 // Completed tab: newest first so just-finished tickets are at the top.
 function sortKitchenOrders(
@@ -75,6 +95,7 @@ export default function KitchenDisplay() {
   const [show86Panel, setShow86Panel] = useState(false);
   const [itemSearch, setItemSearch] = useState("");
   const [tab, setTab] = useState<"active" | "completed">("active");
+  const [orderSearch, setOrderSearch] = useState("");
   const [showBusyHeatmap, setShowBusyHeatmap] = useState(false);
   // Tick once a minute so the per-card "Nm" pill stays current even when the
   // orders list isn't changing.
@@ -228,7 +249,8 @@ export default function KitchenDisplay() {
       )}
 
       <main className="mx-auto max-w-6xl px-6 py-6">
-        <div className="mb-5 flex gap-1 rounded-full border border-neutral-200 bg-white p-1 w-fit">
+        <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex gap-1 rounded-full border border-neutral-200 bg-white p-1 w-fit">
           <button
             type="button"
             onClick={() => setTab("active")}
@@ -253,21 +275,97 @@ export default function KitchenDisplay() {
           >
             Completed
           </button>
+          </div>
+
+          <div className="relative w-full sm:w-72">
+            <svg
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              aria-hidden
+              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400"
+            >
+              <path
+                fillRule="evenodd"
+                d="M9 3.5a5.5 5.5 0 1 0 3.59 9.67l3.12 3.12a.75.75 0 1 0 1.06-1.06l-3.12-3.12A5.5 5.5 0 0 0 9 3.5ZM5 9a4 4 0 1 1 8 0 4 4 0 0 1-8 0Z"
+                clipRule="evenodd"
+              />
+            </svg>
+            <input
+              type="search"
+              value={orderSearch}
+              onChange={(e) => setOrderSearch(e.target.value)}
+              placeholder={t("searchOrders")}
+              className="w-full rounded-full border border-neutral-300 bg-white pl-9 pr-9 py-2 text-sm text-neutral-900 placeholder-neutral-400 focus:border-neutral-900 focus:outline-none"
+            />
+            {orderSearch && (
+              <button
+                type="button"
+                onClick={() => setOrderSearch("")}
+                aria-label={t("clear")}
+                className="absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"
+              >
+                <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
+                  <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
+                </svg>
+              </button>
+            )}
+          </div>
         </div>
 
         {(() => {
           if (!ordersLoaded) return null;
+          const tabPool = orders.filter((o) =>
+            tab === "active" ? o.status !== "ready" : o.status === "ready",
+          );
           const filtered = sortKitchenOrders(
-            orders.filter((o) =>
-              tab === "active" ? o.status !== "ready" : o.status === "ready",
-            ),
+            tabPool.filter((o) => matchesSearch(o, orderSearch)),
             tab,
           );
+          const otherTabMatches = orderSearch.trim()
+            ? orders.filter(
+                (o) =>
+                  (tab === "active"
+                    ? o.status === "ready"
+                    : o.status !== "ready") && matchesSearch(o, orderSearch),
+              ).length
+            : 0;
+          const emptyMessage = orderSearch.trim()
+            ? t("noOrdersMatchSearch").replace("{q}", orderSearch.trim())
+            : tab === "active"
+              ? "No active orders"
+              : "No completed orders";
           return filtered.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-neutral-300 bg-white px-6 py-16 text-center text-sm text-neutral-600">
-            {tab === "active" ? "No active orders" : "No completed orders"}
+            {emptyMessage}
+            {otherTabMatches > 0 && (
+              <div className="mt-2 text-xs text-neutral-500">
+                {t("searchOtherTabHint")
+                  .replace("{n}", String(otherTabMatches))
+                  .replace(
+                    "{tab}",
+                    tab === "active" ? "Completed" : "Active",
+                  )}
+              </div>
+            )}
           </div>
         ) : (
+          <>
+          {orderSearch.trim() && (
+            <p className="mb-3 text-xs text-neutral-500">
+              {t("searchMatchCount").replace("{n}", String(filtered.length))}
+              {otherTabMatches > 0 && (
+                <>
+                  {" · "}
+                  {t("searchOtherTabHint")
+                    .replace("{n}", String(otherTabMatches))
+                    .replace(
+                      "{tab}",
+                      tab === "active" ? "Completed" : "Active",
+                    )}
+                </>
+              )}
+            </p>
+          )}
           <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {filtered.map((order) => {
               const ticketLabel =
@@ -498,6 +596,7 @@ export default function KitchenDisplay() {
               );
             })}
           </ul>
+          </>
         );
         })()}
       </main>

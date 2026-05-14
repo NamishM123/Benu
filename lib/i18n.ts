@@ -125,6 +125,22 @@ const TRANSLATIONS = {
   priorityBadge: { en: "Priority", zh: "优先" },
   waitedShort: { en: "{n}m", zh: "{n}分" },
   waitedMinutes: { en: "Waited {n} minutes", zh: "已等候 {n} 分钟" },
+  searchOrders: {
+    en: "Search ticket #, table, or item…",
+    zh: "搜索订单号、桌号或菜品…",
+  },
+  searchMatchCount: {
+    en: "Showing {n} matches",
+    zh: "显示 {n} 条匹配",
+  },
+  searchOtherTabHint: {
+    en: "{n} more in {tab}",
+    zh: "{tab} 标签内还有 {n} 条",
+  },
+  noOrdersMatchSearch: {
+    en: 'No orders match "{q}".',
+    zh: '没有匹配「{q}」的订单。',
+  },
   markPriority: { en: "Mark as priority", zh: "标为优先" },
   unmarkPriority: { en: "Remove priority", zh: "取消优先" },
   busyTimes: { en: "Busy times", zh: "繁忙时段" },
