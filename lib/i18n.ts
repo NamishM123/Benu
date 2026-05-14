@@ -123,7 +123,6 @@ const TRANSLATIONS = {
   markReady: { en: "Mark ready", zh: "标记完成" },
   clearOrder: { en: "Clear", zh: "清除" },
   priorityBadge: { en: "Priority", zh: "优先" },
-  priorityWaiting: { en: "Waiting {n} min", zh: "已等候 {n} 分钟" },
   markPriority: { en: "Mark as priority", zh: "标为优先" },
   unmarkPriority: { en: "Remove priority", zh: "取消优先" },
   qty: { en: "Qty", zh: "数量" },

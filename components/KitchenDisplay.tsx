@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import {
   getOrders,
-  isOrderPriority,
   ORDERS_EVENT,
   removeOrder,
   subscribeToOrders,
@@ -45,12 +44,8 @@ function statusClasses(status: OrderStatus): string {
   return "bg-sage-dark text-neutral-900";
 }
 
-function minutesSince(ts: number, now: number = Date.now()): number {
-  return Math.max(0, Math.floor((now - ts) / 60000));
-}
-
-// Priority orders float to the top, oldest first (most overdue is most urgent).
-// Within each group, active-tab default is newest-first.
+// Active tab: starred orders first, then strict FIFO (oldest order = next to cook).
+// Completed tab: newest first so just-finished tickets are at the top.
 function sortKitchenOrders(
   orders: Order[],
   tab: "active" | "completed",
@@ -58,13 +53,11 @@ function sortKitchenOrders(
   if (tab === "completed") {
     return [...orders].sort((a, b) => b.placedAt - a.placedAt);
   }
-  const now = Date.now();
   return [...orders].sort((a, b) => {
-    const pa = isOrderPriority(a, now);
-    const pb = isOrderPriority(b, now);
+    const pa = a.priority === true;
+    const pb = b.priority === true;
     if (pa !== pb) return pa ? -1 : 1;
-    if (pa) return a.placedAt - b.placedAt;
-    return b.placedAt - a.placedAt;
+    return a.placedAt - b.placedAt;
   });
 }
 
@@ -263,20 +256,19 @@ export default function KitchenDisplay() {
                 (order.etaMinutes !== undefined
                   ? String(order.etaMinutes)
                   : "");
-              const priority = isOrderPriority(order);
-              const manualPriority = order.priority === true;
+              const isPriority = order.priority === true;
 
               return (
                 <li
                   key={order.id}
                   className={[
                     "flex flex-col gap-3 rounded-2xl border bg-white p-5 shadow-sm",
-                    priority
+                    isPriority
                       ? "border-red-300 ring-1 ring-red-200"
                       : "border-neutral-200",
                   ].join(" ")}
                 >
-                  {priority && (
+                  {isPriority && (
                     <div className="flex items-center gap-2 rounded-lg bg-red-50 px-3 py-1.5 text-red-700">
                       <svg
                         viewBox="0 0 20 20"
@@ -293,15 +285,6 @@ export default function KitchenDisplay() {
                       <span className="text-[11px] font-semibold uppercase tracking-wider">
                         {t("priorityBadge")}
                       </span>
-                      {!manualPriority && (
-                        <span className="text-[11px] font-medium text-red-600/80">
-                          ·{" "}
-                          {t("priorityWaiting").replace(
-                            "{n}",
-                            String(minutesSince(order.placedAt)),
-                          )}
-                        </span>
-                      )}
                     </div>
                   )}
                   <div className="flex items-start justify-between gap-3">
@@ -328,28 +311,28 @@ export default function KitchenDisplay() {
                         <button
                           type="button"
                           onClick={() =>
-                            updateOrder(order.id, { priority: !manualPriority })
+                            updateOrder(order.id, { priority: !isPriority })
                           }
                           title={
-                            manualPriority
+                            isPriority
                               ? t("unmarkPriority")
                               : t("markPriority")
                           }
                           aria-label={
-                            manualPriority
+                            isPriority
                               ? t("unmarkPriority")
                               : t("markPriority")
                           }
-                          aria-pressed={manualPriority}
+                          aria-pressed={isPriority}
                           className={[
                             "flex h-7 w-7 items-center justify-center rounded-full border text-sm leading-none transition-colors",
-                            manualPriority
+                            isPriority
                               ? "border-red-300 bg-red-100 text-red-600 hover:bg-red-200"
                               : "border-neutral-300 bg-white text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700",
                           ].join(" ")}
                         >
                           <span aria-hidden>
-                            {manualPriority ? "★" : "☆"}
+                            {isPriority ? "★" : "☆"}
                           </span>
                         </button>
                       )}
