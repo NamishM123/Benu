@@ -1,23 +1,27 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
-import type { Order } from "@/lib/order-store";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation, type Lang } from "@/lib/i18n";
 
 type Props = {
   open: boolean;
-  orders: Order[];
   onClose: () => void;
+};
+
+type ArchivedOrder = {
+  id: string;
+  placedAt: number;
+  simulated?: boolean;
 };
 
 const HOURS = Array.from({ length: 24 }, (_, h) => h);
 // Sunday-first to match JS Date.getDay().
 const DAYS = [0, 1, 2, 3, 4, 5, 6];
 
-function bucketCounts(orders: Order[]): number[][] {
+function bucketCounts(records: ArchivedOrder[]): number[][] {
   const grid: number[][] = Array.from({ length: 7 }, () => Array(24).fill(0));
-  for (const o of orders) {
-    const d = new Date(o.placedAt);
+  for (const r of records) {
+    const d = new Date(r.placedAt);
     grid[d.getDay()][d.getHours()]++;
   }
   return grid;
@@ -33,7 +37,6 @@ function intensityClass(count: number, max: number): string {
 }
 
 function dayShort(weekday: number, lang: Lang): string {
-  // Jan 7 2024 was a Sunday — offset by weekday to get a reference date.
   const ref = new Date(2024, 0, 7 + weekday);
   const locale = lang === "zh" ? "zh-CN" : "en-US";
   return ref.toLocaleDateString(locale, { weekday: "short" });
@@ -53,34 +56,72 @@ function tooltipFor(
   lang: Lang,
 ): string {
   const day = dayShort(weekday, lang);
-  const hr = lang === "zh"
-    ? `${hour}:00–${hour + 1}:00`
-    : `${hour % 12 || 12}${hour < 12 ? "am" : "pm"}`;
+  const hr =
+    lang === "zh"
+      ? `${hour}:00–${hour + 1}:00`
+      : `${hour % 12 || 12}${hour < 12 ? "am" : "pm"}`;
   return `${day} ${hr} · ${count}`;
 }
 
-export default function BusyHeatmap({ open, orders, onClose }: Props) {
+export default function BusyHeatmap({ open, onClose }: Props) {
   const { t, lang } = useTranslation();
+  const [records, setRecords] = useState<ArchivedOrder[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [working, setWorking] = useState<"add" | "clear" | null>(null);
+
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/orders/archive", { cache: "no-store" });
+      if (!res.ok) return;
+      const data = (await res.json()) as { archive: ArchivedOrder[] };
+      setRecords(Array.isArray(data.archive) ? data.archive : []);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     if (!open) return;
+    void refresh();
     function onKey(e: KeyboardEvent) {
       if (e.key === "Escape") onClose();
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
+  }, [open, onClose, refresh]);
 
-  const { grid, max, total } = useMemo(() => {
-    const g = bucketCounts(orders);
+  const { grid, max, total, simulatedCount } = useMemo(() => {
+    const g = bucketCounts(records);
     let m = 0;
-    let tot = 0;
-    for (const row of g) for (const v of row) {
-      if (v > m) m = v;
-      tot += v;
+    for (const row of g) for (const v of row) if (v > m) m = v;
+    const sim = records.filter((r) => r.simulated === true).length;
+    return { grid: g, max: m, total: records.length, simulatedCount: sim };
+  }, [records]);
+
+  async function handleSimulate() {
+    setWorking("add");
+    try {
+      await fetch("/api/orders/simulate", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ count: 300, days: 60 }),
+      });
+      await refresh();
+    } finally {
+      setWorking(null);
     }
-    return { grid: g, max: m, total: tot };
-  }, [orders]);
+  }
+
+  async function handleClearSimulated() {
+    setWorking("clear");
+    try {
+      await fetch("/api/orders/simulate", { method: "DELETE" });
+      await refresh();
+    } finally {
+      setWorking(null);
+    }
+  }
 
   if (!open) return null;
 
@@ -103,6 +144,17 @@ export default function BusyHeatmap({ open, orders, onClose }: Props) {
             </h2>
             <p className="mt-0.5 text-xs text-neutral-500">
               {t("busyTimesSubtitle").replace("{n}", String(total))}
+              {simulatedCount > 0 && (
+                <>
+                  {" "}
+                  <span className="text-orange-700">
+                    {t("includesTestData").replace(
+                      "{n}",
+                      String(simulatedCount),
+                    )}
+                  </span>
+                </>
+              )}
             </p>
           </div>
           <button
@@ -118,6 +170,30 @@ export default function BusyHeatmap({ open, orders, onClose }: Props) {
         </header>
 
         <div className="px-6 pb-6">
+          <div className="mb-4 flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={handleSimulate}
+              disabled={working !== null}
+              className="rounded-full border border-neutral-300 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 hover:bg-neutral-100 disabled:opacity-60"
+            >
+              {working === "add" ? t("simulating") : t("addTestData")}
+            </button>
+            {simulatedCount > 0 && (
+              <button
+                type="button"
+                onClick={handleClearSimulated}
+                disabled={working !== null}
+                className="rounded-full border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-medium text-red-700 hover:bg-red-100 disabled:opacity-60"
+              >
+                {working === "clear" ? t("clearing") : t("clearTestData")}
+              </button>
+            )}
+            {loading && (
+              <span className="text-xs text-neutral-500">{t("loading")}</span>
+            )}
+          </div>
+
           {total === 0 ? (
             <div className="rounded-2xl border border-dashed border-neutral-300 bg-white px-6 py-12 text-center text-sm text-neutral-600">
               {t("busyTimesEmpty")}

@@ -476,7 +476,6 @@ export default function KitchenDisplay() {
 
       <BusyHeatmap
         open={showBusyHeatmap}
-        orders={orders}
         onClose={() => setShowBusyHeatmap(false)}
       />
     </div>
