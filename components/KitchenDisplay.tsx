@@ -23,6 +23,10 @@ import SignOutButton from "./SignOutButton";
 import BusyHeatmap from "./BusyHeatmap";
 import { type MenuItem } from "@/lib/menu";
 
+function minutesSince(ts: number, now: number = Date.now()): number {
+  return Math.max(0, Math.floor((now - ts) / 60000));
+}
+
 function formatPlacedAt(ts: number, lang: Lang): string {
   const locale = lang === "zh" ? "zh-CN" : "en-US";
   return new Date(ts).toLocaleString(locale, {
@@ -72,6 +76,13 @@ export default function KitchenDisplay() {
   const [itemSearch, setItemSearch] = useState("");
   const [tab, setTab] = useState<"active" | "completed">("active");
   const [showBusyHeatmap, setShowBusyHeatmap] = useState(false);
+  // Tick once a minute so the per-card "Nm" pill stays current even when the
+  // orders list isn't changing.
+  const [, setMinuteTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setMinuteTick((n) => n + 1), 30_000);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     fetch("/api/menu/items")
@@ -316,6 +327,20 @@ export default function KitchenDisplay() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
+                      {order.status !== "ready" && (
+                        <span
+                          className="rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-medium tabular-nums text-neutral-700"
+                          aria-label={t("waitedMinutes").replace(
+                            "{n}",
+                            String(minutesSince(order.placedAt)),
+                          )}
+                        >
+                          {t("waitedShort").replace(
+                            "{n}",
+                            String(minutesSince(order.placedAt)),
+                          )}
+                        </span>
+                      )}
                       {order.status !== "ready" && (
                         <button
                           type="button"
