@@ -12,7 +12,10 @@ type ArchivedOrder = {
   id: string;
   placedAt: number;
   simulated?: boolean;
+  items?: { name: string; quantity: number }[];
 };
+
+type Slot = { weekday: number; hour: number };
 
 const HOURS = Array.from({ length: 24 }, (_, h) => h);
 // Sunday-first to match JS Date.getDay().
@@ -68,6 +71,7 @@ export default function BusyHeatmap({ open, onClose }: Props) {
   const [records, setRecords] = useState<ArchivedOrder[]>([]);
   const [loading, setLoading] = useState(false);
   const [working, setWorking] = useState<"add" | "clear" | null>(null);
+  const [selected, setSelected] = useState<Slot | null>(null);
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -215,13 +219,22 @@ export default function BusyHeatmap({ open, onClose }: Props) {
                       </div>
                       {HOURS.map((h) => {
                         const count = grid[weekday][h];
+                        const empty = count === 0;
                         return (
-                          <div
+                          <button
+                            type="button"
                             key={`${weekday}-${h}`}
+                            disabled={empty}
+                            onClick={() =>
+                              setSelected({ weekday, hour: h })
+                            }
                             title={tooltipFor(weekday, h, count, lang)}
                             className={[
-                              "aspect-square w-full rounded-sm",
+                              "aspect-square w-full rounded-sm transition-transform",
                               intensityClass(count, max),
+                              empty
+                                ? "cursor-default"
+                                : "cursor-pointer hover:ring-2 hover:ring-neutral-700 hover:scale-110",
                             ].join(" ")}
                           />
                         );
@@ -243,6 +256,138 @@ export default function BusyHeatmap({ open, onClose }: Props) {
               <div className="h-3 w-3 rounded-sm bg-orange-700" />
               <span>{t("legendMore")}</span>
             </div>
+          )}
+        </div>
+      </div>
+
+      {selected && (
+        <SlotDetail
+          slot={selected}
+          records={records}
+          lang={lang}
+          onClose={() => setSelected(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+function SlotDetail({
+  slot,
+  records,
+  lang,
+  onClose,
+}: {
+  slot: Slot;
+  records: ArchivedOrder[];
+  lang: Lang;
+  onClose: () => void;
+}) {
+  const { t } = useTranslation();
+  const { matching, items } = useMemo(() => {
+    const bucket = records.filter((r) => {
+      const d = new Date(r.placedAt);
+      return d.getDay() === slot.weekday && d.getHours() === slot.hour;
+    });
+    const tally = new Map<string, number>();
+    for (const r of bucket) {
+      for (const it of r.items ?? []) {
+        tally.set(it.name, (tally.get(it.name) ?? 0) + it.quantity);
+      }
+    }
+    const ranked = [...tally.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 8)
+      .map(([name, qty]) => ({ name, qty }));
+    return { matching: bucket, items: ranked };
+  }, [records, slot.weekday, slot.hour]);
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onClose();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
+  const maxQty = items.length > 0 ? items[0].qty : 0;
+  const dayLabel = new Date(2024, 0, 7 + slot.weekday).toLocaleDateString(
+    lang === "zh" ? "zh-CN" : "en-US",
+    { weekday: "long" },
+  );
+  const hourLabelFull =
+    lang === "zh"
+      ? `${slot.hour}:00–${slot.hour + 1}:00`
+      : `${slot.hour % 12 || 12}${slot.hour < 12 ? "am" : "pm"}–${(slot.hour + 1) % 12 || 12}${slot.hour + 1 < 12 || slot.hour + 1 === 24 ? "am" : "pm"}`;
+
+  return (
+    <div
+      className="fixed inset-0 z-[60] flex items-end justify-center bg-black/40 backdrop-blur-sm sm:items-center"
+      onClick={onClose}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={`${dayLabel} ${hourLabelFull}`}
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-md max-h-[80vh] overflow-y-auto bg-white shadow-xl sm:rounded-2xl"
+      >
+        <header className="flex items-start justify-between gap-3 px-5 pt-4 pb-2">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
+              {dayLabel} · {hourLabelFull}
+            </p>
+            <h3 className="mt-0.5 font-serif text-xl text-neutral-900">
+              {t("slotOrderCount").replace("{n}", String(matching.length))}
+            </h3>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label={t("close")}
+            className="flex h-8 w-8 flex-none items-center justify-center rounded-full text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"
+          >
+            <svg viewBox="0 0 20 20" fill="currentColor" className="h-5 w-5">
+              <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
+            </svg>
+          </button>
+        </header>
+
+        <div className="px-5 pb-5">
+          {items.length === 0 ? (
+            <p className="rounded-xl border border-dashed border-neutral-300 bg-neutral-50 px-4 py-6 text-center text-sm text-neutral-600">
+              {t("slotNoItemBreakdown")}
+            </p>
+          ) : (
+            <>
+              <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
+                {t("slotTopItems")}
+              </p>
+              <ul className="space-y-1.5">
+                {items.map((it) => {
+                  const width = maxQty > 0 ? (it.qty / maxQty) * 100 : 0;
+                  return (
+                    <li
+                      key={it.name}
+                      className="flex items-center gap-3 text-sm"
+                    >
+                      <span className="w-32 flex-none truncate text-neutral-900">
+                        {it.name}
+                      </span>
+                      <div className="relative h-5 flex-1 rounded-md bg-neutral-100">
+                        <div
+                          className="absolute inset-y-0 left-0 rounded-md bg-orange-400"
+                          style={{ width: `${width}%` }}
+                        />
+                      </div>
+                      <span className="w-8 flex-none text-right text-xs tabular-nums text-neutral-700">
+                        {it.qty}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+            </>
           )}
         </div>
       </div>

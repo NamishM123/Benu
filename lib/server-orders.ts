@@ -35,11 +35,14 @@ function memStore(): MemStore {
   return g[MEM_GLOBAL_KEY]!;
 }
 
+export type ArchivedOrderItem = { name: string; quantity: number };
+
 export type ArchivedOrder = {
   id: string;
   placedAt: number;
   tableNumber?: number;
   lineCount?: number;
+  items?: ArchivedOrderItem[];
   simulated?: boolean;
 };
 
@@ -121,6 +124,10 @@ async function archiveCreated(order: Order): Promise<void> {
     placedAt: order.placedAt,
     tableNumber: order.tableNumber,
     lineCount: order.lines.length,
+    items: order.lines.map((l) => ({
+      name: l.itemName,
+      quantity: l.quantity,
+    })),
   };
   if (useKv) {
     await kv.hset(ARCHIVE_KEY, { [rec.id]: rec });

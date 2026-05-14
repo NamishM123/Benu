@@ -3,8 +3,10 @@ import {
   appendSimulatedArchive,
   clearSimulatedArchive,
   type ArchivedOrder,
+  type ArchivedOrderItem,
 } from "@/lib/server-orders";
 import { TABLE_COUNT } from "@/lib/prep-time";
+import { listMenuItems } from "@/lib/server-menu";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -35,7 +37,55 @@ function weightedPick(weights: number[]): number {
   return weights.length - 1;
 }
 
-function generateRecords(count: number, daysBack: number): ArchivedOrder[] {
+// Picks 1-3 distinct items from the menu, weighted by category (noodle dishes
+// the star, beverages a side). Each line gets a quantity of 1-2.
+function pickItems(menu: { name: string; category: string }[]): ArchivedOrderItem[] {
+  if (menu.length === 0) return [];
+  const categoryWeight: Record<string, number> = {
+    "Noodle Soup": 3,
+    "Dry Noodles": 2.5,
+    Rice: 1.5,
+    Appetizers: 1.5,
+    Beverages: 1,
+  };
+  const weighted = menu.map((m) => ({
+    item: m,
+    w: categoryWeight[m.category] ?? 1,
+  }));
+  const lineCount = 1 + Math.floor(Math.random() * 3);
+  const out: ArchivedOrderItem[] = [];
+  const used = new Set<string>();
+  for (let i = 0; i < lineCount && i < weighted.length; i++) {
+    const totalW = weighted.reduce(
+      (s, e) => s + (used.has(e.item.name) ? 0 : e.w),
+      0,
+    );
+    if (totalW <= 0) break;
+    let r = Math.random() * totalW;
+    let picked: (typeof weighted)[number] | null = null;
+    for (const e of weighted) {
+      if (used.has(e.item.name)) continue;
+      r -= e.w;
+      if (r <= 0) {
+        picked = e;
+        break;
+      }
+    }
+    if (!picked) picked = weighted[weighted.length - 1];
+    used.add(picked.item.name);
+    out.push({
+      name: picked.item.name,
+      quantity: 1 + Math.floor(Math.random() * 2),
+    });
+  }
+  return out;
+}
+
+function generateRecords(
+  count: number,
+  daysBack: number,
+  menu: { name: string; category: string }[],
+): ArchivedOrder[] {
   const now = Date.now();
   const out: ArchivedOrder[] = [];
   for (let i = 0; i < count; i++) {
@@ -51,11 +101,13 @@ function generateRecords(count: number, daysBack: number): ArchivedOrder[] {
     const minute = Math.floor(Math.random() * 60);
     baseDay.setHours(hour, minute, Math.floor(Math.random() * 60), 0);
     if (baseDay.getTime() > now) continue;
+    const items = pickItems(menu);
     out.push({
       id: `sim-${makeId()}`,
       placedAt: baseDay.getTime(),
       tableNumber: 1 + Math.floor(Math.random() * TABLE_COUNT),
-      lineCount: 1 + Math.floor(Math.random() * 4),
+      lineCount: items.length || 1,
+      items,
       simulated: true,
     });
   }
@@ -71,7 +123,8 @@ export async function POST(req: Request) {
   }
   const count = clampInt(body.count, 200, 1, 5000);
   const days = clampInt(body.days, 30, 1, 365);
-  const records = generateRecords(count, days);
+  const menu = await listMenuItems();
+  const records = generateRecords(count, days, menu);
   const added = await appendSimulatedArchive(records);
   return NextResponse.json({ added, count, days });
 }

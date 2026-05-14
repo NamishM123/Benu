@@ -149,6 +149,15 @@ const TRANSLATIONS = {
   loading: { en: "Loading…", zh: "加载中…" },
   legendLess: { en: "Less", zh: "较少" },
   legendMore: { en: "More", zh: "较多" },
+  slotOrderCount: {
+    en: "{n} orders in this hour",
+    zh: "此时段订单数：{n}",
+  },
+  slotTopItems: { en: "Top items", zh: "热门菜品" },
+  slotNoItemBreakdown: {
+    en: "No item breakdown is available for these orders.",
+    zh: "此时段订单暂无菜品明细。",
+  },
   qty: { en: "Qty", zh: "数量" },
   staffKitchen: { en: "Staff · Kitchen", zh: "员工 · 厨房" },
 
