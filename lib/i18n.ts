@@ -141,6 +141,11 @@ const TRANSLATIONS = {
     en: 'No orders match "{q}".',
     zh: '没有匹配「{q}」的订单。',
   },
+  clearOrderTitle: { en: "Clear this order?", zh: "清除此订单？" },
+  clearOrderBody: {
+    en: "Removes order #{ticket} (table {table}) from the kitchen board. The heatmap will still have the record.",
+    zh: "将订单 #{ticket}（桌号 {table}）从厨房面板移除。热力图仍会保留记录。",
+  },
   markPriority: { en: "Mark as priority", zh: "标为优先" },
   unmarkPriority: { en: "Remove priority", zh: "取消优先" },
   busyTimes: { en: "Busy times", zh: "繁忙时段" },

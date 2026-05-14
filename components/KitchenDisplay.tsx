@@ -97,6 +97,7 @@ export default function KitchenDisplay() {
   const [tab, setTab] = useState<"active" | "completed">("active");
   const [orderSearch, setOrderSearch] = useState("");
   const [showBusyHeatmap, setShowBusyHeatmap] = useState(false);
+  const [confirmClearId, setConfirmClearId] = useState<string | null>(null);
   // Tick once a minute so the per-card "Nm" pill stays current even when the
   // orders list isn't changing.
   const [, setMinuteTick] = useState(0);
@@ -586,7 +587,7 @@ export default function KitchenDisplay() {
                     )}
                     <button
                       type="button"
-                      onClick={() => removeOrder(order.id)}
+                      onClick={() => setConfirmClearId(order.id)}
                       className="rounded-full border border-neutral-300 px-4 py-2 text-xs text-neutral-700 hover:bg-neutral-100"
                     >
                       {t("clearOrder")}
@@ -605,6 +606,95 @@ export default function KitchenDisplay() {
         open={showBusyHeatmap}
         onClose={() => setShowBusyHeatmap(false)}
       />
+
+      {(() => {
+        const target = confirmClearId
+          ? orders.find((o) => o.id === confirmClearId)
+          : null;
+        if (!target) return null;
+        const label =
+          target.ticketNumber !== undefined
+            ? String(target.ticketNumber).padStart(3, "0")
+            : target.id.slice(0, 6).toUpperCase();
+        return (
+          <ClearOrderConfirm
+            ticketLabel={label}
+            tableNumber={target.tableNumber}
+            onCancel={() => setConfirmClearId(null)}
+            onConfirm={() => {
+              const id = confirmClearId!;
+              setConfirmClearId(null);
+              void removeOrder(id);
+            }}
+          />
+        );
+      })()}
+    </div>
+  );
+}
+
+function ClearOrderConfirm({
+  ticketLabel,
+  tableNumber,
+  onCancel,
+  onConfirm,
+}: {
+  ticketLabel: string;
+  tableNumber: number;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  const { t } = useTranslation();
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Escape") onCancel();
+      if (e.key === "Enter") onConfirm();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onCancel, onConfirm]);
+
+  return (
+    <div
+      className="fixed inset-0 z-[60] flex items-end justify-center bg-black/40 backdrop-blur-sm sm:items-center"
+      onClick={onCancel}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={t("clearOrderTitle")}
+        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-sm bg-white shadow-xl sm:rounded-2xl"
+      >
+        <div className="px-6 pt-6 pb-3">
+          <h3 className="font-serif text-xl text-neutral-900">
+            {t("clearOrderTitle")}
+          </h3>
+          <p className="mt-2 text-sm text-neutral-600">
+            {t("clearOrderBody")
+              .replace("{ticket}", ticketLabel)
+              .replace("{table}", String(tableNumber))}
+          </p>
+        </div>
+        <div className="flex items-center justify-end gap-2 border-t border-neutral-200 px-6 py-3">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-100"
+          >
+            {t("cancel")}
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            autoFocus
+            className="rounded-full bg-neutral-900 px-4 py-2 text-sm font-medium text-cream hover:bg-neutral-800"
+          >
+            {t("clearOrder")}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
