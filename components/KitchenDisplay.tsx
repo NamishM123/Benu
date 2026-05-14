@@ -561,7 +561,7 @@ export default function KitchenDisplay() {
                     </div>
                   )}
 
-                  <div className="flex flex-wrap gap-2">
+                  <div className="mt-auto flex flex-wrap gap-2 pt-2">
                     {order.status === "new" && (
                       <button
                         type="button"
