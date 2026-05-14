@@ -2867,12 +2867,16 @@ export function setLang(l: Lang): void {
     } catch {
       /* ignore */
     }
-    // Reflect direction + locale on <html> so RTL languages (Farsi) flip
-    // properly without each component having to opt in.
+    // Update the <html lang> attribute (helps screen readers and Intl
+    // APIs pick the right locale) but DO NOT flip `dir`. We keep the
+    // page layout LTR — logo on the left, cart on the right — even for
+    // Farsi, so the chrome stays consistent across languages. Persian
+    // text inside text nodes still renders right-to-left correctly via
+    // the Unicode bidi algorithm, and dish-name elements set their own
+    // `dir` attribute where right-alignment matters.
     const meta = languageMeta(l);
     try {
       document.documentElement.setAttribute("lang", meta.locale);
-      document.documentElement.setAttribute("dir", meta.dir);
     } catch {
       /* ignore */
     }
@@ -2964,12 +2968,12 @@ export function useTranslation() {
 
   useEffect(() => {
     setLangState(currentLang);
-    // Apply dir/lang on first mount so the <html> element matches the
-    // stored preference even before the user touches the switcher.
+    // Apply <html lang> on first mount so screen readers and Intl APIs
+    // see the stored language preference. We deliberately do NOT touch
+    // `dir` — see setLang() for why we keep the page LTR even for Farsi.
     const meta = languageMeta(currentLang);
     try {
       document.documentElement.setAttribute("lang", meta.locale);
-      document.documentElement.setAttribute("dir", meta.dir);
     } catch {
       /* ignore */
     }

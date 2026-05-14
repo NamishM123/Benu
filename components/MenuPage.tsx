@@ -180,7 +180,10 @@ export default function MenuPage({ menu }: Props) {
               onClick={() => setFiltersOpen(true)}
               aria-label={t("dietaryFilter")}
               className={[
-                "hidden sm:inline-flex h-10 w-[9rem] items-center justify-center whitespace-nowrap rounded-full px-3 text-base font-medium shadow-sm transition-colors",
+                // Width auto-expands to fit the label so longer translations
+                // (Vietnamese "Lọc theo chế độ ăn", Armenian "Սննդակարգի զտում",
+                // Russian "Фильтр по питанию") don't overflow the pill.
+                "hidden sm:inline-flex h-10 min-w-[9rem] items-center justify-center whitespace-nowrap rounded-full px-4 text-base font-medium shadow-sm transition-colors",
                 "focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30",
                 preferences.length > 0
                   ? "bg-cantaloupe text-neutral-900 hover:bg-cantaloupe-soft"
