@@ -12,12 +12,14 @@ import {
 } from "@/lib/order-store";
 import Link from "next/link";
 import {
+  languageMeta,
   useTranslation,
   t as translate,
   translateChoiceLabel,
   translateGroupLabel,
   type Lang,
 } from "@/lib/i18n";
+import { cartLineName } from "@/lib/cart-store";
 import LanguageSwitcher from "./LanguageSwitcher";
 import SignOutButton from "./SignOutButton";
 import BusyHeatmap from "./BusyHeatmap";
@@ -28,7 +30,7 @@ function minutesSince(ts: number, now: number = Date.now()): number {
 }
 
 function formatPlacedAt(ts: number, lang: Lang): string {
-  const locale = lang === "zh" ? "zh-CN" : "en-US";
+  const locale = languageMeta(lang).locale;
   return new Date(ts).toLocaleString(locale, {
     month: "short",
     day: "numeric",
@@ -501,9 +503,7 @@ export default function KitchenDisplay() {
                       <li key={line.id} className="py-2">
                         <div className="flex items-baseline justify-between gap-3">
                           <p className="font-medium text-neutral-900">
-                            {lang === "zh" && line.itemNameZh
-                              ? line.itemNameZh
-                              : line.itemName}
+                            {cartLineName(line, lang)}
                           </p>
                           <p className="text-sm tabular-nums text-neutral-700">
                             ×{line.quantity}

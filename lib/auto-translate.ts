@@ -6,20 +6,27 @@ import type { Lang } from "./i18n";
 const STORAGE_KEY = "benu.auto-translate";
 const EVENT = "benu:auto-translate-changed";
 
-type Cache = Record<Lang, Record<string, string>>;
+type Cache = Partial<Record<Lang, Record<string, string>>>;
 
 function loadCache(): Cache {
-  if (typeof window === "undefined") return { en: {}, zh: {} };
+  if (typeof window === "undefined") return {};
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { en: {}, zh: {} };
+    if (!raw) return {};
     const parsed = JSON.parse(raw);
-    return {
-      en: parsed?.en && typeof parsed.en === "object" ? parsed.en : {},
-      zh: parsed?.zh && typeof parsed.zh === "object" ? parsed.zh : {},
-    };
+    if (!parsed || typeof parsed !== "object") return {};
+    const out: Cache = {};
+    for (const [k, v] of Object.entries(parsed)) {
+      if (v && typeof v === "object") {
+        (out as Record<string, Record<string, string>>)[k] = v as Record<
+          string,
+          string
+        >;
+      }
+    }
+    return out;
   } catch {
-    return { en: {}, zh: {} };
+    return {};
   }
 }
 
@@ -43,8 +50,9 @@ export function getAutoTranslation(text: string, lang: Lang): string | undefined
 }
 
 async function fetchAndCache(texts: string[], target: Lang): Promise<void> {
+  const existing = memCache[target] ?? {};
   const toFetch = texts.filter(
-    (t) => !memCache[target][t] && !pending.has(`${target}:${t}`),
+    (t) => !existing[t] && !pending.has(`${target}:${t}`),
   );
   if (toFetch.length === 0) return;
   toFetch.forEach((t) => pending.add(`${target}:${t}`));
@@ -60,7 +68,7 @@ async function fetchAndCache(texts: string[], target: Lang): Promise<void> {
     if (!data.translations) return;
     memCache = {
       ...memCache,
-      [target]: { ...memCache[target], ...data.translations },
+      [target]: { ...(memCache[target] ?? {}), ...data.translations },
     };
     saveCache(memCache);
   } catch {
@@ -90,7 +98,8 @@ export function useAutoTranslate(
 
   useEffect(() => {
     if (lang === "en") return;
-    const missing = texts.filter((t) => t && !memCache[lang][t]);
+    const existing = memCache[lang] ?? {};
+    const missing = texts.filter((t) => t && !existing[t]);
     if (missing.length === 0) return;
     fetchAndCache(missing, lang);
   }, [lang, texts.join("|")]);

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   formatPrice,
+  itemNamesForLocales,
   localDescription,
   localName,
   type MenuItem,
@@ -17,7 +18,7 @@ import { findFlaggedPreferences } from "@/lib/preferences";
 import { dishMatchesCustomAllergen } from "@/lib/allergen-detect";
 import { getStoredCustomAllergens, CUSTOM_ALLERGENS_EVENT } from "@/lib/preferences-store";
 import { addToCart } from "@/lib/cart-store";
-import { useTranslation } from "@/lib/i18n";
+import { isCJK, useTranslation } from "@/lib/i18n";
 import { useAutoTranslate } from "@/lib/auto-translate";
 import { containsOffensiveLanguage } from "@/lib/profanity";
 import { getNutritionForItem } from "@/lib/nutrition";
@@ -58,16 +59,19 @@ function initialSelections(groups: OptionGroup[]): Selections {
 
 export default function ItemDetailSheet({ item, preferences, onClose, onCartOpen }: Props) {
   const { t, lang } = useTranslation();
-  const autoStrings = useMemo(
-    () =>
-      item
-        ? [
-            ...(item.nameZh ? [] : [item.name]),
-            ...(item.descriptionZh ? [] : [item.description]),
-          ]
-        : [],
-    [item],
-  );
+  const autoStrings = useMemo(() => {
+    if (!item || lang === "en") return [];
+    const hasName =
+      (lang === "zh-Hans" && item.nameZh) ||
+      item.translations?.[lang]?.name;
+    const hasDesc =
+      (lang === "zh-Hans" && item.descriptionZh) ||
+      item.translations?.[lang]?.description;
+    return [
+      ...(hasName ? [] : [item.name]),
+      ...(hasDesc ? [] : [item.description]),
+    ];
+  }, [item, lang]);
   const autoMap = useAutoTranslate(autoStrings, lang);
   const groups = useMemo(
     () => (item ? getOptionGroupsForItem(item) : []),
@@ -229,6 +233,7 @@ export default function ItemDetailSheet({ item, preferences, onClose, onCartOpen
     addToCart({
       itemName: item!.name,
       itemNameZh: item!.nameZh,
+      itemNames: itemNamesForLocales(item!),
       basePrice: item!.price,
       quantity,
       unitPrice,
@@ -364,7 +369,7 @@ export default function ItemDetailSheet({ item, preferences, onClose, onCartOpen
             <h2
               className={[
                 "text-2xl font-semibold uppercase text-neutral-900",
-                lang === "zh"
+                isCJK(lang)
                   ? "tracking-normal"
                   : "tracking-[0.08em]",
               ].join(" ")}
@@ -388,8 +393,13 @@ export default function ItemDetailSheet({ item, preferences, onClose, onCartOpen
             {(() => {
               const info = getNutritionForItem(item);
               const n = info.nutrition;
+              // Ingredients list — only Simplified Chinese has a manual
+              // translation today (lives on getNutritionForItem). All other
+              // languages fall back to the English text. The auto-translate
+              // path already handles description; ingredients are short
+              // enough that English remains readable as a fallback.
               const ingredientsText =
-                lang === "zh" && info.ingredientsZh
+                lang === "zh-Hans" && info.ingredientsZh
                   ? info.ingredientsZh
                   : info.ingredients;
               if (!n && !ingredientsText) return null;

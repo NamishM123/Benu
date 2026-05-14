@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { formatPrice, type MenuItem } from "@/lib/menu";
+import { formatPrice, itemNamesForLocales, type MenuItem } from "@/lib/menu";
 import {
   addToCart,
+  cartLineName,
   cartTotal,
   clearCart,
   removeFromCart,
@@ -13,11 +14,12 @@ import {
 import { getCurrentTableNumber, placeOrder } from "@/lib/order-store";
 import { pairingReason, pickPairings } from "@/lib/cart-insights";
 import {
+  isCJK,
   translateChoiceLabel,
   translateGroupLabel,
   useTranslation,
 } from "@/lib/i18n";
-import { localName } from "@/lib/menu";
+import { localDescription, localName } from "@/lib/menu";
 import {
   CUSTOM_ALLERGENS_EVENT,
   getStoredCustomAllergens,
@@ -196,7 +198,7 @@ export default function CartDrawer({
           <h2
             className={[
               "whitespace-pre-line text-2xl font-semibold uppercase text-neutral-900",
-              lang === "zh" ? "tracking-normal" : "tracking-[0.08em]",
+              isCJK(lang) ? "tracking-normal" : "tracking-[0.08em]",
             ].join(" ")}
           >
             {cart.length === 0 ? t("yourCartEmpty") : t("yourCart")}
@@ -232,9 +234,7 @@ export default function CartDrawer({
                   <div className="flex-1 min-w-0">
                     <div className="flex items-baseline justify-between gap-3">
                       <p className="font-medium text-neutral-900">
-                        {lang === "zh" && line.itemNameZh
-                          ? line.itemNameZh
-                          : line.itemName}
+                        {cartLineName(line, lang)}
                       </p>
                       <p className="flex-none text-sm tabular-nums text-neutral-700">
                         {formatPrice(line.unitPrice * line.quantity)}
@@ -339,7 +339,7 @@ export default function CartDrawer({
                       {t(pairingReason(p, cart, menu))}
                     </p>
                     <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-neutral-500">
-                      {lang === "zh" && p.descriptionZh ? p.descriptionZh : p.description}
+                      {localDescription(p, lang)}
                     </p>
                     <button
                       type="button"
@@ -347,6 +347,7 @@ export default function CartDrawer({
                         addToCart({
                           itemName: p.name,
                           itemNameZh: p.nameZh,
+                          itemNames: itemNamesForLocales(p),
                           basePrice: p.price,
                           quantity: 1,
                           unitPrice: p.price,
@@ -483,9 +484,7 @@ export default function CartDrawer({
                   {(() => {
                     const line = cart.find((l) => l.id === confirmRemoveId);
                     if (!line) return "";
-                    return lang === "zh" && line.itemNameZh
-                      ? line.itemNameZh
-                      : line.itemName;
+                    return cartLineName(line, lang);
                   })()}
                 </span>{" "}
                 {t("fromCart")}

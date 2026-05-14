@@ -10,6 +10,7 @@ import {
   type OrderStatus as OrderStatusValue,
 } from "@/lib/order-store";
 import { useTranslation, t as translate, type Lang } from "@/lib/i18n";
+import { cartLineName } from "@/lib/cart-store";
 import LanguageSwitcher from "./LanguageSwitcher";
 
 function formatTime(ts: number): string {
@@ -135,9 +136,7 @@ export default function MyOrders() {
                       <li key={line.id} className="py-2">
                         <div className="flex items-baseline justify-between gap-3">
                           <p className="text-sm font-medium text-neutral-900">
-                            {lang === "zh" && line.itemNameZh
-                              ? line.itemNameZh
-                              : line.itemName}
+                            {cartLineName(line, lang)}
                           </p>
                           <p className="text-sm tabular-nums text-neutral-700">
                             ×{line.quantity}

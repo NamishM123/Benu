@@ -17,6 +17,7 @@ import {
   type Lang,
 } from "@/lib/i18n";
 import { formatPrice } from "@/lib/menu";
+import { cartLineName } from "@/lib/cart-store";
 import LanguageSwitcher from "./LanguageSwitcher";
 
 type Props = { id: string };
@@ -186,9 +187,7 @@ export default function OrderStatus({ id }: Props) {
               <li key={line.id} className="py-3">
                 <div className="flex items-baseline justify-between gap-3">
                   <p className="font-medium text-neutral-900">
-                    {lang === "zh" && line.itemNameZh
-                      ? line.itemNameZh
-                      : line.itemName}
+                    {cartLineName(line, lang)}
                   </p>
                   <div className="flex items-baseline gap-3 text-sm tabular-nums text-neutral-700">
                     <span>×{line.quantity}</span>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslation } from "@/lib/i18n";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 type Props = {
   onFiltersOpen: () => void;
@@ -9,27 +10,19 @@ type Props = {
 
 /**
  * Mobile header controls: compact circular icon buttons.
- * Shows: language toggle (current lang text, tap to switch),
- * filters (icon-only), and cart (rendered separately by parent).
- * All buttons are h-10 w-10 to match the cart button.
+ * Renders the LanguageSwitcher in its `icon` variant (a single 40px
+ * button that opens the full language popover) plus the dietary filter
+ * pill. The cart button is rendered separately by the parent.
  */
 export default function MobileHeaderControl({
   onFiltersOpen,
   preferencesCount,
 }: Props) {
-  const { t, lang, setLang } = useTranslation();
+  const { t } = useTranslation();
 
   return (
     <div className="flex items-center gap-1.5">
-      {/* Language toggle: tap to switch between EN and 中 */}
-      <button
-        type="button"
-        onClick={() => setLang(lang === "en" ? "zh" : "en")}
-        aria-label="Toggle language"
-        className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-neutral-300 bg-white text-base font-semibold text-neutral-900 shadow-sm transition-colors hover:bg-neutral-100"
-      >
-        {lang === "en" ? "EN" : "中"}
-      </button>
+      <LanguageSwitcher variant="icon" />
 
       {/* Filter: full-width text label, D and R hugging button edges */}
       <button

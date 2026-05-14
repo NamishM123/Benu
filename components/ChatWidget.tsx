@@ -25,7 +25,8 @@ import { isMedicalEmergency } from "@/lib/emergency-detect";
 import { getEmergencyMessage } from "@/lib/emergency-messages";
 import { detectLanguage } from "@/lib/lang-detect";
 import { containsOffensiveLanguage } from "@/lib/profanity";
-import { useTranslation } from "@/lib/i18n";
+import { isChinese, useTranslation } from "@/lib/i18n";
+import { localDescription, localName } from "@/lib/menu";
 
 type ChatMessage = {
   id: number;
@@ -568,7 +569,11 @@ export default function ChatWidget({
           >
             <div className="min-w-0">
               <h2 className="font-serif text-2xl leading-tight tracking-tight text-neutral-900">
-                {lang === "zh" ? (
+                {/* Chinese uses a single phrase ("用任何语言询问 Benu") with no
+                    natural split point, so we drop the highlighted "Any
+                    Language" span entirely; every other language keeps
+                    the two-part headline. */}
+                {isChinese(lang) ? (
                   t("chatHeaderPrefix")
                 ) : (
                   <>
@@ -690,18 +695,14 @@ export default function ChatWidget({
                           <div className="min-w-0 flex-1">
                             <div className="flex items-baseline justify-between gap-2">
                               <p className="truncate text-sm font-medium text-neutral-900">
-                                {lang === "zh" && d.nameZh
-                                  ? d.nameZh
-                                  : d.name}
+                                {localName(d as MenuItem, lang)}
                               </p>
                               <p className="text-xs text-neutral-600">
                                 {formatPrice(d.price)}
                               </p>
                             </div>
                             <p className="line-clamp-2 text-xs text-neutral-500">
-                              {lang === "zh" && d.descriptionZh
-                                ? d.descriptionZh
-                                : d.description}
+                              {localDescription(d as MenuItem, lang)}
                             </p>
                             <div className="mt-1 flex flex-wrap gap-1">
                               {d.spiceLevel > 0 && (
@@ -715,7 +716,13 @@ export default function ChatWidget({
                                   className="rounded-full bg-amber-50 px-2 py-0.5 text-[10px] text-amber-800"
                                 >
                                   {t("chatContains")}{" "}
-                                  {lang === "zh" ? t(f) : f.toLowerCase()}
+                                  {/* Allergen labels (Dairy, Fish, …) are
+                                      translated in TRANSLATIONS for every
+                                      language; English originals lowercase
+                                      so "contains dairy" reads naturally. */}
+                                  {lang === "en"
+                                    ? f.toLowerCase()
+                                    : t(f)}
                                 </span>
                               ))}
                             </div>
@@ -724,11 +731,10 @@ export default function ChatWidget({
                             <button
                               type="button"
                               onClick={() => onSelectDish(d.name)}
-                              aria-label={`${t("addToCart")} — ${
-                                lang === "zh" && d.nameZh
-                                  ? d.nameZh
-                                  : d.name
-                              }`}
+                              aria-label={`${t("addToCart")} — ${localName(
+                                d as MenuItem,
+                                lang,
+                              )}`}
                               className="flex h-9 w-9 flex-none items-center justify-center self-center rounded-full bg-cantaloupe text-neutral-900 shadow-sm transition-colors hover:bg-cantaloupe-soft active:bg-cantaloupe-deep focus:outline-none focus-visible:ring-2 focus-visible:ring-cantaloupe-deep/40"
                             >
                               <svg

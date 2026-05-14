@@ -3,7 +3,44 @@ import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 
-type Body = { texts?: string[]; target?: "zh" | "en" };
+// BCP 47 codes we accept as `target`. Mirrors the Lang union in
+// lib/i18n.ts — when adding a new locale there, add it here too.
+const SUPPORTED_TARGETS = new Set([
+  "en",
+  "es",
+  "zh-Hans",
+  "zh-Hant",
+  "tl",
+  "vi",
+  "ko",
+  "ja",
+  "fa",
+  "hy",
+  "ru",
+]);
+
+type Body = { texts?: string[]; target?: string };
+
+// Per-language hint that goes into the prompt. We keep this short — the
+// model already knows the language; the hint is mainly to nudge register
+// (menu-appropriate, neutral, Latin-American Spanish vs. Castilian, etc.)
+// and script (Traditional vs Simplified Chinese, native script for ko/
+// ja/fa/hy/ru).
+const TARGET_DESCRIPTIONS: Record<string, string> = {
+  en: "natural English suitable for a restaurant menu",
+  es: "neutral Latin American Spanish suitable for a casual restaurant menu",
+  "zh-Hans":
+    "Simplified Chinese (Mandarin) suitable for a Chinese restaurant menu in North America",
+  "zh-Hant":
+    "Traditional Chinese (suitable for Cantonese-speaking diners) in Traditional characters",
+  tl: "natural Filipino/Tagalog suitable for a casual restaurant menu — keep English food terms (e.g. 'cart', 'noodles') when they are conventional",
+  vi: "natural Vietnamese with proper tone marks, suitable for a casual restaurant menu",
+  ko: "natural Korean using Hangul, suitable for a casual restaurant menu, polite -요/-습니다 register",
+  ja: "natural Japanese using a mix of kanji/hiragana/katakana as appropriate, polite ます/です register, suitable for a restaurant menu",
+  fa: "natural Persian (Farsi) in the Persian script, suitable for a casual restaurant menu. Flag pork dishes explicitly (گوشت خوک) since the audience is largely Muslim",
+  hy: "natural Eastern Armenian in the Armenian script, suitable for a casual restaurant menu",
+  ru: "natural Russian in Cyrillic, suitable for a casual restaurant menu",
+};
 
 export async function POST(req: Request) {
   let body: Body;
@@ -16,7 +53,10 @@ export async function POST(req: Request) {
   const texts = (body.texts ?? []).filter(
     (t): t is string => typeof t === "string" && t.trim().length > 0,
   );
-  const target = body.target === "en" ? "en" : "zh";
+  const target =
+    typeof body.target === "string" && SUPPORTED_TARGETS.has(body.target)
+      ? body.target
+      : "zh-Hans";
 
   if (texts.length === 0) {
     return NextResponse.json({ translations: {} });
@@ -32,16 +72,14 @@ export async function POST(req: Request) {
 
   const client = new Anthropic({ apiKey });
 
-  const targetLang =
-    target === "zh"
-      ? "Simplified Chinese (Mandarin), suitable for a Chinese restaurant menu in North America"
-      : "natural English suitable for a restaurant menu";
+  const targetLang = TARGET_DESCRIPTIONS[target] ?? TARGET_DESCRIPTIONS["en"];
 
   const userPrompt = `Translate the following English restaurant menu strings (dish names, descriptions, etc.) to ${targetLang}.
 
 Rules:
 - Translate naturally and concisely. Keep parenthetical notes like "(8 pc)" intact when present.
 - Keep numbers, prices, and brand names (Coke, Sprite, Sichuan, Taiwanese) recognizable.
+- For dish names from Chinese cuisine without a direct equivalent, keep a recognizable romanization or native script and add a short descriptive translation.
 - Output ONLY a JSON object whose keys are the EXACT original English strings I gave you and whose values are the translations. No explanations, no extra fields.
 
 Texts to translate:

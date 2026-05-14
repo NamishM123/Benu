@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useTranslation, type Lang } from "@/lib/i18n";
+import { isChinese, languageMeta, useTranslation, type Lang } from "@/lib/i18n";
 
 type Props = {
   open: boolean;
@@ -41,13 +41,20 @@ function intensityClass(count: number, max: number): string {
 
 function dayShort(weekday: number, lang: Lang): string {
   const ref = new Date(2024, 0, 7 + weekday);
-  const locale = lang === "zh" ? "zh-CN" : "en-US";
-  return ref.toLocaleDateString(locale, { weekday: "short" });
+  return ref.toLocaleDateString(languageMeta(lang).locale, { weekday: "short" });
+}
+
+// 24-hour clock for CJK locales (matches the way Chinese / Japanese /
+// Korean menus list hours); 12-hour AM/PM for everything else, which
+// is the dominant form in Spanish-/Russian-/Persian-language software
+// in the US too.
+function uses24h(lang: Lang): boolean {
+  return isChinese(lang) || lang === "ja" || lang === "ko";
 }
 
 function hourLabel(hour: number, lang: Lang): string {
   if (hour % 3 !== 0) return "";
-  if (lang === "zh") return `${hour}:00`;
+  if (uses24h(lang)) return `${hour}:00`;
   const h = hour % 12 || 12;
   return `${h}${hour < 12 ? "a" : "p"}`;
 }
@@ -59,10 +66,9 @@ function tooltipFor(
   lang: Lang,
 ): string {
   const day = dayShort(weekday, lang);
-  const hr =
-    lang === "zh"
-      ? `${hour}:00–${hour + 1}:00`
-      : `${hour % 12 || 12}${hour < 12 ? "am" : "pm"}`;
+  const hr = uses24h(lang)
+    ? `${hour}:00–${hour + 1}:00`
+    : `${hour % 12 || 12}${hour < 12 ? "am" : "pm"}`;
   return `${day} ${hr} · ${count}`;
 }
 
@@ -312,13 +318,12 @@ function SlotDetail({
 
   const maxQty = items.length > 0 ? items[0].qty : 0;
   const dayLabel = new Date(2024, 0, 7 + slot.weekday).toLocaleDateString(
-    lang === "zh" ? "zh-CN" : "en-US",
+    languageMeta(lang).locale,
     { weekday: "long" },
   );
-  const hourLabelFull =
-    lang === "zh"
-      ? `${slot.hour}:00–${slot.hour + 1}:00`
-      : `${slot.hour % 12 || 12}${slot.hour < 12 ? "am" : "pm"}–${(slot.hour + 1) % 12 || 12}${slot.hour + 1 < 12 || slot.hour + 1 === 24 ? "am" : "pm"}`;
+  const hourLabelFull = uses24h(lang)
+    ? `${slot.hour}:00–${slot.hour + 1}:00`
+    : `${slot.hour % 12 || 12}${slot.hour < 12 ? "am" : "pm"}–${(slot.hour + 1) % 12 || 12}${slot.hour + 1 < 12 || slot.hour + 1 === 24 ? "am" : "pm"}`;
 
   return (
     <div

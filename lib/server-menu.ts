@@ -101,6 +101,44 @@ async function ensureSeeded(): Promise<void> {
 
 // ---- public API --------------------------------------------------------
 
+// Reconcile per-language translations from the static MENU. KV was seeded
+// once with only `nameZh`/`descriptionZh`, so KV entries created before
+// the multi-language rollout don't carry translations for the other 8
+// locales. We layer the static translations in whenever the KV entry is
+// missing them, keyed by dish name. Admin overrides in `translations`
+// still win — we only add languages that aren't already populated.
+function reconcileTranslationsFromStatic(
+  items: StoredMenuItem[],
+): StoredMenuItem[] {
+  const staticByName = new Map(STATIC_MENU.map((m) => [m.name, m]));
+  return items.map((item) => {
+    const seed = staticByName.get(item.name);
+    if (!seed?.translations) return item;
+    const merged = { ...(item.translations ?? {}) };
+    let changed = false;
+    for (const [lang, tr] of Object.entries(seed.translations)) {
+      if (!tr) continue;
+      const current = merged[lang as keyof typeof merged];
+      if (!current) {
+        merged[lang as keyof typeof merged] = tr;
+        changed = true;
+      } else {
+        const next = { ...current };
+        if (!next.name && tr.name) {
+          next.name = tr.name;
+          changed = true;
+        }
+        if (!next.description && tr.description) {
+          next.description = tr.description;
+          changed = true;
+        }
+        merged[lang as keyof typeof merged] = next;
+      }
+    }
+    return changed ? { ...item, translations: merged } : item;
+  });
+}
+
 // Reconcile stale local image paths with the static MENU. KV was seeded
 // once and never re-syncs, so when a bundled image is renamed (e.g.
 // coke.avif → coke.jpg) the KV entry keeps pointing at the gone file
@@ -204,7 +242,9 @@ export async function listMenuItems(): Promise<StoredMenuItem[]> {
       for (const id of toDelete) store.items.delete(id);
     }
   }
-  return reconcileImagesFromStatic(sortMenu(kept));
+  return reconcileTranslationsFromStatic(
+    reconcileImagesFromStatic(sortMenu(kept)),
+  );
 }
 
 export async function getMenuItem(
@@ -235,6 +275,10 @@ function normalize(input: MenuItemInput, id: string): StoredMenuItem {
       : [],
     image: input.image?.trim() || "/menu/placeholder.svg",
     ...(input.available === false ? { available: false } : {}),
+    // Preserve per-language translations so admin edits don't drop them.
+    // We accept the object as-is — validation lives on the read side via
+    // the optional Partial<Record<Lang, ...>> shape.
+    ...(input.translations ? { translations: input.translations } : {}),
   };
 }
 

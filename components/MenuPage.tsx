@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
   formatPrice,
+  itemNamesForLocales,
   localDescription,
   localName,
   type MenuItem,
@@ -24,7 +25,7 @@ import FilterSheet from "./FilterSheet";
 import LanguageSwitcher from "./LanguageSwitcher";
 import MobileHeaderControl from "./MobileHeaderControl";
 import SpiceChilis from "./SpiceChilis";
-import { useTranslation } from "@/lib/i18n";
+import { isCJK, useTranslation } from "@/lib/i18n";
 import { useAutoTranslate } from "@/lib/auto-translate";
 import { getOptionGroupsForItem } from "@/lib/menu-options";
 
@@ -106,16 +107,26 @@ export default function MenuPage({ menu }: Props) {
     [menu, activeCategory],
   );
 
-  // Collect English strings missing a manual nameZh/descriptionZh so the
-  // auto-translate API can fill them in lazily.
+  // Collect English strings missing a manual translation for the active
+  // language so the auto-translate API can fill them in lazily. We skip
+  // English (no translation needed) and skip items that already have an
+  // entry in either `translations[lang]` or the legacy nameZh/descZh
+  // fields for Simplified Chinese.
   const stringsToAutoTranslate = useMemo(() => {
+    if (lang === "en") return [];
     const list: string[] = [];
     for (const m of menu) {
-      if (!m.nameZh) list.push(m.name);
-      if (!m.descriptionZh) list.push(m.description);
+      const hasName =
+        (lang === "zh-Hans" && m.nameZh) ||
+        m.translations?.[lang]?.name;
+      const hasDesc =
+        (lang === "zh-Hans" && m.descriptionZh) ||
+        m.translations?.[lang]?.description;
+      if (!hasName) list.push(m.name);
+      if (!hasDesc) list.push(m.description);
     }
     return list;
-  }, [menu]);
+  }, [menu, lang]);
   const autoMap = useAutoTranslate(stringsToAutoTranslate, lang);
 
   const totalCount = cartCount(cart);
@@ -230,7 +241,7 @@ export default function MenuPage({ menu }: Props) {
               <div
                 className={[
                   "flex w-max min-w-full items-center justify-start px-6 py-3 sm:justify-center sm:px-10",
-                  lang === "zh" ? "gap-5 sm:gap-6" : "gap-2",
+                  isCJK(lang) ? "gap-5 sm:gap-6" : "gap-2",
                 ].join(" ")}
               >
                 {categories.map((cat) => {
@@ -370,6 +381,7 @@ export default function MenuPage({ menu }: Props) {
                             addToCart({
                               itemName: d.name,
                               itemNameZh: d.nameZh,
+                              itemNames: itemNamesForLocales(d),
                               basePrice: d.price,
                               quantity: 1,
                               unitPrice: d.price,
@@ -400,7 +412,7 @@ export default function MenuPage({ menu }: Props) {
                     <h3
                       className={[
                         "min-h-[1.5em] font-semibold uppercase text-neutral-900",
-                        lang === "zh"
+                        isCJK(lang)
                           ? "text-xl tracking-normal"
                           : "text-xl tracking-[0.08em]",
                       ].join(" ")}

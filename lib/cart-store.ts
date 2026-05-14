@@ -1,10 +1,19 @@
+import type { Lang } from "./i18n";
+
 const KEY = "benu.cart";
 const EVENT = "benu:cart-changed";
 
 export type CartLine = {
   id: string;
   itemName: string;
+  // Legacy field — kept so existing localStorage entries keep rendering
+  // in Simplified Chinese. New code reads from `itemNames` instead.
   itemNameZh?: string;
+  // Optional snapshot of every language's translated dish name at the
+  // moment the line was added to the cart. Denormalized from the menu so
+  // the cart drawer + order pages don't need to re-look up translations
+  // from a menu prop on every render.
+  itemNames?: Partial<Record<Lang, string>>;
   basePrice: number;
   quantity: number;
   unitPrice: number;
@@ -12,6 +21,18 @@ export type CartLine = {
   specialRequest?: string;
   image?: string;
 };
+
+/** Pick the right per-language name for a cart line. Falls back through:
+ *  explicit translations map → legacy `itemNameZh` (only for zh-Hans) →
+ *  English `itemName`. Use this anywhere we used to test
+ *  `lang === "zh" && line.itemNameZh ? line.itemNameZh : line.itemName`. */
+export function cartLineName(line: CartLine, lang: Lang): string {
+  if (lang === "en") return line.itemName;
+  const fromMap = line.itemNames?.[lang];
+  if (fromMap) return fromMap;
+  if (lang === "zh-Hans" && line.itemNameZh) return line.itemNameZh;
+  return line.itemName;
+}
 
 function sameSelections(
   a: CartLine["selections"],
