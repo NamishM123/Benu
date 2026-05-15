@@ -228,12 +228,11 @@ export default function CartDrawer({
                       alt=""
                       loading="lazy"
                       decoding="async"
-                      // Mobile keeps the 96px square thumbnail. On desktop
-                      // the image stretches vertically to fill the row — top
-                      // aligns with the dish name, bottom with the qty
-                      // controls — by dropping its fixed height and letting
-                      // flex `align-self: stretch` take over.
-                      className="h-24 w-24 flex-none rounded-xl bg-neutral-100 object-cover sm:h-auto sm:w-32 sm:self-stretch"
+                      // Square thumbnail in both views — same aspect ratio
+                      // as the menu cards, just sized down. Mobile keeps
+                      // the original 96px; desktop is a slightly larger
+                      // 112px square that sits to the left of the title.
+                      className="h-24 w-24 flex-none rounded-xl bg-neutral-100 object-cover sm:h-28 sm:w-28"
                     />
                   )}
                   <div className="flex-1 min-w-0">
