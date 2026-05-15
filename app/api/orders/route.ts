@@ -68,25 +68,25 @@ export async function POST(req: Request) {
         ? String(order.ticketNumber).padStart(3, "0")
         : order.id.slice(0, 6).toUpperCase();
     const itemLines = order.lines
-      .map((l) => `  ${l.itemName} — <i>x${l.quantity}</i>`)
-      .join("\n");
+      .map((l) => `• <b>${l.itemName}</b> — <i>x${l.quantity}</i>`)
+      .join("\n\n");
     const etaText =
       order.etaMinutes !== undefined
-        ? `\n<b>Estimated wait:</b> <i>${order.etaMinutes} minutes</i>`
+        ? `\n\n<b>Estimated wait:</b> <i>${order.etaMinutes} minutes</i>`
         : "";
     const prefText =
       order.preferences.length > 0
-        ? `\n<b>Dietary notes:</b> <i>${order.preferences.join(", ")}</i>`
+        ? `\n\n<b>Dietary notes:</b> <i>${order.preferences.join(", ")}</i>`
         : "";
     const specialRequests = order.lines
       .filter((l) => l.specialRequest?.trim())
       .map((l) => `  ${l.itemName}: <i>${l.specialRequest}</i>`)
       .join("\n");
     const specialText = specialRequests
-      ? `\n<b>Special requests:</b>\n${specialRequests}`
+      ? `\n\n<b>Special requests:</b>\n${specialRequests}`
       : "";
     void sendTelegram(
-      `<b>Order Received — #${shortId}</b>\n<b>Table ${order.tableNumber}</b>\n\n${itemLines}${prefText}${specialText}${etaText}\n\n<i>Your waiter will be over shortly to attend to you.</i>`,
+      `<u><b>ORDER RECEIVED — #${shortId}</b></u>\n<b>Table ${order.tableNumber}</b>\n\n${itemLines}${prefText}${specialText}${etaText}\n\n<i>Your waiter will be over shortly to attend to you.</i>`,
     );
 
     return NextResponse.json({ order }, { status: 201 });
