@@ -63,7 +63,10 @@ export async function POST(req: Request) {
     });
 
     // Telegram: order placed notification
-    const shortId = order.id.slice(0, 6).toUpperCase();
+    const shortId =
+      order.ticketNumber !== undefined
+        ? String(order.ticketNumber).padStart(3, "0")
+        : order.id.slice(0, 6).toUpperCase();
     const itemLines = order.lines
       .map((l) => `  • ${l.itemName} ×${l.quantity}`)
       .join("\n");

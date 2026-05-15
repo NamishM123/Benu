@@ -66,7 +66,10 @@ export async function PATCH(req: Request, { params }: Ctx) {
 
   // Telegram: notify on status transitions
   if (patch.status) {
-    const shortId = updated.id.slice(0, 6).toUpperCase();
+    const shortId =
+      updated.ticketNumber !== undefined
+        ? String(updated.ticketNumber).padStart(3, "0")
+        : updated.id.slice(0, 6).toUpperCase();
     if (patch.status === "ready") {
       void sendTelegram(
         `✅ <b>Order #${shortId} is READY</b>\n🪑 Table ${updated.tableNumber}`,
