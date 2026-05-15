@@ -152,9 +152,21 @@ export default function KitchenDisplay() {
     <div className="min-h-screen bg-cream">
       <header className="sticky top-0 z-10 border-b border-neutral-200 bg-cream/95 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-6 py-4">
-          <h1 className="font-serif text-2xl text-neutral-900 sm:text-3xl">
-            Benu Kitchen Orders
-          </h1>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="block overflow-hidden h-[60px] sm:h-[72px] flex-none">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/shake-shake-logo.png"
+                alt="Shake Shake Fresh Noodle"
+                width={1536}
+                height={831}
+                className="block h-[105px] w-auto max-w-none sm:h-[134px] -mt-0.5 sm:-mt-1.5 flex-none"
+              />
+            </div>
+            <h1 className="font-serif text-2xl text-neutral-900 sm:text-3xl">
+              Kitchen
+            </h1>
+          </div>
           <div className="flex items-center gap-3">
             <button
               type="button"
