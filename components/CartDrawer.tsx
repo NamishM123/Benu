@@ -233,7 +233,7 @@ export default function CartDrawer({
                       // aligns with the dish name, bottom with the qty
                       // controls — by dropping its fixed height and letting
                       // flex `align-self: stretch` take over.
-                      className="h-24 w-24 flex-none rounded-xl bg-neutral-100 object-cover sm:h-auto sm:w-20 sm:self-stretch"
+                      className="h-24 w-24 flex-none rounded-xl bg-neutral-100 object-cover sm:h-auto sm:w-32 sm:self-stretch"
                     />
                   )}
                   <div className="flex-1 min-w-0">
