@@ -86,7 +86,7 @@ export async function POST(req: Request) {
       ? `\n\n<b>Special requests:</b>\n${specialRequests}`
       : "";
     void sendTelegram(
-      `<b>Order Received — #${shortId}</b>\n<b>Table ${order.tableNumber}</b>\n\n${itemLines}${prefText}${specialText}${etaText}\n\n<i>Your waiter will be over shortly to attend to you.</i>`,
+      `<b>Order Received — #${shortId}</b>\n<b>Table ${order.tableNumber}</b>\n\n${itemLines}${prefText}${specialText}${etaText}\n\n<i>A waiter will visit your table shortly to confirm the order before it goes to the kitchen.</i>`,
     );
 
     return NextResponse.json({ order }, { status: 201 });

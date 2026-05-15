@@ -6,7 +6,7 @@ import { sendTelegram } from "@/lib/telegram";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const VALID_STATUSES: OrderStatus[] = ["new", "cooking", "ready"];
+const VALID_STATUSES: OrderStatus[] = ["pending", "new", "cooking", "ready"];
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -70,13 +70,17 @@ export async function PATCH(req: Request, { params }: Ctx) {
       updated.ticketNumber !== undefined
         ? String(updated.ticketNumber).padStart(3, "0")
         : updated.id.slice(0, 6).toUpperCase();
-    if (patch.status === "ready") {
+    if (patch.status === "new") {
       void sendTelegram(
-        `<b>Order Ready — #${shortId}</b>\n<b>Table ${updated.tableNumber}</b>\n\n<i>Your food is ready and your waiter will bring it to your table right away. Thank you for your patience!</i>`,
+        `<b>Order Confirmed — #${shortId}</b>\n<b>Table ${updated.tableNumber}</b>\n\n<i>The order has been confirmed by the waiter and is now in the kitchen queue.</i>`,
       );
     } else if (patch.status === "cooking") {
       void sendTelegram(
         `<b>Order In Progress — #${shortId}</b>\n<b>Table ${updated.tableNumber}</b>\n\n<i>Our kitchen has started on your order. We will let you know as soon as it is ready.</i>`,
+      );
+    } else if (patch.status === "ready") {
+      void sendTelegram(
+        `<b>Order Ready — #${shortId}</b>\n<b>Table ${updated.tableNumber}</b>\n\n<i>Your food is ready and your waiter will bring it to your table right away. Thank you for your patience!</i>`,
       );
     }
   }

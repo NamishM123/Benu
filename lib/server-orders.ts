@@ -125,7 +125,7 @@ export async function createOrder(input: CreateOrderInput): Promise<Order> {
   const order: Order = {
     id: makeId(),
     placedAt: Date.now(),
-    status: "new",
+    status: "pending",
     lines: input.lines,
     preferences: input.preferences,
     tableNumber: input.tableNumber,

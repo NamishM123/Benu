@@ -40,12 +40,14 @@ function formatPlacedAt(ts: number, lang: Lang): string {
 }
 
 function statusLabel(status: OrderStatus, lang: Lang): string {
+  if (status === "pending") return "Awaiting confirmation";
   if (status === "new") return translate("statusNew", lang);
   if (status === "cooking") return translate("statusCooking", lang);
   return translate("statusReady", lang);
 }
 
 function statusClasses(status: OrderStatus): string {
+  if (status === "pending") return "bg-neutral-200 text-neutral-700";
   if (status === "new") return "bg-cantaloupe text-neutral-900";
   if (status === "cooking") return "bg-butter text-neutral-900";
   return "bg-sage-dark text-neutral-900";
@@ -265,6 +267,85 @@ export default function KitchenDisplay() {
       )}
 
       <main className="mx-auto max-w-6xl px-6 py-6">
+
+        {/* ── Pending confirmation ── */}
+        {(() => {
+          const pending = orders.filter((o) => o.status === "pending");
+          if (pending.length === 0) return null;
+          return (
+            <div className="mb-6">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-neutral-500">
+                Awaiting waiter confirmation — {pending.length} order{pending.length > 1 ? "s" : ""}
+              </p>
+              <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                {pending.map((order) => {
+                  const shortId = order.ticketNumber !== undefined
+                    ? String(order.ticketNumber).padStart(3, "0")
+                    : order.id.slice(0, 6).toUpperCase();
+                  return (
+                    <li key={order.id} className="flex flex-col gap-3 rounded-2xl border-2 border-dashed border-neutral-300 bg-white p-5">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-start gap-3">
+                          <div className="flex h-12 w-12 flex-none flex-col items-center justify-center rounded-xl bg-neutral-200 text-neutral-700">
+                            <span className="text-[9px] font-semibold uppercase tracking-wider text-neutral-500">
+                              {t("tableShort")}
+                            </span>
+                            <span className="font-serif text-lg leading-none tabular-nums">
+                              {order.tableNumber ?? "—"}
+                            </span>
+                          </div>
+                          <div>
+                            <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
+                              Order #{shortId}
+                            </p>
+                            <p className="mt-0.5 text-xs text-neutral-500">
+                              {formatTime(order.placedAt)}
+                            </p>
+                          </div>
+                        </div>
+                        <span className="rounded-full bg-neutral-200 px-3 py-1 text-xs font-medium text-neutral-600">
+                          Pending
+                        </span>
+                      </div>
+                      <ul className="divide-y divide-neutral-100 text-sm">
+                        {order.lines.map((line) => (
+                          <li key={line.id} className="flex items-baseline justify-between gap-2 py-1.5">
+                            <span className="text-neutral-800">
+                              {lang === "zh" && line.itemNameZh ? line.itemNameZh : line.itemName}
+                            </span>
+                            <span className="tabular-nums text-neutral-500">×{line.quantity}</span>
+                          </li>
+                        ))}
+                      </ul>
+                      {order.preferences.length > 0 && (
+                        <p className="text-xs text-neutral-500">
+                          {order.preferences.map((p) => translate(p, lang)).join(" · ")}
+                        </p>
+                      )}
+                      <div className="flex gap-2 border-t border-neutral-100 pt-3">
+                        <button
+                          type="button"
+                          onClick={() => updateOrder(order.id, { status: "new" })}
+                          className="flex-1 rounded-full bg-neutral-900 px-4 py-2 text-xs font-medium text-cream hover:bg-neutral-800"
+                        >
+                          Confirm order
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => removeOrder(order.id)}
+                          className="rounded-full border border-red-200 bg-red-50 px-4 py-2 text-xs font-medium text-red-700 hover:bg-red-100"
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          );
+        })()}
+
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <div className="flex gap-1 rounded-full border border-neutral-200 bg-white p-1 w-fit">
           <button
@@ -332,9 +413,10 @@ export default function KitchenDisplay() {
 
         {(() => {
           if (!ordersLoaded) return null;
-          const tabPool = orders.filter((o) =>
-            tab === "active" ? o.status !== "ready" : o.status === "ready",
-          );
+          const tabPool = orders.filter((o) => {
+            if (o.status === "pending") return false; // shown above in pending section
+            return tab === "active" ? o.status !== "ready" : o.status === "ready";
+          });
           const filtered = sortKitchenOrders(
             tabPool.filter((o) => matchesSearch(o, orderSearch)),
             tab,
@@ -342,9 +424,11 @@ export default function KitchenDisplay() {
           const otherTabMatches = orderSearch.trim()
             ? orders.filter(
                 (o) =>
+                  o.status !== "pending" &&
                   (tab === "active"
                     ? o.status === "ready"
-                    : o.status !== "ready") && matchesSearch(o, orderSearch),
+                    : o.status !== "ready") &&
+                  matchesSearch(o, orderSearch),
               ).length
             : 0;
           const emptyMessage = orderSearch.trim()
