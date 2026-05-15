@@ -68,16 +68,18 @@ export async function POST(req: Request) {
         ? String(order.ticketNumber).padStart(3, "0")
         : order.id.slice(0, 6).toUpperCase();
     const itemLines = order.lines
-      .map((l) => `  • ${l.itemName} ×${l.quantity}`)
+      .map((l) => `  ${l.itemName} — <i>x${l.quantity}</i>`)
       .join("\n");
     const etaText =
-      order.etaMinutes !== undefined ? `\n⏱ ETA: ${order.etaMinutes} min` : "";
+      order.etaMinutes !== undefined
+        ? `\n<b>Estimated wait:</b> <i>${order.etaMinutes} minutes</i>`
+        : "";
     const prefText =
       order.preferences.length > 0
-        ? `\n🥗 Preferences: ${order.preferences.join(", ")}`
+        ? `\n<b>Dietary notes:</b> <i>${order.preferences.join(", ")}</i>`
         : "";
     void sendTelegram(
-      `🍜 <b>New Order #${shortId}</b>\n🪑 Table ${order.tableNumber}\n\n${itemLines}${prefText}${etaText}`,
+      `<b>Order Received — #${shortId}</b>\n<b>Table ${order.tableNumber}</b>\n\n${itemLines}${prefText}${etaText}\n\n<i>Your waiter will approach you shortly to confirm. Sit tight!</i>`,
     );
 
     return NextResponse.json({ order }, { status: 201 });

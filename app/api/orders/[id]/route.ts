@@ -72,11 +72,11 @@ export async function PATCH(req: Request, { params }: Ctx) {
         : updated.id.slice(0, 6).toUpperCase();
     if (patch.status === "ready") {
       void sendTelegram(
-        `✅ <b>Order #${shortId} is READY</b>\n🪑 Table ${updated.tableNumber}`,
+        `<b>Order Ready — #${shortId}</b>\n<b>Table ${updated.tableNumber}</b>\n\n<i>Your food is ready and your waiter will bring it to your table right away. Thank you for your patience!</i>`,
       );
     } else if (patch.status === "cooking") {
       void sendTelegram(
-        `👨‍🍳 <b>Order #${shortId} is now being cooked</b>\n🪑 Table ${updated.tableNumber}`,
+        `<b>Order In Progress — #${shortId}</b>\n<b>Table ${updated.tableNumber}</b>\n\n<i>Our kitchen has started on your order. We will let you know as soon as it is ready.</i>`,
       );
     }
   }
