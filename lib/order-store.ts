@@ -38,7 +38,7 @@ export function getCurrentTableNumber(): number {
   }
 }
 
-export type OrderStatus = "new" | "cooking" | "ready";
+export type OrderStatus = "pending" | "new" | "cooking" | "ready";
 
 export type Order = {
   id: string;
