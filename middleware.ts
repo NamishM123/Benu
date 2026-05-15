@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { COOKIE_NAME, verifyCookieValue } from "@/lib/staff-auth";
+import { verifyQrToken } from "@/lib/qr-token";
 
 // Customer-facing HTML routes. On the staff host these are redirected to
 // the customer host so staff can't accidentally land on them.
@@ -102,6 +103,30 @@ export async function middleware(req: NextRequest) {
     }
   }
 
+  // ---- QR token validation on /menu ------------------------------------
+  if (pathname === "/menu" && searchParams.has("token")) {
+    const table = Number(searchParams.get("table"));
+    const ts = Number(searchParams.get("ts"));
+    const token = searchParams.get("token") ?? "";
+    const secret =
+      process.env.QR_SECRET ||
+      process.env.STAFF_COOKIE_SECRET ||
+      "dev-qr-secret";
+    const result = await verifyQrToken(table, ts, token, secret);
+    if (result === "expired") {
+      const dest = req.nextUrl.clone();
+      dest.pathname = "/menu/expired";
+      dest.search = `?table=${table}`;
+      return NextResponse.redirect(dest);
+    }
+    if (result === "invalid") {
+      return new NextResponse("Invalid QR code", {
+        status: 403,
+        headers: { "content-type": "text/plain" },
+      });
+    }
+  }
+
   // ---- auth check on protected routes ----------------------------------
   if (!needsStaffAuth(pathname, method, hasClientId)) {
     return NextResponse.next();
@@ -126,6 +151,7 @@ export const config = {
   matcher: [
     "/",
     "/menu",
+    "/menu/expired",
     "/orders",
     "/order/:path*",
     "/kitchen",

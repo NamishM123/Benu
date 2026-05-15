@@ -1,54 +1,72 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
-import { TABLE_COUNT } from "@/lib/prep-time";
 import SignOutButton from "./SignOutButton";
 
 type Card = { table: number; url: string; dataUrl: string };
 
+function fmt(ms: number): string {
+  const s = Math.max(0, Math.ceil(ms / 1000));
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return `${m}:${sec.toString().padStart(2, "0")}`;
+}
+
 export default function QrAdmin() {
-  const [origin, setOrigin] = useState<string>("");
-  const [overrideOrigin, setOverrideOrigin] = useState<string>("");
   const [cards, setCards] = useState<Card[]>([]);
+  const [expiresAt, setExpiresAt] = useState<number>(0);
+  const [remaining, setRemaining] = useState<number>(0);
+  const [loading, setLoading] = useState(true);
+  const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
-    // Prefer the customer host (where the QR-scanning phones should land)
-    // over the host the admin is browsing from — staff might be using the
-    // staff subdomain and would otherwise generate codes pointing back at
-    // the wrong place.
-    const customer = process.env.NEXT_PUBLIC_CUSTOMER_HOST;
-    if (customer) {
-      setOrigin(`https://${customer}`);
-    } else {
-      setOrigin(window.location.origin);
-    }
-  }, []);
+  async function fetchAndGenerate() {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/qr/tokens");
+      const { entries, expiresAt: exp } = await res.json();
+      setExpiresAt(exp);
 
-  const effectiveOrigin = overrideOrigin.trim() || origin;
-
-  useEffect(() => {
-    if (!effectiveOrigin) return;
-    let cancelled = false;
-    (async () => {
       const next: Card[] = [];
-      for (let n = 1; n <= TABLE_COUNT; n++) {
-        const url = `${effectiveOrigin}/menu?table=${n}`;
+      for (const { table, url } of entries as { table: number; url: string }[]) {
         const dataUrl = await QRCode.toDataURL(url, {
           width: 512,
           margin: 1,
           errorCorrectionLevel: "M",
           color: { dark: "#1a1a1a", light: "#ffffff" },
         });
-        next.push({ table: n, url, dataUrl });
+        next.push({ table, url, dataUrl });
       }
-      if (!cancelled) setCards(next);
-    })();
+      setCards(next);
+
+      // Schedule auto-refresh 30 seconds before expiry
+      const msUntilRefresh = exp - Date.now() - 30_000;
+      if (refreshTimer.current) clearTimeout(refreshTimer.current);
+      refreshTimer.current = setTimeout(fetchAndGenerate, Math.max(msUntilRefresh, 0));
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    fetchAndGenerate();
     return () => {
-      cancelled = true;
+      if (refreshTimer.current) clearTimeout(refreshTimer.current);
     };
-  }, [effectiveOrigin]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Countdown ticker
+  useEffect(() => {
+    if (!expiresAt) return;
+    const id = setInterval(() => {
+      setRemaining(expiresAt - Date.now());
+    }, 1000);
+    return () => clearInterval(id);
+  }, [expiresAt]);
+
+  const urgent = remaining < 60_000 && remaining > 0;
 
   return (
     <div className="min-h-screen bg-cream">
@@ -59,22 +77,30 @@ export default function QrAdmin() {
               Table QR codes
             </h1>
             <p className="mt-1 text-sm text-neutral-600">
-              Customers scan and land on the menu with their table pre-filled.
+              Codes rotate every 15 minutes — old scans won&apos;t work.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <label className="flex items-center gap-2 text-xs text-neutral-700">
-              <span className="uppercase tracking-wider text-neutral-500">
-                Base URL
+            {expiresAt > 0 && (
+              <span
+                className={[
+                  "rounded-full border px-3 py-1.5 text-xs font-medium tabular-nums",
+                  urgent
+                    ? "border-red-200 bg-red-50 text-red-700"
+                    : "border-neutral-200 bg-white text-neutral-600",
+                ].join(" ")}
+              >
+                Refreshes in {fmt(remaining)}
               </span>
-              <input
-                type="text"
-                value={overrideOrigin || origin}
-                onChange={(e) => setOverrideOrigin(e.target.value)}
-                placeholder={origin}
-                className="w-72 rounded-full border border-neutral-300 bg-white px-3 py-1.5 text-xs text-neutral-900 focus:border-neutral-900 focus:outline-none"
-              />
-            </label>
+            )}
+            <button
+              type="button"
+              onClick={fetchAndGenerate}
+              disabled={loading}
+              className="rounded-full border border-neutral-300 bg-white px-3 py-1.5 text-xs text-neutral-700 hover:bg-neutral-100 disabled:opacity-50"
+            >
+              {loading ? "Refreshing…" : "Refresh now"}
+            </button>
             <Link
               href="/kitchen"
               className="rounded-full border border-neutral-300 bg-white px-3 py-1.5 text-xs text-neutral-700 hover:bg-neutral-100 print:hidden"
@@ -123,9 +149,6 @@ export default function QrAdmin() {
                   alt={`QR code for table ${c.table}`}
                   className="mt-2 h-44 w-44"
                 />
-                <p className="mt-2 break-all text-center text-[10px] text-neutral-500">
-                  {c.url}
-                </p>
                 <a
                   href={c.dataUrl}
                   download={`benu-table-${c.table}.png`}
