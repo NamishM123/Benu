@@ -150,7 +150,7 @@ export default function KitchenDisplay() {
 
   return (
     <div className="min-h-screen bg-cream">
-      <header className="sticky top-0 z-10 border-b border-neutral-200 bg-cream/95 backdrop-blur">
+      <header className="sticky top-0 z-10 bg-cream/95 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-6 py-4">
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="block overflow-hidden h-[60px] sm:h-[72px] flex-none">
@@ -171,25 +171,26 @@ export default function KitchenDisplay() {
             <button
               type="button"
               onClick={() => setShow86Panel((v) => !v)}
+              aria-pressed={show86Panel}
               className={[
-                "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
+                "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30",
                 show86Panel
-                  ? "border-[#C4A882] bg-[#C4A882] text-white"
+                  ? "border-cantaloupe bg-cantaloupe text-neutral-900 hover:bg-cantaloupe-soft"
                   : "border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-100",
               ].join(" ")}
             >
-              Toggle
+              Sold out
             </button>
             <Link
               href="/admin/qr"
-              className="rounded-full border border-neutral-300 bg-white px-3 py-1.5 text-xs text-neutral-700 hover:bg-neutral-100"
+              className="rounded-full border border-neutral-300 bg-white px-3 py-1.5 text-xs text-neutral-700 hover:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
             >
               QR codes
             </Link>
             <button
               type="button"
               onClick={() => setShowBusyHeatmap(true)}
-              className="rounded-full border border-neutral-300 bg-white px-3 py-1.5 text-xs text-neutral-700 hover:bg-neutral-100"
+              className="rounded-full border border-neutral-300 bg-white px-3 py-1.5 text-xs text-neutral-700 hover:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
             >
               {t("busyTimes")}
             </button>
@@ -210,7 +211,7 @@ export default function KitchenDisplay() {
               placeholder="Search items…"
               value={itemSearch}
               onChange={(e) => setItemSearch(e.target.value)}
-              className="mb-3 w-full rounded-full border border-neutral-300 bg-white px-4 py-2 text-sm text-neutral-900 placeholder-neutral-400 focus:border-neutral-900 focus:outline-none"
+              className="mb-3 w-full rounded-full border border-neutral-300 bg-white px-4 py-2 text-sm text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:border-neutral-500 focus-visible:ring-2 focus-visible:ring-neutral-700/30"
             />
             {(["Appetizers", "Dry Noodles", "Noodle Soup", "Rice", "Beverages"] as const).map((cat) => {
                 const filtered = menuItems.filter(
@@ -269,10 +270,11 @@ export default function KitchenDisplay() {
           <button
             type="button"
             onClick={() => setTab("active")}
+            aria-pressed={tab === "active"}
             className={[
-              "rounded-full px-5 py-1.5 text-sm font-medium transition-colors",
+              "rounded-full px-5 py-1.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30",
               tab === "active"
-                ? "bg-neutral-900 text-cream"
+                ? "bg-cantaloupe text-neutral-900 hover:bg-cantaloupe-soft"
                 : "text-neutral-600 hover:text-neutral-900",
             ].join(" ")}
           >
@@ -281,10 +283,11 @@ export default function KitchenDisplay() {
           <button
             type="button"
             onClick={() => setTab("completed")}
+            aria-pressed={tab === "completed"}
             className={[
-              "rounded-full px-5 py-1.5 text-sm font-medium transition-colors",
+              "rounded-full px-5 py-1.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30",
               tab === "completed"
-                ? "bg-neutral-900 text-cream"
+                ? "bg-cantaloupe text-neutral-900 hover:bg-cantaloupe-soft"
                 : "text-neutral-600 hover:text-neutral-900",
             ].join(" ")}
           >
@@ -310,7 +313,7 @@ export default function KitchenDisplay() {
               value={orderSearch}
               onChange={(e) => setOrderSearch(e.target.value)}
               placeholder={t("searchOrders")}
-              className="w-full rounded-full border border-neutral-300 bg-white pl-9 pr-9 py-2 text-sm text-neutral-900 placeholder-neutral-400 focus:border-neutral-900 focus:outline-none"
+              className="w-full rounded-full border border-neutral-300 bg-white pl-9 pr-9 py-2 text-sm text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:border-neutral-500 focus-visible:ring-2 focus-visible:ring-neutral-700/30"
             />
             {orderSearch && (
               <button
@@ -568,7 +571,7 @@ export default function KitchenDisplay() {
                               (e.target as HTMLInputElement).blur();
                             }
                           }}
-                          className="rounded-full border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-900 focus:border-neutral-900 focus:outline-none"
+                          className="rounded-full border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:border-neutral-500 focus-visible:ring-2 focus-visible:ring-neutral-700/30"
                         />
                       </label>
                     </div>
@@ -581,7 +584,7 @@ export default function KitchenDisplay() {
                         onClick={() =>
                           updateOrder(order.id, { status: "cooking" })
                         }
-                        className="flex-1 rounded-full bg-neutral-900 px-4 py-2 text-xs font-medium text-cream hover:bg-neutral-800"
+                        className="flex-1 rounded-full bg-neutral-900 px-5 py-2.5 text-sm font-medium text-cream hover:bg-neutral-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
                       >
                         {t("startCooking")}
                       </button>
@@ -592,7 +595,7 @@ export default function KitchenDisplay() {
                         onClick={() =>
                           updateOrder(order.id, { status: "ready" })
                         }
-                        className="flex-1 rounded-full bg-neutral-900 px-4 py-2 text-xs font-medium text-cream hover:bg-neutral-800"
+                        className="flex-1 rounded-full bg-neutral-900 px-5 py-2.5 text-sm font-medium text-cream hover:bg-neutral-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
                       >
                         {t("markReady")}
                       </button>
@@ -600,7 +603,7 @@ export default function KitchenDisplay() {
                     <button
                       type="button"
                       onClick={() => setConfirmClearId(order.id)}
-                      className="rounded-full border border-neutral-300 px-4 py-2 text-xs text-neutral-700 hover:bg-neutral-100"
+                      className="rounded-full border border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-700 hover:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
                     >
                       {t("clearOrder")}
                     </button>
@@ -669,31 +672,29 @@ function ClearOrderConfirm({
 
   return (
     <div
-      className="fixed inset-0 z-[60] flex items-end justify-center bg-black/40 backdrop-blur-sm sm:items-center"
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm"
       onClick={onCancel}
     >
       <div
-        role="dialog"
+        role="alertdialog"
         aria-modal="true"
         aria-label={t("clearOrderTitle")}
         onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-sm bg-white shadow-xl sm:rounded-2xl"
+        className="mx-6 w-full max-w-[340px] rounded-2xl bg-cream p-5 shadow-xl"
       >
-        <div className="px-6 pt-6 pb-3">
-          <h3 className="font-serif text-xl text-neutral-900">
-            {t("clearOrderTitle")}
-          </h3>
-          <p className="mt-2 text-sm text-neutral-600">
-            {t("clearOrderBody")
-              .replace("{ticket}", ticketLabel)
-              .replace("{table}", String(tableNumber))}
-          </p>
-        </div>
-        <div className="flex items-center justify-end gap-2 border-t border-neutral-200 px-6 py-3">
+        <h3 className="font-serif text-xl text-neutral-900">
+          {t("clearOrderTitle")}
+        </h3>
+        <p className="mt-2 text-sm text-neutral-600">
+          {t("clearOrderBody")
+            .replace("{ticket}", ticketLabel)
+            .replace("{table}", String(tableNumber))}
+        </p>
+        <div className="mt-5 flex gap-3">
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-full border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 hover:bg-neutral-100"
+            className="flex-1 rounded-full border border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-700 hover:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
           >
             {t("cancel")}
           </button>
@@ -701,7 +702,7 @@ function ClearOrderConfirm({
             type="button"
             onClick={onConfirm}
             autoFocus
-            className="rounded-full bg-neutral-900 px-4 py-2 text-sm font-medium text-cream hover:bg-neutral-800"
+            className="flex-1 rounded-full bg-neutral-900 px-4 py-2.5 text-sm font-medium text-cream hover:bg-neutral-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
           >
             {t("clearOrder")}
           </button>
