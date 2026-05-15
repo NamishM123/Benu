@@ -135,7 +135,7 @@ export const MENU: MenuItem[] = [
       "拍黄瓜拌入蒜泥、酱油、香醋、麻油与少许糖。",
     spiceLevel: 0,
     tags: ["vegetarian", "vegan", "dairy-free", "soy", "gluten-free"],
-    image: "/menu/garlic-cucumber.jpg",
+    image: "/menu/garlic-cucumber.png",
     translations: {
       es: {
         name: "Pepino al Ajo",
@@ -193,7 +193,7 @@ export const MENU: MenuItem[] = [
     descriptionZh: "土豆丝冷拌红油、蒜末、香醋与葱花。",
     spiceLevel: 1,
     tags: ["vegetarian", "vegan", "dairy-free", "soy", "gluten-free", "spicy"],
-    image: "/menu/chili-oil-potato-salad.jpg",
+    image: "/menu/chili-oil-potato-salad.png",
     translations: {
       es: {
         name: "Ensalada de Papa al Aceite de Chile",
