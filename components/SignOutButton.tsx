@@ -22,7 +22,7 @@ export default function SignOutButton() {
       type="button"
       onClick={signOut}
       disabled={submitting}
-      className="rounded-full border border-neutral-300 bg-white px-3 py-1.5 text-xs text-neutral-700 hover:bg-neutral-100 disabled:opacity-60 print:hidden"
+      className="inline-flex h-10 items-center rounded-full border border-neutral-300 bg-white px-4 text-base font-medium text-neutral-900 shadow-sm hover:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30 disabled:opacity-60 print:hidden"
     >
       Sign out
     </button>

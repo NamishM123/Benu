@@ -173,24 +173,24 @@ export default function KitchenDisplay() {
               onClick={() => setShow86Panel((v) => !v)}
               aria-pressed={show86Panel}
               className={[
-                "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30",
+                "inline-flex h-10 items-center rounded-full border px-4 text-base font-medium shadow-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30",
                 show86Panel
                   ? "border-cantaloupe bg-cantaloupe text-neutral-900 hover:bg-cantaloupe-soft"
-                  : "border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-100",
+                  : "border-neutral-300 bg-white text-neutral-900 hover:bg-neutral-100",
               ].join(" ")}
             >
               Sold out
             </button>
             <Link
               href="/admin/qr"
-              className="rounded-full border border-neutral-300 bg-white px-3 py-1.5 text-xs text-neutral-700 hover:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
+              className="inline-flex h-10 items-center rounded-full border border-neutral-300 bg-white px-4 text-base font-medium text-neutral-900 shadow-sm hover:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
             >
               QR codes
             </Link>
             <button
               type="button"
               onClick={() => setShowBusyHeatmap(true)}
-              className="rounded-full border border-neutral-300 bg-white px-3 py-1.5 text-xs text-neutral-700 hover:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
+              className="inline-flex h-10 items-center rounded-full border border-neutral-300 bg-white px-4 text-base font-medium text-neutral-900 shadow-sm hover:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
             >
               {t("busyTimes")}
             </button>
