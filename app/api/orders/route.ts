@@ -78,8 +78,15 @@ export async function POST(req: Request) {
       order.preferences.length > 0
         ? `\n<b>Dietary notes:</b> <i>${order.preferences.join(", ")}</i>`
         : "";
+    const specialRequests = order.lines
+      .filter((l) => l.specialRequest?.trim())
+      .map((l) => `  ${l.itemName}: <i>${l.specialRequest}</i>`)
+      .join("\n");
+    const specialText = specialRequests
+      ? `\n<b>Special requests:</b>\n${specialRequests}`
+      : "";
     void sendTelegram(
-      `<b>Order Received — #${shortId}</b>\n<b>Table ${order.tableNumber}</b>\n\n${itemLines}${prefText}${etaText}\n\n<i>Your waiter will approach you shortly to confirm. Sit tight!</i>`,
+      `<b>Order Received — #${shortId}</b>\n<b>Table ${order.tableNumber}</b>\n\n${itemLines}${prefText}${specialText}${etaText}\n\n<i>Your waiter will be over shortly to attend to you.</i>`,
     );
 
     return NextResponse.json({ order }, { status: 201 });
