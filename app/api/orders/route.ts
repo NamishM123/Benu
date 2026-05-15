@@ -5,6 +5,7 @@ import {
   listOrdersForClient,
 } from "@/lib/server-orders";
 import { TABLE_COUNT } from "@/lib/prep-time";
+import { sendTelegram } from "@/lib/telegram";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -60,6 +61,22 @@ export async function POST(req: Request) {
       tableNumber,
       clientId,
     });
+
+    // Telegram: order placed notification
+    const shortId = order.id.slice(0, 6).toUpperCase();
+    const itemLines = order.lines
+      .map((l) => `  • ${l.itemName} ×${l.quantity}`)
+      .join("\n");
+    const etaText =
+      order.etaMinutes !== undefined ? `\n⏱ ETA: ${order.etaMinutes} min` : "";
+    const prefText =
+      order.preferences.length > 0
+        ? `\n🥗 Preferences: ${order.preferences.join(", ")}`
+        : "";
+    void sendTelegram(
+      `🍜 <b>New Order #${shortId}</b>\n🪑 Table ${order.tableNumber}\n\n${itemLines}${prefText}${etaText}`,
+    );
+
     return NextResponse.json({ order }, { status: 201 });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);

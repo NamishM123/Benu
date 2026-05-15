@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { deleteOrder, getOrder, patchOrder } from "@/lib/server-orders";
 import type { OrderStatus } from "@/lib/order-store";
+import { sendTelegram } from "@/lib/telegram";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -61,6 +62,20 @@ export async function PATCH(req: Request, { params }: Ctx) {
   const updated = await patchOrder(id, patch);
   if (!updated) {
     return NextResponse.json({ error: "not found" }, { status: 404 });
+  }
+
+  // Telegram: notify on status transitions
+  if (patch.status) {
+    const shortId = updated.id.slice(0, 6).toUpperCase();
+    if (patch.status === "ready") {
+      void sendTelegram(
+        `✅ <b>Order #${shortId} is READY</b>\n🪑 Table ${updated.tableNumber}`,
+      );
+    } else if (patch.status === "cooking") {
+      void sendTelegram(
+        `👨‍🍳 <b>Order #${shortId} is now being cooked</b>\n🪑 Table ${updated.tableNumber}`,
+      );
+    }
   }
 
   return NextResponse.json({ order: updated });
