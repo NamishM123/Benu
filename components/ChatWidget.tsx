@@ -126,6 +126,17 @@ export default function ChatWidget({
   const [vvOffsetTop, setVvOffsetTop] = useState(0);
   const [isMobile, setIsMobile] = useState(false);
 
+  // Preload the chat-panel background pattern as soon as the widget
+  // mounts. The launcher is always rendered on /menu, so by the time
+  // the user actually taps it the PNG is already in the browser cache
+  // and the pattern paints in the same frame the panel opens — no more
+  // white flash before the pattern shows up.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const img = new window.Image();
+    img.src = "/chat-bg.png";
+  }, []);
+
   // Hide the floating launcher while the user is actively scrolling down so
   // it doesn't sit over the menu items they're trying to read. It reappears
   // once they pause scrolling (or scroll back up).
@@ -270,6 +281,17 @@ export default function ChatWidget({
       block: "start",
     });
   }, [messages.length, open]);
+
+  // Scroll the typing indicator into view when it first appears so the
+  // user sees the bouncing dots right after their question, not below
+  // the fold.
+  useEffect(() => {
+    if (!open || !isSending) return;
+    messagesEndRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "end",
+    });
+  }, [isSending, open]);
 
   // Keyboard-aware positioning: track visualViewport so the panel sits just
   // above the keyboard with no awkward whole-page shift.
@@ -763,6 +785,32 @@ export default function ChatWidget({
               </div>
               );
             })}
+            {isSending && (
+              // Typing indicator — shown as an extra bot bubble at the
+              // bottom of the thread while we wait for the API. Three
+              // dots driven by the `benu-typing-dot` keyframe in
+              // globals.css; mirrors the iMessage / WhatsApp pattern
+              // so it reads as "Benu is composing a reply" without
+              // an explicit label.
+              <div
+                className="mt-3 flex max-w-[92%] items-end gap-1.5 self-start"
+                role="status"
+                aria-live="polite"
+                aria-label={t("chatThinking")}
+              >
+                <div
+                  aria-hidden="true"
+                  className="flex h-7 w-7 flex-none items-center justify-center rounded-full bg-cantaloupe text-[13px] text-neutral-900"
+                >
+                  🍜
+                </div>
+                <div className="flex items-center gap-1.5 rounded-3xl bg-white px-4 py-3 shadow-sm">
+                  <span className="benu-typing-dot h-2 w-2 rounded-full bg-neutral-500" />
+                  <span className="benu-typing-dot h-2 w-2 rounded-full bg-neutral-500" />
+                  <span className="benu-typing-dot h-2 w-2 rounded-full bg-neutral-500" />
+                </div>
+              </div>
+            )}
             <div ref={messagesEndRef} />
           </div>
 

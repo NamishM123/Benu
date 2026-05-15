@@ -121,6 +121,21 @@ body {
   .benu-chili { animation: none; }
 }
 
+/* Chat typing indicator — three dots that bounce in sequence inside
+   the bot bubble while Benu is waiting on the API. */
+@keyframes benu-typing-dot {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.35; }
+  30%          { transform: translateY(-4px); opacity: 1; }
+}
+.benu-typing-dot {
+  animation: benu-typing-dot 1.2s ease-in-out infinite;
+}
+.benu-typing-dot:nth-child(2) { animation-delay: 0.15s; }
+.benu-typing-dot:nth-child(3) { animation-delay: 0.30s; }
+@media (prefers-reduced-motion: reduce) {
+  .benu-typing-dot { animation: none; opacity: 0.5; }
+}
+
 /* Prevent the browser's native ghost-image drag and selection flash on every image */
 img {
   -webkit-user-drag: none;
