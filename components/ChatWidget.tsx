@@ -804,10 +804,10 @@ export default function ChatWidget({
                 >
                   🍜
                 </div>
-                <div className="flex items-center gap-1.5 rounded-3xl bg-white px-4 py-3 shadow-sm">
-                  <span className="benu-typing-dot h-2 w-2 rounded-full bg-neutral-500" />
-                  <span className="benu-typing-dot h-2 w-2 rounded-full bg-neutral-500" />
-                  <span className="benu-typing-dot h-2 w-2 rounded-full bg-neutral-500" />
+                <div className="flex items-center gap-1 rounded-full bg-white px-3 py-2 shadow-sm">
+                  <span className="benu-typing-dot h-1.5 w-1.5 rounded-full bg-neutral-500" />
+                  <span className="benu-typing-dot h-1.5 w-1.5 rounded-full bg-neutral-500" />
+                  <span className="benu-typing-dot h-1.5 w-1.5 rounded-full bg-neutral-500" />
                 </div>
               </div>
             )}
