@@ -60,44 +60,46 @@ body {
 .benu-input-glow {
   position: relative;
   border-radius: 9999px;
+  /* A soft, steady orange tint on the pill — no rotating gradient,
+     no aggressive highlight. The pseudo-element below adds a gentle
+     shimmer that sweeps across once every few seconds, which reads as
+     a calm "I'm here, ready" cue rather than a busy animation. */
   padding: 2px;
   isolation: isolate;
   overflow: hidden;
+  background: linear-gradient(
+    135deg,
+    rgba(253, 161, 114, 0.45),
+    rgba(232, 138, 92, 0.55) 50%,
+    rgba(253, 161, 114, 0.45)
+  );
 }
-/* A square conic-gradient pseudo-element sits behind the input, large
-   enough to cover the pill at every rotation angle, and rotates via
-   `transform` — which is GPU-composited and silky smooth on every
-   browser (the previous @property/--angle approach interpolates on the
-   main thread in Safari and stutters on iOS). The wrapper's `padding:
-   2px` + `overflow: hidden` clips it to a thin pill-shaped ring around
-   the input. */
 .benu-input-glow::before {
   content: "";
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 200%;
-  aspect-ratio: 1;
-  background: conic-gradient(
-    from 0deg,
-    rgba(253, 161, 114, 0.4) 0deg,
-    rgba(253, 161, 114, 0.6) 90deg,
-    rgba(232, 138, 92, 0.95) 180deg,
-    rgba(253, 161, 114, 0.6) 270deg,
-    rgba(253, 161, 114, 0.4) 360deg
+  top: 0;
+  left: -40%;
+  width: 40%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.55) 50%,
+    transparent 100%
   );
-  transform: translate(-50%, -50%);
-  animation: benu-rotate-glow 3.6s linear infinite;
+  animation: benu-input-shimmer 3.2s ease-in-out infinite;
   pointer-events: none;
   z-index: -1;
   will-change: transform;
-  backface-visibility: hidden;
+  mix-blend-mode: screen;
 }
-@keyframes benu-rotate-glow {
-  to { transform: translate(-50%, -50%) rotate(360deg); }
+@keyframes benu-input-shimmer {
+  0%   { transform: translateX(0); }
+  60%  { transform: translateX(350%); }
+  100% { transform: translateX(350%); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .benu-input-glow::before { animation: none; }
+  .benu-input-glow::before { animation: none; opacity: 0; }
 }
 
 /* Soft orange tint on inline accent text (e.g. "Any Language" in the chat
