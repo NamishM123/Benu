@@ -131,6 +131,17 @@ export default function CartDrawer({
     [cart, preferences, menu, customAllergens],
   );
 
+  // Index the live menu by dish name so we can resolve a cart line's
+  // image / translations from current data. The cart-line itself stores
+  // a snapshot of `image` at the moment of addToCart, which goes stale
+  // when a dish photo is renamed (cart lives in localStorage forever).
+  // Prefer the live menu and only fall back to the snapshot if the dish
+  // has been removed from the menu entirely.
+  const menuByName = useMemo(
+    () => new Map(menu.map((m) => [m.name, m])),
+    [menu],
+  );
+
   if (!open) return null;
 
   const total = cartTotal(cart);
@@ -221,15 +232,30 @@ export default function CartDrawer({
         ) : (
           <>
             <ul className="divide-y divide-neutral-200 px-6">
-              {cart.map((line) => (
+              {cart.map((line) => {
+                // Prefer the live menu image so renamed photos surface
+                // immediately even on saved carts; fall back to the
+                // snapshot if the dish is no longer in the menu.
+                const liveImage =
+                  menuByName.get(line.itemName)?.image ?? line.image;
+                return (
                 <li key={line.id} className="flex gap-3 py-4">
-                  {line.image && (
+                  {liveImage && (
                     /* eslint-disable-next-line @next/next/no-img-element */
                     <img
-                      src={line.image}
+                      src={liveImage}
                       alt=""
                       loading="lazy"
                       decoding="async"
+                      onError={(e) => {
+                        // If the snapshot path 404s (image was renamed
+                        // since the cart line was saved), hide the broken
+                        // image icon rather than showing a torn-page glyph.
+                        const img = e.currentTarget;
+                        if (img.dataset.fallback) return;
+                        img.dataset.fallback = "1";
+                        img.style.visibility = "hidden";
+                      }}
                       // Square thumbnail in both views — same aspect ratio
                       // as the menu cards, just sized down. Mobile keeps
                       // the original 96px; desktop is a slightly larger
@@ -317,7 +343,8 @@ export default function CartDrawer({
                   </div>
                   </div>
                 </li>
-              ))}
+                );
+              })}
             </ul>
 
             {pairings.length > 0 && (
