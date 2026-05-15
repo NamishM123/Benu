@@ -176,13 +176,15 @@ export default function CartDrawer({
         }}
         className="relative flex w-full max-w-[480px] flex-col h-auto max-h-[100dvh] min-h-0 overflow-y-auto overscroll-none bg-cream sm:h-auto sm:max-h-[88vh] sm:rounded-3xl"
       >
-        {/* Drag handle — touch this region to swipe down */}
+        {/* Drag handle — touch this region to swipe down. Mobile-only:
+            on desktop there's no swipe-to-dismiss gesture, so hiding it
+            lets the "YOUR CART" header sit closer to the top edge. */}
         <div
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
           onTouchCancel={handleTouchEnd}
-          className="sticky top-0 z-10 flex cursor-grab touch-none flex-col items-center justify-center bg-cream/95 pt-3 pb-1 backdrop-blur active:cursor-grabbing"
+          className="sticky top-0 z-10 flex cursor-grab touch-none flex-col items-center justify-center bg-cream/95 pt-3 pb-1 backdrop-blur active:cursor-grabbing sm:hidden"
           aria-hidden="true"
         >
           <span className="h-1.5 w-12 rounded-full bg-neutral-300" />
@@ -193,7 +195,7 @@ export default function CartDrawer({
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
           onTouchCancel={handleTouchEnd}
-          className="sticky top-6 z-10 flex items-center justify-between border-b border-neutral-200 bg-cream/95 px-6 py-4 backdrop-blur"
+          className="sticky top-6 z-10 flex items-center justify-between border-b border-neutral-200 bg-cream/95 px-6 py-4 backdrop-blur sm:top-0 sm:py-3"
         >
           <h2
             className={[
