@@ -165,9 +165,6 @@ export default function KitchenDisplay() {
                 className="block h-[105px] w-auto max-w-none sm:h-[134px] -mt-0.5 sm:-mt-1.5 flex-none"
               />
             </div>
-            <h1 className="font-serif text-2xl text-neutral-900 sm:text-3xl">
-              Kitchen
-            </h1>
           </div>
           <div className="flex items-center gap-3">
             <button
