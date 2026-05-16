@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
 import {
   getOrders,
   ORDERS_EVENT,
@@ -8,107 +9,119 @@ import {
   subscribeToOrders,
   updateOrder,
   type Order,
-  type OrderStatus,
 } from "@/lib/order-store";
-import Link from "next/link";
-import {
-  languageMeta,
-  useTranslation,
-  t as translate,
-  translateChoiceLabel,
-  translateGroupLabel,
-  type Lang,
-} from "@/lib/i18n";
-import { cartLineName } from "@/lib/cart-store";
+import { type MenuItem } from "@/lib/menu";
 import LanguageSwitcher from "./LanguageSwitcher";
 import SignOutButton from "./SignOutButton";
 import BusyHeatmap from "./BusyHeatmap";
-import { type MenuItem } from "@/lib/menu";
+import { TicketCard } from "./kds/TicketCard";
+import { ExpandedTicket } from "./kds/ExpandedTicket";
+import { SoldOutModal } from "./kds/SoldOutModal";
+import { EmptyState } from "./kds/EmptyState";
+import {
+  STATION_COLOR,
+  STATION_LABEL,
+  STATION_ORDER,
+  type RecallEntry,
+  type Station,
+  type StationFilter,
+} from "./kds/types";
+import { buildKdsOrder, buildMenuLookup, sortByUrgency } from "./kds/derive";
 
-function minutesSince(ts: number, now: number = Date.now()): number {
-  return Math.max(0, Math.floor((now - ts) / 60000));
-}
+const DONE_LINES_KEY = "benu.kds.doneLines";
+const RECALL_KEY = "benu.kds.recall";
+const RECALL_WINDOW_MS = 10 * 60 * 1000; // 10 minutes
+const UNDO_WINDOW_MS = 30 * 1000; // 30 seconds for bump undo
 
-function formatPlacedAt(ts: number, lang: Lang): string {
-  const locale = languageMeta(lang).locale;
-  return new Date(ts).toLocaleString(locale, {
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
+type View = "active" | "recall";
 
-function statusLabel(status: OrderStatus, lang: Lang): string {
-  if (status === "pending") return "Awaiting confirmation";
-  if (status === "new") return translate("statusNew", lang);
-  if (status === "cooking") return translate("statusCooking", lang);
-  return translate("statusReady", lang);
-}
+type Toast = {
+  id: string;
+  kind: "info" | "success" | "warn";
+  message: string;
+  // Bump toasts carry an undo callback (cleared after 30s).
+  undo?: () => void;
+  expires: number;
+};
 
-function statusClasses(status: OrderStatus): string {
-  if (status === "pending") return "bg-neutral-200 text-neutral-700";
-  if (status === "new") return "bg-cantaloupe text-neutral-900";
-  if (status === "cooking") return "bg-butter text-neutral-900";
-  return "bg-sage-dark text-neutral-900";
-}
-
-// Substring match across the human-visible fields: ticket number (with and
-// without leading zeros), table number, item name (en + zh), and the UUID
-// short prefix as a fallback.
-function matchesSearch(order: Order, raw: string): boolean {
-  const q = raw.trim().toLowerCase();
-  if (q === "") return true;
-  if (order.ticketNumber !== undefined) {
-    const tn = String(order.ticketNumber);
-    if (tn.includes(q)) return true;
-    if (String(order.ticketNumber).padStart(3, "0").includes(q)) return true;
+// Synthetic webaudio chime — avoids shipping an audio file. Two-note
+// ping that's distinct from typical phone notifications so cooks don't
+// confuse it with their own pockets.
+function playChime() {
+  if (typeof window === "undefined") return;
+  try {
+    const Ctx = (window as unknown as { AudioContext?: typeof AudioContext; webkitAudioContext?: typeof AudioContext }).AudioContext
+      ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!Ctx) return;
+    const ctx = new Ctx();
+    const now = ctx.currentTime;
+    const notes = [880, 1320];
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = freq;
+      const start = now + i * 0.12;
+      gain.gain.setValueAtTime(0, start);
+      gain.gain.linearRampToValueAtTime(0.18, start + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.32);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(start);
+      osc.stop(start + 0.34);
+    });
+    setTimeout(() => ctx.close().catch(() => {}), 800);
+  } catch {
+    // ignore — chime is non-critical
   }
-  if (order.id.slice(0, 8).toLowerCase().includes(q)) return true;
-  if (String(order.tableNumber) === q) return true;
-  for (const line of order.lines) {
-    if (line.itemName.toLowerCase().includes(q)) return true;
-    if (line.itemNameZh?.toLowerCase().includes(q)) return true;
-  }
-  return false;
 }
 
-// Active tab: starred orders first, then strict FIFO (oldest order = next to cook).
-// Completed tab: newest first so just-finished tickets are at the top.
-function sortKitchenOrders(
-  orders: Order[],
-  tab: "active" | "completed",
-): Order[] {
-  if (tab === "completed") {
-    return [...orders].sort((a, b) => b.placedAt - a.placedAt);
+function loadJSON<T>(key: string, fallback: T): T {
+  if (typeof window === "undefined") return fallback;
+  try {
+    const raw = window.localStorage.getItem(key);
+    if (!raw) return fallback;
+    return JSON.parse(raw) as T;
+  } catch {
+    return fallback;
   }
-  return [...orders].sort((a, b) => {
-    const pa = a.priority === true;
-    const pb = b.priority === true;
-    if (pa !== pb) return pa ? -1 : 1;
-    return a.placedAt - b.placedAt;
-  });
+}
+
+function saveJSON(key: string, value: unknown) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(key, JSON.stringify(value));
+  } catch {
+    // ignore quota errors
+  }
 }
 
 export default function KitchenDisplay() {
-  const { t, lang } = useTranslation();
+  // ── Persistent UI prefs ────────────────────────────────────────────
+  const [darkMode, setDarkMode] = useState(true);
+  const [density, setDensity] = useState<"comfortable" | "compact">("comfortable");
+  const [stationFilter, setStationFilter] = useState<StationFilter>("all");
+  const [view, setView] = useState<View>("active");
+  const [audioOn, setAudioOn] = useState(true);
+
+  // Hydrate prefs from localStorage on mount so a refresh keeps the cook's
+  // settings. Done in effect (not initial state) to avoid SSR mismatches.
+  useEffect(() => {
+    const raw = loadJSON<Partial<{ dark: boolean; density: "comfortable" | "compact"; audio: boolean }>>(
+      "benu.kds.prefs",
+      {},
+    );
+    if (typeof raw.dark === "boolean") setDarkMode(raw.dark);
+    if (raw.density === "compact" || raw.density === "comfortable") setDensity(raw.density);
+    if (typeof raw.audio === "boolean") setAudioOn(raw.audio);
+  }, []);
+  useEffect(() => {
+    saveJSON("benu.kds.prefs", { dark: darkMode, density, audio: audioOn });
+  }, [darkMode, density, audioOn]);
+
+  // ── Server-driven data ─────────────────────────────────────────────
   const [orders, setOrders] = useState<Order[]>([]);
   const [ordersLoaded, setOrdersLoaded] = useState(false);
-  const [etaDrafts, setEtaDrafts] = useState<Record<string, string>>({});
   const [menuItems, setMenuItems] = useState<(MenuItem & { id: string })[]>([]);
-  const [show86Panel, setShow86Panel] = useState(false);
-  const [itemSearch, setItemSearch] = useState("");
-  const [tab, setTab] = useState<"active" | "completed">("active");
-  const [orderSearch, setOrderSearch] = useState("");
-  const [showBusyHeatmap, setShowBusyHeatmap] = useState(false);
-  const [confirmClearId, setConfirmClearId] = useState<string | null>(null);
-  // Tick once a minute so the per-card "Nm" pill stays current even when the
-  // orders list isn't changing.
-  const [, setMinuteTick] = useState(0);
-  useEffect(() => {
-    const id = setInterval(() => setMinuteTick((n) => n + 1), 30_000);
-    return () => clearInterval(id);
-  }, []);
 
   useEffect(() => {
     fetch("/api/menu/items")
@@ -117,681 +130,578 @@ export default function KitchenDisplay() {
       .catch(() => {});
   }, []);
 
+  // Track previously-seen ticket IDs so new arrivals can chime + toast.
+  const seenIdsRef = useRef<Set<string>>(new Set());
+  const firstLoadRef = useRef(true);
+  // Mirror audioOn into a ref so the orders subscription doesn't have to
+  // re-subscribe (and re-fire seen-detection) every time the cook mutes.
+  const audioOnRef = useRef(audioOn);
+  useEffect(() => {
+    audioOnRef.current = audioOn;
+  }, [audioOn]);
+
   useEffect(() => {
     const initial = getOrders();
     setOrders(initial);
-    // If the cache already has data (warm mount), skip the loading flash.
     if (initial.length > 0) setOrdersLoaded(true);
     function onChange(e: Event) {
       const detail = (e as CustomEvent<Order[]>).detail;
-      if (Array.isArray(detail)) {
-        setOrders(detail);
-        setOrdersLoaded(true);
+      if (!Array.isArray(detail)) return;
+      // Detect newly-arrived active tickets (placed ≤90s ago and unseen).
+      // The "≤90s" gate stops the first poll-after-bump from triggering
+      // a chime for every existing ticket already on screen.
+      const seen = seenIdsRef.current;
+      if (!firstLoadRef.current) {
+        const fresh = detail.filter(
+          (o) => !seen.has(o.id) && o.status !== "ready" && o.status !== "pending" && Date.now() - o.placedAt < 90_000,
+        );
+        if (fresh.length > 0) {
+          if (audioOnRef.current) playChime();
+          for (const o of fresh) {
+            const label = o.ticketNumber !== undefined ? String(o.ticketNumber).padStart(3, "0") : o.id.slice(0, 6).toUpperCase();
+            pushToast({ kind: "info", message: `New ticket #${label}` });
+          }
+        }
       }
+      for (const o of detail) seen.add(o.id);
+      firstLoadRef.current = false;
+      setOrders(detail);
+      setOrdersLoaded(true);
     }
     window.addEventListener(ORDERS_EVENT, onChange);
-    const unsubscribe = subscribeToOrders({ scope: "all" });
+    const unsub = subscribeToOrders({ scope: "all" });
     return () => {
       window.removeEventListener(ORDERS_EVENT, onChange);
-      unsubscribe();
+      unsub();
     };
   }, []);
 
-  function commitEta(id: string) {
-    const raw = etaDrafts[id];
-    if (raw === undefined) return;
-    const trimmed = raw.trim();
-    if (trimmed === "") {
-      updateOrder(id, { etaMinutes: undefined });
-      return;
-    }
-    const n = Number(trimmed);
-    if (!Number.isFinite(n) || n < 0) return;
-    updateOrder(id, { etaMinutes: Math.round(n) });
+  // ── Derived KDS state ──────────────────────────────────────────────
+  const [doneLines, setDoneLines] = useState<Set<string>>(() => new Set());
+  const [recall, setRecall] = useState<RecallEntry[]>([]);
+  useEffect(() => {
+    setDoneLines(new Set(loadJSON<string[]>(DONE_LINES_KEY, [])));
+    setRecall(loadJSON<RecallEntry[]>(RECALL_KEY, []));
+  }, []);
+  useEffect(() => {
+    saveJSON(DONE_LINES_KEY, Array.from(doneLines));
+  }, [doneLines]);
+  useEffect(() => {
+    saveJSON(RECALL_KEY, recall);
+  }, [recall]);
+
+  // Tick the "elapsed" timer every 15s. We don't need second-precision —
+  // the urgency thresholds are 5min and 10min, and a 15s drift is invisible
+  // at typical glance distance.
+  const [now, setNow] = useState<number>(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 15_000);
+    return () => clearInterval(id);
+  }, []);
+
+  // Garbage-collect recall entries older than the 10-minute window so the
+  // recall view doesn't grow forever.
+  useEffect(() => {
+    const id = setInterval(() => {
+      const cutoff = Date.now() - RECALL_WINDOW_MS;
+      setRecall((r) => (r.some((e) => e.bumpedAt < cutoff) ? r.filter((e) => e.bumpedAt >= cutoff) : r));
+    }, 30_000);
+    return () => clearInterval(id);
+  }, []);
+
+  const menuLookup = useMemo(() => buildMenuLookup(menuItems), [menuItems]);
+
+  const pendingOrders = useMemo(() => orders.filter((o) => o.status === "pending"), [orders]);
+  const activeOrders = useMemo(() => orders.filter((o) => o.status !== "pending" && o.status !== "ready"), [orders]);
+
+  const kdsOrders = useMemo(
+    () => activeOrders.map((o) => buildKdsOrder(o, menuLookup, doneLines, now)).sort(sortByUrgency),
+    [activeOrders, menuLookup, doneLines, now],
+  );
+
+  const visibleOrders = useMemo(() => {
+    if (stationFilter === "all") return kdsOrders;
+    return kdsOrders.filter((o) => o.activeStations.includes(stationFilter));
+  }, [kdsOrders, stationFilter]);
+
+  // Per-station counts power both the filter pill badges and the empty-
+  // state station summary.
+  const stationCounts = useMemo(() => {
+    const c: Record<Station, number> = { wok: 0, cold: 0, drinks: 0, bar: 0 };
+    for (const o of kdsOrders) for (const s of o.activeStations) c[s] += 1;
+    return c;
+  }, [kdsOrders]);
+
+  // ── Toast queue ────────────────────────────────────────────────────
+  const [toasts, setToasts] = useState<Toast[]>([]);
+  const toastIdRef = useRef(0);
+  function pushToast(t: Omit<Toast, "id" | "expires">) {
+    const id = `t-${++toastIdRef.current}`;
+    const expires = Date.now() + (t.undo ? UNDO_WINDOW_MS : 4000);
+    setToasts((prev) => [...prev, { id, expires, ...t }]);
+  }
+  useEffect(() => {
+    if (toasts.length === 0) return;
+    const id = setInterval(() => {
+      const now = Date.now();
+      setToasts((prev) => prev.filter((t) => t.expires > now));
+    }, 500);
+    return () => clearInterval(id);
+  }, [toasts.length]);
+
+  // ── Actions ────────────────────────────────────────────────────────
+  function toggleLine(orderId: string, lineId: string) {
+    const key = `${orderId}:${lineId}`;
+    setDoneLines((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
   }
 
+  // Bump = mark ready on the server + push to recall queue + offer undo.
+  // Optimistic: we don't roll the UI back if the network call fails (the
+  // poll loop will reconcile within 4s). The undo path re-PATCHes the
+  // status back; if the order has been GC'd by the server in the meantime
+  // it'll just no-op.
+  function bump(orderId: string) {
+    const target = orders.find((o) => o.id === orderId);
+    if (!target) return;
+    const label = target.ticketNumber !== undefined ? String(target.ticketNumber).padStart(3, "0") : target.id.slice(0, 6).toUpperCase();
+    const bumpedAt = Date.now();
+    setRecall((r) => [{ order: target, bumpedAt }, ...r].slice(0, 50));
+    void updateOrder(orderId, { status: "ready" });
+    pushToast({
+      kind: "success",
+      message: `Ticket #${label} bumped`,
+      undo: () => {
+        void updateOrder(orderId, { status: "cooking" });
+        setRecall((r) => r.filter((e) => !(e.order.id === orderId && e.bumpedAt === bumpedAt)));
+        pushToast({ kind: "info", message: `Ticket #${label} restored` });
+      },
+    });
+  }
+
+  function recallTicket(orderId: string, bumpedAt: number) {
+    void updateOrder(orderId, { status: "cooking" });
+    setRecall((r) => r.filter((e) => !(e.order.id === orderId && e.bumpedAt === bumpedAt)));
+    setView("active");
+  }
+
+  function togglePriority(orderId: string) {
+    const target = orders.find((o) => o.id === orderId);
+    if (!target) return;
+    void updateOrder(orderId, { priority: !target.priority });
+  }
+
+  // ── Modals ─────────────────────────────────────────────────────────
+  const [show86, setShow86] = useState(false);
+  const [showBusy, setShowBusy] = useState(false);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const expandedOrder = useMemo(
+    () => (expandedId ? kdsOrders.find((o) => o.raw.id === expandedId) ?? null : null),
+    [expandedId, kdsOrders],
+  );
+
+  // Theme tokens — selecting between dark (default, kitchen wall) and
+  // light (good for handheld review on a tablet in daylight).
+  const theme = darkMode
+    ? {
+        appBg: "bg-slate-950",
+        headerBg: "bg-slate-900/95 border-slate-800",
+        text: "text-white",
+        mutedText: "text-slate-400",
+        chipBg: "bg-slate-800",
+        chipBorder: "border-slate-700",
+      }
+    : {
+        appBg: "bg-slate-100",
+        headerBg: "bg-white/95 border-slate-200",
+        text: "text-slate-900",
+        mutedText: "text-slate-600",
+        chipBg: "bg-white",
+        chipBorder: "border-slate-300",
+      };
+
+  const soldOutCount = menuItems.filter((i) => i.available === false).length;
+
   return (
-    <div className="min-h-screen bg-cream">
-      <header className="sticky top-0 z-10 bg-cream/95 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-6 py-4">
-          <div className="flex items-center gap-2 sm:gap-3">
-            <div className="block overflow-hidden h-[60px] sm:h-[72px] flex-none">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/shake-shake-logo.png"
-                alt="Shake Shake Fresh Noodle"
-                width={1536}
-                height={831}
-                className="block h-[105px] w-auto max-w-none sm:h-[134px] -mt-0.5 sm:-mt-1.5 flex-none"
-              />
-            </div>
-            <h1 className="font-serif text-2xl text-neutral-900 sm:text-3xl">
-              Kitchen
-            </h1>
-          </div>
-          <div className="flex items-center gap-3">
+    <div className={`min-h-screen ${theme.appBg} ${theme.text}`}>
+      {/* ── Persistent header ─────────────────────────────────────── */}
+      <header className={`sticky top-0 z-30 border-b ${theme.headerBg} backdrop-blur`}>
+        <div className="mx-auto flex max-w-[1800px] flex-wrap items-center gap-3 px-4 py-3">
+          <h1 className="text-2xl font-bold">Kitchen</h1>
+
+          {/* View tabs */}
+          <div className={`ml-2 flex rounded-xl border ${theme.chipBorder} ${theme.chipBg} p-1`}>
             <button
               type="button"
-              onClick={() => setShow86Panel((v) => !v)}
-              aria-pressed={show86Panel}
+              onClick={() => setView("active")}
+              aria-pressed={view === "active"}
               className={[
-                "inline-flex h-10 items-center rounded-full border px-4 text-base font-medium shadow-sm transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30",
-                show86Panel
-                  ? "border-cantaloupe bg-cantaloupe text-neutral-900 hover:bg-cantaloupe-soft"
-                  : "border-neutral-300 bg-white text-neutral-900 hover:bg-neutral-100",
+                "rounded-lg px-4 py-2 text-sm font-semibold transition-colors",
+                view === "active" ? "bg-emerald-500 text-slate-950" : `${theme.mutedText} hover:${theme.text}`,
+              ].join(" ")}
+            >
+              Active · {kdsOrders.length}
+            </button>
+            <button
+              type="button"
+              onClick={() => setView("recall")}
+              aria-pressed={view === "recall"}
+              className={[
+                "rounded-lg px-4 py-2 text-sm font-semibold transition-colors",
+                view === "recall" ? "bg-emerald-500 text-slate-950" : `${theme.mutedText} hover:${theme.text}`,
+              ].join(" ")}
+            >
+              Recall · {recall.length}
+            </button>
+          </div>
+
+          {/* Station status pills — also clickable as filters */}
+          <div className="hidden items-center gap-1.5 md:flex">
+            {STATION_ORDER.map((s) => {
+              const c = STATION_COLOR[s];
+              const active = stationFilter === s;
+              return (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => setStationFilter(active ? "all" : s)}
+                  aria-pressed={active}
+                  className={[
+                    "inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold ring-1",
+                    c.bg,
+                    c.fg,
+                    active ? c.ring : "ring-transparent",
+                  ].join(" ")}
+                >
+                  <span className={`h-1.5 w-1.5 rounded-full ${c.dot}`} />
+                  {STATION_LABEL[s]} · {stationCounts[s]}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="ml-auto flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => setShow86(true)}
+              className={[
+                "inline-flex h-10 items-center gap-2 rounded-xl border px-3 text-sm font-semibold transition-colors",
+                theme.chipBorder,
+                theme.chipBg,
+                soldOutCount > 0 ? "border-red-500/60 text-red-400" : theme.text,
               ].join(" ")}
             >
               Sold out
+              {soldOutCount > 0 && (
+                <span className="rounded-md bg-red-500 px-1.5 py-0.5 text-xs font-bold text-white">{soldOutCount}</span>
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowBusy(true)}
+              className={`inline-flex h-10 items-center rounded-xl border px-3 text-sm font-semibold ${theme.chipBorder} ${theme.chipBg}`}
+            >
+              Busy times
             </button>
             <Link
               href="/admin/qr"
-              className="inline-flex h-10 items-center rounded-full border border-neutral-300 bg-white px-4 text-base font-medium text-neutral-900 shadow-sm hover:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
+              className={`inline-flex h-10 items-center rounded-xl border px-3 text-sm font-semibold ${theme.chipBorder} ${theme.chipBg}`}
             >
-              QR codes
+              QR
             </Link>
             <button
               type="button"
-              onClick={() => setShowBusyHeatmap(true)}
-              className="inline-flex h-10 items-center rounded-full border border-neutral-300 bg-white px-4 text-base font-medium text-neutral-900 shadow-sm hover:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
+              onClick={() => setAudioOn((v) => !v)}
+              aria-pressed={audioOn}
+              aria-label={audioOn ? "Mute chime" : "Unmute chime"}
+              className={`flex h-10 w-10 items-center justify-center rounded-xl border ${theme.chipBorder} ${theme.chipBg}`}
             >
-              {t("busyTimes")}
+              {audioOn ? "🔔" : "🔕"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setDarkMode((v) => !v)}
+              aria-pressed={darkMode}
+              aria-label={darkMode ? "Light mode" : "Dark mode"}
+              className={`flex h-10 w-10 items-center justify-center rounded-xl border ${theme.chipBorder} ${theme.chipBg}`}
+            >
+              {darkMode ? "☀" : "☾"}
             </button>
             <LanguageSwitcher />
             <SignOutButton />
           </div>
         </div>
-      </header>
 
-      {show86Panel && (
-        <div className="border-b border-neutral-200 bg-white">
-          <div className="mx-auto max-w-6xl px-6 py-4">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-neutral-500">
-              Toggle item availability
-            </p>
-            <input
-              type="search"
-              placeholder="Search items…"
-              value={itemSearch}
-              onChange={(e) => setItemSearch(e.target.value)}
-              className="mb-3 w-full rounded-full border border-neutral-300 bg-white px-4 py-2 text-sm text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:border-neutral-500 focus-visible:ring-2 focus-visible:ring-neutral-700/30"
-            />
-            {(["Appetizers", "Dry Noodles", "Noodle Soup", "Rice", "Beverages"] as const).map((cat) => {
-                const filtered = menuItems.filter(
-                  (item) =>
-                    item.category === cat &&
-                    item.name.toLowerCase().includes(itemSearch.toLowerCase())
-                );
-                if (filtered.length === 0) return null;
-                return (
-                  <div key={cat} className="mb-4">
-                    <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-neutral-400">
-                      {cat}
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {filtered.map((item) => {
-                        const soldOut = item.available === false;
-                        return (
-                          <button
-                            key={item.id}
-                            type="button"
-                            onClick={async () => {
-                              const res = await fetch(`/api/menu/items/${encodeURIComponent(item.id)}`, {
-                                method: "PATCH",
-                                headers: { "content-type": "application/json" },
-                                body: JSON.stringify({ available: soldOut ? true : false }),
-                              });
-                              if (res.ok) {
-                                const { item: updated } = await res.json();
-                                setMenuItems((prev) =>
-                                  prev.map((p) => (p.id === updated.id ? updated : p))
-                                );
-                              }
-                            }}
-                            className={[
-                              "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
-                              soldOut
-                                ? "border-red-200 bg-red-50 text-red-700 hover:bg-red-100"
-                                : "border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-100",
-                            ].join(" ")}
-                          >
-                            {item.name}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })}
+        {/* Filter + density bar */}
+        <div className="mx-auto flex max-w-[1800px] flex-wrap items-center gap-2 px-4 pb-3">
+          <span className={`text-xs font-semibold uppercase tracking-wider ${theme.mutedText}`}>Stations</span>
+          <button
+            type="button"
+            onClick={() => setStationFilter("all")}
+            aria-pressed={stationFilter === "all"}
+            className={[
+              "rounded-lg px-3 py-1.5 text-sm font-semibold",
+              stationFilter === "all" ? "bg-emerald-500 text-slate-950" : `${theme.chipBg} ${theme.mutedText} ring-1 ${theme.chipBorder}`,
+            ].join(" ")}
+          >
+            All · {kdsOrders.length}
+          </button>
+          {STATION_ORDER.map((s) => {
+            const c = STATION_COLOR[s];
+            const active = stationFilter === s;
+            return (
+              <button
+                key={s}
+                type="button"
+                onClick={() => setStationFilter(active ? "all" : s)}
+                aria-pressed={active}
+                className={[
+                  "inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-semibold ring-1",
+                  active ? `${c.bg} ${c.fg} ${c.ring}` : `${theme.chipBg} ${theme.mutedText} ${theme.chipBorder}`,
+                ].join(" ")}
+              >
+                <span className={`h-2 w-2 rounded-full ${c.dot}`} />
+                {STATION_LABEL[s]} · {stationCounts[s]}
+              </button>
+            );
+          })}
+
+          <div className={`ml-auto flex rounded-lg border ${theme.chipBorder} ${theme.chipBg} p-0.5`}>
+            <button
+              type="button"
+              onClick={() => setDensity("comfortable")}
+              aria-pressed={density === "comfortable"}
+              className={[
+                "rounded-md px-3 py-1 text-xs font-semibold",
+                density === "comfortable" ? "bg-emerald-500 text-slate-950" : theme.mutedText,
+              ].join(" ")}
+            >
+              Comfortable
+            </button>
+            <button
+              type="button"
+              onClick={() => setDensity("compact")}
+              aria-pressed={density === "compact"}
+              className={[
+                "rounded-md px-3 py-1 text-xs font-semibold",
+                density === "compact" ? "bg-emerald-500 text-slate-950" : theme.mutedText,
+              ].join(" ")}
+            >
+              Compact
+            </button>
           </div>
         </div>
-      )}
+      </header>
 
-      <main className="mx-auto max-w-6xl px-6 py-6">
+      {/* ── Main ──────────────────────────────────────────────────── */}
+      <main className="mx-auto max-w-[1800px] p-4">
+        {/* Pending confirmation strip — kept from the previous KDS so the
+            waiter-confirmation step still works end-to-end. */}
+        {pendingOrders.length > 0 && (
+          <section className="mb-4 rounded-2xl border-2 border-dashed border-amber-500/50 bg-amber-500/5 p-3">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-amber-300">
+              Awaiting waiter confirmation — {pendingOrders.length}
+            </p>
+            <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {pendingOrders.map((order) => {
+                const label = order.ticketNumber !== undefined ? String(order.ticketNumber).padStart(3, "0") : order.id.slice(0, 6).toUpperCase();
+                return (
+                  <li key={order.id} className="rounded-xl border border-slate-700 bg-slate-900 p-3">
+                    <div className="flex items-center justify-between">
+                      <span className="font-mono text-xl font-bold tabular-nums text-white">#{label}</span>
+                      <span className="text-xs text-slate-400">Table {order.tableNumber}</span>
+                    </div>
+                    <ul className="mt-2 text-sm text-slate-300">
+                      {order.lines.map((l) => (
+                        <li key={l.id} className="flex justify-between">
+                          <span>{l.itemName}</span>
+                          <span className="tabular-nums text-slate-500">×{l.quantity}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <div className="mt-3 flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => updateOrder(order.id, { status: "new" })}
+                        className="flex-1 rounded-lg bg-emerald-500 px-3 py-2 text-sm font-semibold text-slate-950 hover:bg-emerald-400"
+                      >
+                        Confirm
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => removeOrder(order.id)}
+                        className="rounded-lg border border-red-500/40 bg-red-500/10 px-3 py-2 text-sm font-semibold text-red-300 hover:bg-red-500/20"
+                      >
+                        Reject
+                      </button>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        )}
 
-        {/* ── Pending confirmation ── */}
-        {(() => {
-          const pending = orders.filter((o) => o.status === "pending");
-          if (pending.length === 0) return null;
-          return (
-            <div className="mb-6">
-              <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-neutral-500">
-                Awaiting waiter confirmation — {pending.length} order{pending.length > 1 ? "s" : ""}
-              </p>
-              <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {pending.map((order) => {
-                  const shortId = order.ticketNumber !== undefined
-                    ? String(order.ticketNumber).padStart(3, "0")
-                    : order.id.slice(0, 6).toUpperCase();
-                  return (
-                    <li key={order.id} className="flex flex-col gap-3 rounded-2xl border-2 border-dashed border-neutral-300 bg-white p-5">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex items-start gap-3">
-                          <div className="flex h-12 w-12 flex-none flex-col items-center justify-center rounded-xl bg-neutral-200 text-neutral-700">
-                            <span className="text-[9px] font-semibold uppercase tracking-wider text-neutral-500">
-                              {t("tableShort")}
-                            </span>
-                            <span className="font-serif text-lg leading-none tabular-nums">
-                              {order.tableNumber ?? "—"}
-                            </span>
-                          </div>
-                          <div>
-                            <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
-                              Order #{shortId}
-                            </p>
-                            <p className="mt-0.5 text-xs text-neutral-500">
-                              {formatTime(order.placedAt)}
-                            </p>
-                          </div>
-                        </div>
-                        <span className="rounded-full bg-neutral-200 px-3 py-1 text-xs font-medium text-neutral-600">
-                          Pending
-                        </span>
-                      </div>
-                      <ul className="divide-y divide-neutral-100 text-sm">
-                        {order.lines.map((line) => (
-                          <li key={line.id} className="flex items-baseline justify-between gap-2 py-1.5">
-                            <span className="text-neutral-800">
-                              {lang === "zh" && line.itemNameZh ? line.itemNameZh : line.itemName}
-                            </span>
-                            <span className="tabular-nums text-neutral-500">×{line.quantity}</span>
-                          </li>
-                        ))}
-                      </ul>
-                      {order.preferences.length > 0 && (
-                        <p className="text-xs text-neutral-500">
-                          {order.preferences.map((p) => translate(p, lang)).join(" · ")}
-                        </p>
-                      )}
-                      <div className="flex gap-2 border-t border-neutral-100 pt-3">
-                        <button
-                          type="button"
-                          onClick={() => updateOrder(order.id, { status: "new" })}
-                          className="flex-1 rounded-full bg-neutral-900 px-4 py-2 text-xs font-medium text-cream hover:bg-neutral-800"
-                        >
-                          Confirm order
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => removeOrder(order.id)}
-                          className="rounded-full border border-red-200 bg-red-50 px-4 py-2 text-xs font-medium text-red-700 hover:bg-red-100"
-                        >
-                          Reject
-                        </button>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          );
-        })()}
-
-        <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex gap-1 rounded-full border border-neutral-200 bg-white p-1 w-fit">
-          <button
-            type="button"
-            onClick={() => setTab("active")}
-            aria-pressed={tab === "active"}
-            className={[
-              "rounded-full px-5 py-1.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30",
-              tab === "active"
-                ? "bg-cantaloupe text-neutral-900 hover:bg-cantaloupe-soft"
-                : "text-neutral-600 hover:text-neutral-900",
-            ].join(" ")}
-          >
-            Active
-          </button>
-          <button
-            type="button"
-            onClick={() => setTab("completed")}
-            aria-pressed={tab === "completed"}
-            className={[
-              "rounded-full px-5 py-1.5 text-sm font-medium transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30",
-              tab === "completed"
-                ? "bg-cantaloupe text-neutral-900 hover:bg-cantaloupe-soft"
-                : "text-neutral-600 hover:text-neutral-900",
-            ].join(" ")}
-          >
-            Completed
-          </button>
-          </div>
-
-          <div className="relative w-full sm:w-72">
-            <svg
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              aria-hidden
-              className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-neutral-400"
-            >
-              <path
-                fillRule="evenodd"
-                d="M9 3.5a5.5 5.5 0 1 0 3.59 9.67l3.12 3.12a.75.75 0 1 0 1.06-1.06l-3.12-3.12A5.5 5.5 0 0 0 9 3.5ZM5 9a4 4 0 1 1 8 0 4 4 0 0 1-8 0Z"
-                clipRule="evenodd"
-              />
-            </svg>
-            <input
-              type="search"
-              value={orderSearch}
-              onChange={(e) => setOrderSearch(e.target.value)}
-              placeholder={t("searchOrders")}
-              className="w-full rounded-full border border-neutral-300 bg-white pl-9 pr-9 py-2 text-sm text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:border-neutral-500 focus-visible:ring-2 focus-visible:ring-neutral-700/30"
+        {!ordersLoaded ? (
+          <div className="rounded-2xl border border-slate-700/60 p-12 text-center text-slate-400">Loading…</div>
+        ) : view === "active" ? (
+          visibleOrders.length === 0 ? (
+            <EmptyState
+              servedToday={recall.length}
+              averageTicketMin={
+                recall.length === 0
+                  ? 0
+                  : Math.round(
+                      recall.reduce((sum, e) => sum + Math.max(0, Math.floor((e.bumpedAt - e.order.placedAt) / 60000)), 0) /
+                        recall.length,
+                    )
+              }
+              stationStatus={stationCounts}
             />
-            {orderSearch && (
+          ) : (
+            <ul
+              className={[
+                "grid gap-3",
+                density === "compact"
+                  ? "grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6"
+                  : "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4",
+              ].join(" ")}
+            >
+              {visibleOrders.map((order) => (
+                <TicketCard
+                  key={order.raw.id}
+                  order={order}
+                  density={density}
+                  onToggleLine={(lineId) => toggleLine(order.raw.id, lineId)}
+                  onBump={() => bump(order.raw.id)}
+                  onPriority={() => togglePriority(order.raw.id)}
+                  onExpand={() => setExpandedId(order.raw.id)}
+                />
+              ))}
+            </ul>
+          )
+        ) : (
+          <RecallView entries={recall} onRecall={recallTicket} />
+        )}
+      </main>
+
+      {/* ── Toasts (bottom-right) ─────────────────────────────────── */}
+      <div className="pointer-events-none fixed bottom-4 right-4 z-50 flex w-80 flex-col gap-2">
+        {toasts.map((t) => (
+          <div
+            key={t.id}
+            role="status"
+            className={[
+              "pointer-events-auto flex items-center gap-3 rounded-xl border-2 px-4 py-3 shadow-lg backdrop-blur",
+              t.kind === "success"
+                ? "border-emerald-500/60 bg-emerald-500/15 text-emerald-100"
+                : t.kind === "warn"
+                  ? "border-amber-500/60 bg-amber-500/15 text-amber-100"
+                  : "border-blue-500/60 bg-blue-500/15 text-blue-100",
+            ].join(" ")}
+          >
+            <span className="flex-1 text-sm font-semibold">{t.message}</span>
+            {t.undo && (
               <button
                 type="button"
-                onClick={() => setOrderSearch("")}
-                aria-label={t("clear")}
-                className="absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900"
+                onClick={() => {
+                  t.undo?.();
+                  setToasts((prev) => prev.filter((x) => x.id !== t.id));
+                }}
+                className="rounded-md bg-white/10 px-3 py-1.5 text-xs font-bold uppercase tracking-wider hover:bg-white/20"
               >
-                <svg viewBox="0 0 20 20" fill="currentColor" className="h-4 w-4">
-                  <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
-                </svg>
+                Undo
               </button>
             )}
           </div>
-        </div>
+        ))}
+      </div>
 
-        {(() => {
-          if (!ordersLoaded) return null;
-          const tabPool = orders.filter((o) => {
-            if (o.status === "pending") return false; // shown above in pending section
-            return tab === "active" ? o.status !== "ready" : o.status === "ready";
-          });
-          const filtered = sortKitchenOrders(
-            tabPool.filter((o) => matchesSearch(o, orderSearch)),
-            tab,
-          );
-          const otherTabMatches = orderSearch.trim()
-            ? orders.filter(
-                (o) =>
-                  o.status !== "pending" &&
-                  (tab === "active"
-                    ? o.status === "ready"
-                    : o.status !== "ready") &&
-                  matchesSearch(o, orderSearch),
-              ).length
-            : 0;
-          const emptyMessage = orderSearch.trim()
-            ? t("noOrdersMatchSearch").replace("{q}", orderSearch.trim())
-            : tab === "active"
-              ? "No active orders"
-              : "No completed orders";
-          return filtered.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-neutral-300 bg-white px-6 py-16 text-center text-sm text-neutral-600">
-            {emptyMessage}
-            {otherTabMatches > 0 && (
-              <div className="mt-2 text-xs text-neutral-500">
-                {t("searchOtherTabHint")
-                  .replace("{n}", String(otherTabMatches))
-                  .replace(
-                    "{tab}",
-                    tab === "active" ? "Completed" : "Active",
-                  )}
-              </div>
-            )}
-          </div>
-        ) : (
-          <>
-          {orderSearch.trim() && (
-            <p className="mb-3 text-xs text-neutral-500">
-              {t("searchMatchCount").replace("{n}", String(filtered.length))}
-              {otherTabMatches > 0 && (
-                <>
-                  {" · "}
-                  {t("searchOtherTabHint")
-                    .replace("{n}", String(otherTabMatches))
-                    .replace(
-                      "{tab}",
-                      tab === "active" ? "Completed" : "Active",
-                    )}
-                </>
-              )}
-            </p>
-          )}
-          <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((order) => {
-              const ticketLabel =
-                order.ticketNumber !== undefined
-                  ? String(order.ticketNumber).padStart(3, "0")
-                  : order.id.slice(0, 6).toUpperCase();
-              const etaValue =
-                etaDrafts[order.id] ??
-                (order.etaMinutes !== undefined
-                  ? String(order.etaMinutes)
-                  : "");
-              const isPriority = order.priority === true;
-
-              return (
-                <li
-                  key={order.id}
-                  className={[
-                    "flex flex-col gap-3 rounded-2xl border bg-white p-5 shadow-sm",
-                    isPriority
-                      ? "border-red-300 ring-1 ring-red-200"
-                      : "border-neutral-200",
-                  ].join(" ")}
-                >
-                  {isPriority && (
-                    <div className="flex items-center gap-2 rounded-lg bg-red-50 px-3 py-1.5 text-red-700">
-                      <svg
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                        aria-hidden
-                        className="h-4 w-4 flex-none"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495ZM10 6a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 10 6Zm0 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      <span className="text-[11px] font-semibold uppercase tracking-wider">
-                        {t("priorityBadge")}
-                      </span>
-                    </div>
-                  )}
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-start gap-3">
-                      <div className="flex h-12 w-12 flex-none flex-col items-center justify-center rounded-xl bg-neutral-900 text-cream">
-                        <span className="text-[9px] font-semibold uppercase tracking-wider text-cream/70">
-                          {t("tableShort")}
-                        </span>
-                        <span className="font-serif text-lg leading-none tabular-nums">
-                          {order.tableNumber ?? "—"}
-                        </span>
-                      </div>
-                      <div>
-                        <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
-                          {t("orderNumber")} #{ticketLabel}
-                        </p>
-                        <p className="mt-0.5 text-xs text-neutral-500">
-                          {t("placedAt")} · {formatPlacedAt(order.placedAt, lang)}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {order.status !== "ready" && (
-                        <span
-                          className="rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-medium tabular-nums text-neutral-700"
-                          aria-label={t("waitedMinutes").replace(
-                            "{n}",
-                            String(minutesSince(order.placedAt)),
-                          )}
-                        >
-                          {t("waitedShort").replace(
-                            "{n}",
-                            String(minutesSince(order.placedAt)),
-                          )}
-                        </span>
-                      )}
-                      {order.status !== "ready" && (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            updateOrder(order.id, { priority: !isPriority })
-                          }
-                          title={
-                            isPriority
-                              ? t("unmarkPriority")
-                              : t("markPriority")
-                          }
-                          aria-label={
-                            isPriority
-                              ? t("unmarkPriority")
-                              : t("markPriority")
-                          }
-                          aria-pressed={isPriority}
-                          className={[
-                            "flex h-7 w-7 items-center justify-center rounded-full border text-sm leading-none transition-colors",
-                            isPriority
-                              ? "border-red-300 bg-red-100 text-red-600 hover:bg-red-200"
-                              : "border-neutral-300 bg-white text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700",
-                          ].join(" ")}
-                        >
-                          <span aria-hidden>
-                            {isPriority ? "★" : "☆"}
-                          </span>
-                        </button>
-                      )}
-                      <span
-                        className={[
-                          "rounded-full px-3 py-1 text-xs font-medium",
-                          statusClasses(order.status),
-                        ].join(" ")}
-                      >
-                        {statusLabel(order.status, lang)}
-                      </span>
-                    </div>
-                  </div>
-
-                  {order.preferences.length > 0 && (
-                    <div className="rounded-lg bg-cantaloupe-soft/40 px-3 py-2">
-                      <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-700">
-                        {t("preferencesLabel")}
-                      </p>
-                      <p className="mt-0.5 text-sm text-neutral-900">
-                        {order.preferences
-                          .map((p) => translate(p, lang))
-                          .join(" · ")}
-                      </p>
-                    </div>
-                  )}
-
-                  <ul className="divide-y divide-neutral-200">
-                    {order.lines.map((line) => (
-                      <li key={line.id} className="py-2">
-                        <div className="flex items-baseline justify-between gap-3">
-                          <p className="font-medium text-neutral-900">
-                            {cartLineName(line, lang)}
-                          </p>
-                          <p className="text-sm tabular-nums text-neutral-700">
-                            ×{line.quantity}
-                          </p>
-                        </div>
-                        {line.selections.length > 0 && (
-                          <ul className="mt-1 space-y-0.5 text-xs text-neutral-600">
-                            {line.selections.map((s) => (
-                              <li key={s.groupLabel}>
-                                {translateGroupLabel(s.groupLabel, lang)}:{" "}
-                                {s.choiceLabels
-                                  .map((c) =>
-                                    translateChoiceLabel(c, s.groupLabel, lang),
-                                  )
-                                  .join(", ")}
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-                        {line.specialRequest && (
-                          <p className="mt-1 text-xs italic text-neutral-700">
-                            {t("noteLabel")}: {line.specialRequest}
-                          </p>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-
-                  {order.status !== "ready" && (
-                    <div className="flex items-end gap-2 border-t border-neutral-200 pt-3">
-                      <label className="flex flex-1 flex-col gap-1">
-                        <span className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
-                          {t("etaOverrideLabel")}
-                        </span>
-                        <input
-                          type="number"
-                          inputMode="numeric"
-                          min={0}
-                          value={etaValue}
-                          placeholder="—"
-                          onChange={(e) =>
-                            setEtaDrafts((prev) => ({
-                              ...prev,
-                              [order.id]: e.target.value,
-                            }))
-                          }
-                          onBlur={() => commitEta(order.id)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              (e.target as HTMLInputElement).blur();
-                            }
-                          }}
-                          className="rounded-full border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:border-neutral-500 focus-visible:ring-2 focus-visible:ring-neutral-700/30"
-                        />
-                      </label>
-                    </div>
-                  )}
-
-                  <div className="mt-auto flex flex-wrap gap-2 pt-2">
-                    {order.status === "new" && (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          updateOrder(order.id, { status: "cooking" })
-                        }
-                        className="flex-1 rounded-full bg-neutral-900 px-5 py-2.5 text-sm font-medium text-cream hover:bg-neutral-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
-                      >
-                        {t("startCooking")}
-                      </button>
-                    )}
-                    {order.status === "cooking" && (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          updateOrder(order.id, { status: "ready" })
-                        }
-                        className="flex-1 rounded-full bg-neutral-900 px-5 py-2.5 text-sm font-medium text-cream hover:bg-neutral-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
-                      >
-                        {t("markReady")}
-                      </button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => setConfirmClearId(order.id)}
-                      className="rounded-full border border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-700 hover:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
-                    >
-                      {t("clearOrder")}
-                    </button>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-          </>
-        );
-        })()}
-      </main>
-
-      <BusyHeatmap
-        open={showBusyHeatmap}
-        onClose={() => setShowBusyHeatmap(false)}
-      />
-
-      {(() => {
-        const target = confirmClearId
-          ? orders.find((o) => o.id === confirmClearId)
-          : null;
-        if (!target) return null;
-        const label =
-          target.ticketNumber !== undefined
-            ? String(target.ticketNumber).padStart(3, "0")
-            : target.id.slice(0, 6).toUpperCase();
-        return (
-          <ClearOrderConfirm
-            ticketLabel={label}
-            tableNumber={target.tableNumber}
-            onCancel={() => setConfirmClearId(null)}
-            onConfirm={() => {
-              const id = confirmClearId!;
-              setConfirmClearId(null);
-              void removeOrder(id);
-            }}
-          />
-        );
-      })()}
+      {/* ── Modals ────────────────────────────────────────────────── */}
+      {show86 && (
+        <SoldOutModal
+          items={menuItems}
+          onClose={() => setShow86(false)}
+          onUpdate={(updated) => setMenuItems((prev) => prev.map((p) => (p.id === updated.id ? updated : p)))}
+        />
+      )}
+      {expandedOrder && (
+        <ExpandedTicket
+          order={expandedOrder}
+          onClose={() => setExpandedId(null)}
+          onToggleLine={(lineId) => toggleLine(expandedOrder.raw.id, lineId)}
+          onBump={() => {
+            bump(expandedOrder.raw.id);
+            setExpandedId(null);
+          }}
+          onPriority={() => togglePriority(expandedOrder.raw.id)}
+        />
+      )}
+      <BusyHeatmap open={showBusy} onClose={() => setShowBusy(false)} />
     </div>
   );
 }
 
-function ClearOrderConfirm({
-  ticketLabel,
-  tableNumber,
-  onCancel,
-  onConfirm,
+// ── Recall view ────────────────────────────────────────────────────
+function RecallView({
+  entries,
+  onRecall,
 }: {
-  ticketLabel: string;
-  tableNumber: number;
-  onCancel: () => void;
-  onConfirm: () => void;
+  entries: RecallEntry[];
+  onRecall: (orderId: string, bumpedAt: number) => void;
 }) {
-  const { t } = useTranslation();
-
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") onCancel();
-      if (e.key === "Enter") onConfirm();
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onCancel, onConfirm]);
-
-  return (
-    <div
-      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 backdrop-blur-sm"
-      onClick={onCancel}
-    >
-      <div
-        role="alertdialog"
-        aria-modal="true"
-        aria-label={t("clearOrderTitle")}
-        onClick={(e) => e.stopPropagation()}
-        className="mx-6 w-full max-w-[340px] rounded-2xl bg-cream p-5 shadow-xl"
-      >
-        <h3 className="font-serif text-xl text-neutral-900">
-          {t("clearOrderTitle")}
-        </h3>
-        <p className="mt-2 text-sm text-neutral-600">
-          {t("clearOrderBody")
-            .replace("{ticket}", ticketLabel)
-            .replace("{table}", String(tableNumber))}
-        </p>
-        <div className="mt-5 flex gap-3">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="flex-1 rounded-full border border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-700 hover:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
-          >
-            {t("cancel")}
-          </button>
-          <button
-            type="button"
-            onClick={onConfirm}
-            autoFocus
-            className="flex-1 rounded-full bg-neutral-900 px-4 py-2.5 text-sm font-medium text-cream hover:bg-neutral-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
-          >
-            {t("clearOrder")}
-          </button>
-        </div>
+  if (entries.length === 0) {
+    return (
+      <div className="rounded-2xl border border-slate-700/60 bg-slate-900/40 p-12 text-center">
+        <p className="text-lg font-semibold text-slate-300">No recently bumped tickets</p>
+        <p className="mt-1 text-sm text-slate-500">Bumped tickets stay here for 10 minutes.</p>
       </div>
-    </div>
+    );
+  }
+  const now = Date.now();
+  return (
+    <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      {entries.map((e) => {
+        const label = e.order.ticketNumber !== undefined ? String(e.order.ticketNumber).padStart(3, "0") : e.order.id.slice(0, 6).toUpperCase();
+        const minsAgo = Math.max(0, Math.floor((now - e.bumpedAt) / 60000));
+        const remainingMin = Math.max(0, 10 - minsAgo);
+        return (
+          <li key={`${e.order.id}-${e.bumpedAt}`} className="rounded-2xl border border-slate-700 bg-slate-900 p-4">
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-2xl font-bold tabular-nums text-white">#{label}</span>
+              <span className="rounded-md bg-slate-800 px-2 py-1 text-xs font-semibold text-slate-300">
+                Bumped {minsAgo}m ago
+              </span>
+            </div>
+            <p className="mt-1 text-sm text-slate-400">
+              Table {e.order.tableNumber} · {e.order.lines.length} item{e.order.lines.length === 1 ? "" : "s"}
+            </p>
+            <ul className="mt-3 max-h-32 space-y-0.5 overflow-y-auto text-sm text-slate-300">
+              {e.order.lines.map((l) => (
+                <li key={l.id} className="flex justify-between">
+                  <span className="truncate">{l.itemName}</span>
+                  <span className="tabular-nums text-slate-500">×{l.quantity}</span>
+                </li>
+              ))}
+            </ul>
+            <button
+              type="button"
+              onClick={() => onRecall(e.order.id, e.bumpedAt)}
+              className="mt-3 flex h-[60px] w-full items-center justify-center gap-2 rounded-xl bg-amber-500 text-base font-bold text-slate-950 hover:bg-amber-400 focus:outline-none focus-visible:ring-4 focus-visible:ring-amber-400/60"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} className="h-5 w-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 14l-4-4 4-4M5 10h11a4 4 0 014 4v0a4 4 0 01-4 4H9" />
+              </svg>
+              Recall ticket
+              <span className="ml-1 text-xs font-medium opacity-70">({remainingMin}m left)</span>
+            </button>
+          </li>
+        );
+      })}
+    </ul>
   );
 }
