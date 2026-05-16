@@ -1178,7 +1178,7 @@ const TRANSLATIONS: Record<string, Entry> = {
     ru: "Снять приоритет",
   },
   busyTimes: {
-    en: "Busy times",
+    en: "Busy Times",
     es: "Horas más concurridas",
     "zh-Hans": "繁忙时段",
     "zh-Hant": "繁忙時段",
