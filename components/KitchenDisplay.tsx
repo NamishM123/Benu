@@ -299,7 +299,7 @@ export default function KitchenDisplay() {
                               Order #{shortId}
                             </p>
                             <p className="mt-0.5 text-xs text-neutral-500">
-                              {formatTime(order.placedAt)}
+                              {formatPlacedAt(order.placedAt, lang)}
                             </p>
                           </div>
                         </div>
@@ -311,7 +311,7 @@ export default function KitchenDisplay() {
                         {order.lines.map((line) => (
                           <li key={line.id} className="flex items-baseline justify-between gap-2 py-1.5">
                             <span className="text-neutral-800">
-                              {lang === "zh" && line.itemNameZh ? line.itemNameZh : line.itemName}
+                              {cartLineName(line, lang)}
                             </span>
                             <span className="tabular-nums text-neutral-500">×{line.quantity}</span>
                           </li>
