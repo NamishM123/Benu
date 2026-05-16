@@ -239,7 +239,7 @@ export default function MenuPage({ menu }: Props) {
 
           <nav
             aria-label="Menu categories"
-            className="bg-cream"
+            className=""
           >
             <div className="overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <div
