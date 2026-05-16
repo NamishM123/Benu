@@ -392,7 +392,27 @@ export default function ItemDetailSheet({ item, preferences, onClose, onCartOpen
             )}
             {(() => {
               const info = getNutritionForItem(item);
-              const n = info.nutrition;
+              // Sum caloriesModifier from every selected choice across all groups
+              const calMod = groups.reduce((acc, g) => {
+                const picked = selections[g.id] ?? [];
+                return acc + g.choices
+                  .filter((c) => picked.includes(c.id) && c.caloriesModifier)
+                  .reduce((s, c) => s + (c.caloriesModifier ?? 0), 0);
+              }, 0);
+              const n = info.nutrition && calMod !== 0
+                ? (() => {
+                    const ratio = (info.nutrition.calories + calMod) / info.nutrition.calories;
+                    return {
+                      calories: Math.round(info.nutrition.calories + calMod),
+                      protein: Math.round(info.nutrition.protein * ratio),
+                      carbs: Math.round(info.nutrition.carbs * ratio),
+                      fat: Math.round(info.nutrition.fat * ratio),
+                      sodium: info.nutrition.sodium != null
+                        ? Math.round(info.nutrition.sodium * ratio)
+                        : undefined,
+                    };
+                  })()
+                : info.nutrition;
               // Ingredients list — only Simplified Chinese has a manual
               // translation today (lives on getNutritionForItem). All other
               // languages fall back to the English text. The auto-translate
