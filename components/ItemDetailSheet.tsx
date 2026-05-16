@@ -188,6 +188,17 @@ export default function ItemDetailSheet({ item, preferences, onClose, onCartOpen
   const unitPrice = item.price + priceDelta;
   const totalPrice = unitPrice * quantity;
 
+  // Sum caloriesModifier from every currently selected choice
+  const calMod = groups.reduce((acc, g) => {
+    const picked = selections[g.id] ?? [];
+    return (
+      acc +
+      g.choices
+        .filter((c) => picked.includes(c.id) && c.caloriesModifier)
+        .reduce((s, c) => s + (c.caloriesModifier ?? 0), 0)
+    );
+  }, 0);
+
   const allRequiredMet = groups.every((g) => {
     if (g.type === "single" && g.required)
       return (selections[g.id] ?? []).length === 1;
@@ -392,27 +403,21 @@ export default function ItemDetailSheet({ item, preferences, onClose, onCartOpen
             )}
             {(() => {
               const info = getNutritionForItem(item);
-              // Sum caloriesModifier from every selected choice across all groups
-              const calMod = groups.reduce((acc, g) => {
-                const picked = selections[g.id] ?? [];
-                return acc + g.choices
-                  .filter((c) => picked.includes(c.id) && c.caloriesModifier)
-                  .reduce((s, c) => s + (c.caloriesModifier ?? 0), 0);
-              }, 0);
-              const n = info.nutrition && calMod !== 0
+              const base = info.nutrition;
+              const n = base && calMod !== 0
                 ? (() => {
-                    const ratio = (info.nutrition.calories + calMod) / info.nutrition.calories;
+                    const ratio = (base.calories + calMod) / base.calories;
                     return {
-                      calories: Math.round(info.nutrition.calories + calMod),
-                      protein: Math.round(info.nutrition.protein * ratio),
-                      carbs: Math.round(info.nutrition.carbs * ratio),
-                      fat: Math.round(info.nutrition.fat * ratio),
-                      sodium: info.nutrition.sodium != null
-                        ? Math.round(info.nutrition.sodium * ratio)
+                      calories: Math.round(base.calories + calMod),
+                      protein: Math.round(base.protein * ratio),
+                      carbs: Math.round(base.carbs * ratio),
+                      fat: Math.round(base.fat * ratio),
+                      sodium: base.sodium != null
+                        ? Math.round(base.sodium * ratio)
                         : undefined,
                     };
                   })()
-                : info.nutrition;
+                : base;
               // Ingredients list — only Simplified Chinese has a manual
               // translation today (lives on getNutritionForItem). All other
               // languages fall back to the English text. The auto-translate
