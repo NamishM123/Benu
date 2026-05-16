@@ -210,8 +210,8 @@ export default function CartDrawer({
         >
           <h2
             className={[
-              "whitespace-pre-line text-2xl font-semibold uppercase text-neutral-900",
-              isCJK(lang) ? "tracking-normal" : "tracking-[0.08em]",
+              "whitespace-pre-line text-lg font-semibold uppercase text-neutral-900",
+              isCJK(lang) ? "tracking-normal" : "tracking-[0.06em]",
             ].join(" ")}
           >
             {cart.length === 0 ? t("yourCartEmpty") : t("yourCart")}
@@ -219,15 +219,15 @@ export default function CartDrawer({
         </header>
 
         {cart.length === 0 ? (
-          <div className="flex flex-col items-center px-6 pt-6 pb-10 text-center sm:py-12">
+          <div className="flex flex-col items-center px-6 pt-4 pb-8 text-center sm:py-10">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/cart-empty.webp"
               alt=""
               aria-hidden="true"
-              className="h-48 w-48 object-contain sm:h-56 sm:w-56"
+              className="h-32 w-32 object-contain sm:h-40 sm:w-40"
             />
-            <p className="mt-4 text-2xl text-neutral-600">{t("emptyCart")}</p>
+            <p className="mt-3 text-base text-neutral-600">{t("emptyCart")}</p>
           </div>
         ) : (
           <>
