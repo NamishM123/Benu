@@ -135,7 +135,7 @@ export default function MenuPage({ menu }: Props) {
     <>
       <main className="min-h-screen w-full bg-cream pb-28">
         <div className="mx-auto w-full max-w-6xl">
-          <div className="flex items-center justify-between gap-2 pl-3 pr-10 pt-4 sm:gap-3 sm:px-10 sm:pt-3">
+          <div className="sticky top-0 z-20 bg-cream/95 backdrop-blur flex items-center justify-between gap-2 pl-3 pr-10 pt-4 sm:gap-3 sm:px-10 sm:pt-3">
             <button
               type="button"
               onClick={() => {
@@ -238,7 +238,7 @@ export default function MenuPage({ menu }: Props) {
 
           <nav
             aria-label="Menu categories"
-            className="sticky top-0 z-20 bg-cream"
+            className="sticky top-[80px] z-10 bg-cream"
           >
             <div className="overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <div
