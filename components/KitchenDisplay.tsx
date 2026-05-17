@@ -356,7 +356,7 @@ export default function KitchenDisplay() {
                 : "text-neutral-600 hover:text-neutral-900",
             ].join(" ")}
           >
-            Active
+            {t("tabActive")}
           </button>
           <button
             type="button"
@@ -369,7 +369,7 @@ export default function KitchenDisplay() {
                 : "text-neutral-600 hover:text-neutral-900",
             ].join(" ")}
           >
-            Completed
+            {t("tabCompleted")}
           </button>
           </div>
 
@@ -431,8 +431,8 @@ export default function KitchenDisplay() {
           const emptyMessage = orderSearch.trim()
             ? t("noOrdersMatchSearch").replace("{q}", orderSearch.trim())
             : tab === "active"
-              ? "No active orders"
-              : "No completed orders";
+              ? t("noActiveOrders")
+              : t("noCompletedOrders");
           return filtered.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-neutral-300 bg-white px-6 py-16 text-center text-sm text-neutral-600">
             {emptyMessage}
@@ -442,7 +442,7 @@ export default function KitchenDisplay() {
                   .replace("{n}", String(otherTabMatches))
                   .replace(
                     "{tab}",
-                    tab === "active" ? "Completed" : "Active",
+                    tab === "active" ? t("tabCompleted") : t("tabActive"),
                   )}
               </div>
             )}
@@ -459,7 +459,7 @@ export default function KitchenDisplay() {
                     .replace("{n}", String(otherTabMatches))
                     .replace(
                       "{tab}",
-                      tab === "active" ? "Completed" : "Active",
+                      tab === "active" ? t("tabCompleted") : t("tabActive"),
                     )}
                 </>
               )}
