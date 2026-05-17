@@ -29,6 +29,21 @@ function minutesSince(ts: number, now: number = Date.now()): number {
   return Math.max(0, Math.floor((now - ts) / 60000));
 }
 
+function elapsedMMSS(ts: number, now: number = Date.now()): string {
+  const s = Math.max(0, Math.floor((now - ts) / 1000));
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return `${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
+}
+
+function headerBg(status: OrderStatus, priority: boolean): string {
+  if (priority) return "bg-red-500 text-white";
+  if (status === "new") return "bg-[#F97316] text-white";
+  if (status === "cooking") return "bg-[#EAB308] text-neutral-900";
+  if (status === "ready") return "bg-[#22C55E] text-white";
+  return "bg-neutral-200 text-neutral-700";
+}
+
 function formatPlacedAt(ts: number, lang: Lang): string {
   const locale = languageMeta(lang).locale;
   return new Date(ts).toLocaleString(locale, {
@@ -95,6 +110,15 @@ export default function KitchenDisplay() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [ordersLoaded, setOrdersLoaded] = useState(false);
   const [etaDrafts, setEtaDrafts] = useState<Record<string, string>>({});
+  // Per-item check-off state: orderId → Set of line ids ticked by kitchen staff
+  const [checkedItems, setCheckedItems] = useState<Record<string, Set<string>>>({});
+  function toggleItem(orderId: string, lineId: string) {
+    setCheckedItems((prev) => {
+      const set = new Set(prev[orderId] ?? []);
+      set.has(lineId) ? set.delete(lineId) : set.add(lineId);
+      return { ...prev, [orderId]: set };
+    });
+  }
   const [menuItems, setMenuItems] = useState<(MenuItem & { id: string })[]>([]);
   const [show86Panel, setShow86Panel] = useState(false);
   const [itemSearch, setItemSearch] = useState("");
@@ -106,7 +130,7 @@ export default function KitchenDisplay() {
   // orders list isn't changing.
   const [, setMinuteTick] = useState(0);
   useEffect(() => {
-    const id = setInterval(() => setMinuteTick((n) => n + 1), 30_000);
+    const id = setInterval(() => setMinuteTick((n) => n + 1), 1_000);
     return () => clearInterval(id);
   }, []);
 
@@ -274,63 +298,48 @@ export default function KitchenDisplay() {
               <p className="mb-3 text-xs font-semibold uppercase tracking-wider text-neutral-500">
                 Awaiting waiter confirmation — {pending.length} order{pending.length > 1 ? "s" : ""}
               </p>
-              <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {pending.map((order) => {
                   const shortId = order.ticketNumber !== undefined
                     ? String(order.ticketNumber).padStart(3, "0")
                     : order.id.slice(0, 6).toUpperCase();
                   return (
-                    <li key={order.id} className="flex flex-col gap-3 rounded-2xl border-2 border-dashed border-neutral-300 bg-white p-5">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex items-start gap-3">
-                          <div className="flex h-12 w-12 flex-none flex-col items-center justify-center rounded-xl bg-neutral-200 text-neutral-700">
-                            <span className="text-[9px] font-semibold uppercase tracking-wider text-neutral-500">
-                              {t("tableShort")}
-                            </span>
-                            <span className="font-serif text-lg leading-none tabular-nums">
-                              {order.tableNumber ?? "—"}
-                            </span>
+                    <li key={order.id} className="flex flex-col overflow-hidden rounded-2xl border-2 border-dashed border-neutral-400 bg-white shadow-sm">
+                      <div className="bg-neutral-200 px-4 py-3">
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-baseline gap-2">
+                            <span className="text-xl font-bold tabular-nums text-neutral-700">#{shortId}</span>
+                            <span className="text-sm font-medium text-neutral-500">{t("tableShort")} {order.tableNumber ?? "—"}</span>
                           </div>
-                          <div>
-                            <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
-                              Order #{shortId}
-                            </p>
-                            <p className="mt-0.5 text-xs text-neutral-500">
-                              {formatPlacedAt(order.placedAt, lang)}
-                            </p>
-                          </div>
+                          <span className="font-mono text-lg font-bold tabular-nums text-neutral-500">{elapsedMMSS(order.placedAt)}</span>
                         </div>
-                        <span className="rounded-full bg-neutral-200 px-3 py-1 text-xs font-medium text-neutral-600">
-                          Pending
-                        </span>
+                        <p className="mt-0.5 text-xs font-semibold uppercase tracking-wider text-neutral-500">Awaiting Confirmation</p>
                       </div>
-                      <ul className="divide-y divide-neutral-100 text-sm">
+                      {order.preferences.length > 0 && (
+                        <div className="border-b border-neutral-100 bg-amber-50 px-4 py-2 text-xs font-medium text-amber-800">
+                          {order.preferences.map((p) => translate(p, lang)).join(" · ")}
+                        </div>
+                      )}
+                      <ul className="flex-1 divide-y divide-neutral-100 px-4">
                         {order.lines.map((line) => (
-                          <li key={line.id} className="flex items-baseline justify-between gap-2 py-1.5">
-                            <span className="text-neutral-800">
-                              {cartLineName(line, lang)}
-                            </span>
-                            <span className="tabular-nums text-neutral-500">×{line.quantity}</span>
+                          <li key={line.id} className="flex items-baseline justify-between gap-2 py-2.5">
+                            <span className="font-semibold text-base text-neutral-800">{cartLineName(line, lang)}</span>
+                            <span className="flex-none rounded-md bg-neutral-900 px-2 py-0.5 text-sm font-bold tabular-nums text-white">×{line.quantity}</span>
                           </li>
                         ))}
                       </ul>
-                      {order.preferences.length > 0 && (
-                        <p className="text-xs text-neutral-500">
-                          {order.preferences.map((p) => translate(p, lang)).join(" · ")}
-                        </p>
-                      )}
-                      <div className="flex gap-2 border-t border-neutral-100 pt-3">
+                      <div className="border-t border-neutral-200 bg-neutral-50 px-4 py-3 flex gap-2">
                         <button
                           type="button"
                           onClick={() => updateOrder(order.id, { status: "new" })}
-                          className="flex-1 rounded-full bg-neutral-900 px-4 py-2 text-xs font-medium text-cream hover:bg-neutral-800"
+                          className="flex-1 rounded-xl bg-neutral-900 py-2.5 text-sm font-bold text-white hover:bg-neutral-700"
                         >
-                          Confirm order
+                          Confirm
                         </button>
                         <button
                           type="button"
                           onClick={() => removeOrder(order.id)}
-                          className="rounded-full border border-red-200 bg-red-50 px-4 py-2 text-xs font-medium text-red-700 hover:bg-red-100"
+                          className="rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-bold text-red-700 hover:bg-red-100"
                         >
                           Reject
                         </button>
@@ -465,7 +474,7 @@ export default function KitchenDisplay() {
               )}
             </p>
           )}
-          <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {filtered.map((order) => {
               const ticketLabel =
                 order.ticketNumber !== undefined
@@ -477,217 +486,162 @@ export default function KitchenDisplay() {
                   ? String(order.etaMinutes)
                   : "");
               const isPriority = order.priority === true;
+              const checked = checkedItems[order.id] ?? new Set<string>();
+              const allChecked = order.lines.length > 0 && order.lines.every((l) => checked.has(l.id));
 
               return (
                 <li
                   key={order.id}
-                  className={[
-                    "flex flex-col gap-3 rounded-2xl border bg-white p-5 shadow-sm",
-                    isPriority
-                      ? "border-red-300 ring-1 ring-red-200"
-                      : "border-neutral-200",
-                  ].join(" ")}
+                  className="flex flex-col overflow-hidden rounded-2xl border border-neutral-200 bg-white shadow-md"
                 >
-                  {isPriority && (
-                    <div className="flex items-center gap-2 rounded-lg bg-red-50 px-3 py-1.5 text-red-700">
-                      <svg
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                        aria-hidden
-                        className="h-4 w-4 flex-none"
-                      >
-                        <path
-                          fillRule="evenodd"
-                          d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495ZM10 6a.75.75 0 0 1 .75.75v3.5a.75.75 0 0 1-1.5 0v-3.5A.75.75 0 0 1 10 6Zm0 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"
-                          clipRule="evenodd"
-                        />
-                      </svg>
-                      <span className="text-[11px] font-semibold uppercase tracking-wider">
-                        {t("priorityBadge")}
+                  {/* ── Colored KDS header ── */}
+                  <div className={["px-4 py-3", headerBg(order.status, isPriority)].join(" ")}>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-xl font-bold tabular-nums leading-none">
+                          #{ticketLabel}
+                        </span>
+                        <span className="text-sm font-medium opacity-80">
+                          {t("tableShort")} {order.tableNumber ?? "—"}
+                        </span>
+                      </div>
+                      <span className="font-mono text-lg font-bold tabular-nums leading-none">
+                        {elapsedMMSS(order.placedAt)}
                       </span>
                     </div>
-                  )}
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-start gap-3">
-                      <div className="flex h-12 w-12 flex-none flex-col items-center justify-center rounded-xl bg-neutral-900 text-cream">
-                        <span className="text-[9px] font-semibold uppercase tracking-wider text-cream/70">
-                          {t("tableShort")}
-                        </span>
-                        <span className="font-serif text-lg leading-none tabular-nums">
-                          {order.tableNumber ?? "—"}
-                        </span>
-                      </div>
-                      <div>
-                        <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
-                          {t("orderNumber")} #{ticketLabel}
-                        </p>
-                        <p className="mt-0.5 text-xs text-neutral-500">
-                          {t("placedAt")} · {formatPlacedAt(order.placedAt, lang)}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {order.status !== "ready" && (
-                        <span
-                          className="rounded-full bg-neutral-100 px-2.5 py-1 text-xs font-medium tabular-nums text-neutral-700"
-                          aria-label={t("waitedMinutes").replace(
-                            "{n}",
-                            String(minutesSince(order.placedAt)),
-                          )}
-                        >
-                          {t("waitedShort").replace(
-                            "{n}",
-                            String(minutesSince(order.placedAt)),
-                          )}
-                        </span>
-                      )}
+                    <div className="mt-1 flex items-center justify-between gap-2">
+                      <span className="text-xs font-medium opacity-75">
+                        {statusLabel(order.status, lang)}
+                      </span>
                       {order.status !== "ready" && (
                         <button
                           type="button"
-                          onClick={() =>
-                            updateOrder(order.id, { priority: !isPriority })
-                          }
-                          title={
-                            isPriority
-                              ? t("unmarkPriority")
-                              : t("markPriority")
-                          }
-                          aria-label={
-                            isPriority
-                              ? t("unmarkPriority")
-                              : t("markPriority")
-                          }
+                          onClick={() => updateOrder(order.id, { priority: !isPriority })}
                           aria-pressed={isPriority}
-                          className={[
-                            "flex h-7 w-7 items-center justify-center rounded-full border text-sm leading-none transition-colors",
-                            isPriority
-                              ? "border-red-300 bg-red-100 text-red-600 hover:bg-red-200"
-                              : "border-neutral-300 bg-white text-neutral-400 hover:bg-neutral-100 hover:text-neutral-700",
-                          ].join(" ")}
+                          className="text-sm leading-none opacity-80 hover:opacity-100"
+                          title={isPriority ? t("unmarkPriority") : t("markPriority")}
                         >
-                          <span aria-hidden>
-                            {isPriority ? "★" : "☆"}
-                          </span>
+                          {isPriority ? "★" : "☆"}
                         </button>
                       )}
-                      <span
-                        className={[
-                          "rounded-full px-3 py-1 text-xs font-medium",
-                          statusClasses(order.status),
-                        ].join(" ")}
-                      >
-                        {statusLabel(order.status, lang)}
-                      </span>
                     </div>
                   </div>
 
+                  {/* ── Dietary / preferences ── */}
                   {order.preferences.length > 0 && (
-                    <div className="rounded-lg bg-cantaloupe-soft/40 px-3 py-2">
-                      <p className="text-[11px] font-semibold uppercase tracking-wider text-neutral-700">
-                        {t("preferencesLabel")}
-                      </p>
-                      <p className="mt-0.5 text-sm text-neutral-900">
-                        {order.preferences
-                          .map((p) => translate(p, lang))
-                          .join(" · ")}
-                      </p>
+                    <div className="border-b border-neutral-100 bg-amber-50 px-4 py-2 text-xs font-medium text-amber-800">
+                      {order.preferences.map((p) => translate(p, lang)).join(" · ")}
                     </div>
                   )}
 
-                  <ul className="divide-y divide-neutral-200">
-                    {order.lines.map((line) => (
-                      <li key={line.id} className="py-2">
-                        <div className="flex items-baseline justify-between gap-3">
-                          <p className="font-medium text-neutral-900">
-                            {cartLineName(line, lang)}
-                          </p>
-                          <p className="text-sm tabular-nums text-neutral-700">
-                            ×{line.quantity}
-                          </p>
-                        </div>
-                        {line.selections.length > 0 && (
-                          <ul className="mt-1 space-y-0.5 text-xs text-neutral-600">
-                            {line.selections.map((s) => (
-                              <li key={s.groupLabel}>
-                                {translateGroupLabel(s.groupLabel, lang)}:{" "}
-                                {s.choiceLabels
-                                  .map((c) =>
-                                    translateChoiceLabel(c, s.groupLabel, lang),
-                                  )
-                                  .join(", ")}
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-                        {line.specialRequest && (
-                          <p className="mt-1 text-xs italic text-neutral-700">
-                            {t("noteLabel")}: {line.specialRequest}
-                          </p>
-                        )}
-                      </li>
-                    ))}
+                  {/* ── Item list ── */}
+                  <ul className="flex-1 divide-y divide-neutral-100 px-4">
+                    {order.lines.map((line) => {
+                      const done = checked.has(line.id);
+                      return (
+                        <li
+                          key={line.id}
+                          className="py-3 cursor-pointer select-none"
+                          onClick={() => toggleItem(order.id, line.id)}
+                        >
+                          <div className="flex items-start gap-3">
+                            <div className={[
+                              "mt-0.5 flex h-5 w-5 flex-none items-center justify-center rounded-full border-2 transition-colors",
+                              done
+                                ? "border-green-500 bg-green-500 text-white"
+                                : "border-neutral-300 bg-white",
+                            ].join(" ")}>
+                              {done && (
+                                <svg viewBox="0 0 12 12" fill="none" className="h-3 w-3">
+                                  <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                </svg>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-baseline justify-between gap-2">
+                                <p className={["font-semibold text-base leading-snug", done ? "text-neutral-400 line-through" : "text-neutral-900"].join(" ")}>
+                                  {cartLineName(line, lang)}
+                                </p>
+                                <span className={["flex-none rounded-md px-2 py-0.5 text-sm font-bold tabular-nums", done ? "bg-neutral-100 text-neutral-400" : "bg-neutral-900 text-white"].join(" ")}>
+                                  ×{line.quantity}
+                                </span>
+                              </div>
+                              {line.selections.length > 0 && (
+                                <ul className="mt-1 space-y-0.5 text-xs text-neutral-500">
+                                  {line.selections.map((s) => (
+                                    <li key={s.groupLabel}>
+                                      <span className="font-medium">{translateGroupLabel(s.groupLabel, lang)}:</span>{" "}
+                                      {s.choiceLabels.map((c) => translateChoiceLabel(c, s.groupLabel, lang)).join(", ")}
+                                    </li>
+                                  ))}
+                                </ul>
+                              )}
+                              {line.specialRequest && (
+                                <p className="mt-1 rounded bg-yellow-50 px-2 py-0.5 text-xs font-medium italic text-yellow-800">
+                                  {line.specialRequest}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </li>
+                      );
+                    })}
                   </ul>
 
-                  {order.status !== "ready" && (
-                    <div className="flex items-end gap-2 border-t border-neutral-200 pt-3">
-                      <label className="flex flex-1 flex-col gap-1">
-                        <span className="text-[11px] font-semibold uppercase tracking-wider text-neutral-500">
-                          {t("etaOverrideLabel")}
-                        </span>
-                        <input
-                          type="number"
-                          inputMode="numeric"
-                          min={0}
-                          value={etaValue}
-                          placeholder="—"
-                          onChange={(e) =>
-                            setEtaDrafts((prev) => ({
-                              ...prev,
-                              [order.id]: e.target.value,
-                            }))
-                          }
-                          onBlur={() => commitEta(order.id)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              (e.target as HTMLInputElement).blur();
-                            }
-                          }}
-                          className="rounded-full border border-neutral-300 bg-white px-3 py-2 text-sm text-neutral-800 placeholder:text-neutral-400 focus:outline-none focus:border-neutral-500 focus-visible:ring-2 focus-visible:ring-neutral-700/30"
-                        />
-                      </label>
+                  {/* ── ETA + action buttons ── */}
+                  <div className="border-t border-neutral-200 bg-neutral-50 px-4 py-3 space-y-2">
+                    {order.status !== "ready" && (
+                      <div className="flex items-center gap-2">
+                        <label className="flex flex-1 items-center gap-2 text-xs text-neutral-500">
+                          <span className="uppercase tracking-wider font-semibold whitespace-nowrap">{t("etaOverrideLabel")}</span>
+                          <input
+                            type="number"
+                            inputMode="numeric"
+                            min={0}
+                            value={etaValue}
+                            placeholder="—"
+                            onClick={(e) => e.stopPropagation()}
+                            onChange={(e) => setEtaDrafts((prev) => ({ ...prev, [order.id]: e.target.value }))}
+                            onBlur={() => commitEta(order.id)}
+                            onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
+                            className="w-16 rounded-lg border border-neutral-300 bg-white px-2 py-1 text-sm text-neutral-900 focus:outline-none focus:border-neutral-500"
+                          />
+                          <span className="text-neutral-400">min</span>
+                        </label>
+                      </div>
+                    )}
+                    <div className="flex gap-2">
+                      {order.status === "new" && (
+                        <button
+                          type="button"
+                          onClick={() => updateOrder(order.id, { status: "cooking" })}
+                          className={["flex-1 rounded-xl py-2.5 text-sm font-bold transition-colors focus:outline-none", allChecked ? "bg-green-500 text-white hover:bg-green-600" : "bg-neutral-900 text-white hover:bg-neutral-700"].join(" ")}
+                        >
+                          {t("startCooking")}
+                        </button>
+                      )}
+                      {order.status === "cooking" && (
+                        <button
+                          type="button"
+                          onClick={() => updateOrder(order.id, { status: "ready" })}
+                          className={["flex-1 rounded-xl py-2.5 text-sm font-bold transition-colors focus:outline-none", allChecked ? "bg-green-500 text-white hover:bg-green-600" : "bg-neutral-900 text-white hover:bg-neutral-700"].join(" ")}
+                        >
+                          {t("markReady")}
+                        </button>
+                      )}
+                      {order.status === "ready" && (
+                        <div className="flex-1 rounded-xl bg-green-100 py-2.5 text-center text-sm font-bold text-green-700">
+                          {statusLabel("ready", lang)}
+                        </div>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => setConfirmClearId(order.id)}
+                        className="rounded-xl border border-neutral-300 bg-white px-3 py-2.5 text-sm text-neutral-600 hover:bg-neutral-100 focus:outline-none"
+                      >
+                        {t("clearOrder")}
+                      </button>
                     </div>
-                  )}
-
-                  <div className="mt-auto flex flex-wrap gap-2 pt-2">
-                    {order.status === "new" && (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          updateOrder(order.id, { status: "cooking" })
-                        }
-                        className="flex-1 rounded-full bg-neutral-900 px-5 py-2.5 text-sm font-medium text-cream hover:bg-neutral-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
-                      >
-                        {t("startCooking")}
-                      </button>
-                    )}
-                    {order.status === "cooking" && (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          updateOrder(order.id, { status: "ready" })
-                        }
-                        className="flex-1 rounded-full bg-neutral-900 px-5 py-2.5 text-sm font-medium text-cream hover:bg-neutral-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
-                      >
-                        {t("markReady")}
-                      </button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => setConfirmClearId(order.id)}
-                      className="rounded-full border border-neutral-300 bg-white px-4 py-2.5 text-sm text-neutral-700 hover:bg-neutral-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-700/30"
-                    >
-                      {t("clearOrder")}
-                    </button>
                   </div>
                 </li>
               );
