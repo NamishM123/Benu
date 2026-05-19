@@ -108,7 +108,7 @@ export default function KitchenDisplay() {
   const [etaDrafts, setEtaDrafts] = useState<Record<string, string>>({});
   const [checkedItems, setCheckedItems] = useState<Record<string, Set<string>>>({});
   const [voidedIds, setVoidedIds] = useState<Set<string>>(new Set());
-  const [view, setView] = useState<ViewMode>({ kind: "all" });
+  const [view, setView] = useState<ViewMode>({ kind: "expo" });
   const [muted, setMuted] = useState(false);
   const [armedAllergens, setArmedAllergens] = useState<Set<string>>(new Set());
   const seenOrderIds = useRef<Set<string>>(new Set());

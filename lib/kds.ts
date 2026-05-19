@@ -629,18 +629,22 @@ export function saveHold(h: HoldState | null): void {
 
 export type ViewMode = { kind: "station"; station: StationId } | { kind: "expo" } | { kind: "all" };
 
-const VIEW_KEY = "benu.kds.view";
+// Bump the key when the default view changes so existing users land on the
+// new default instead of being stuck on a stale localStorage entry.
+const VIEW_KEY = "benu.kds.view.v2";
+
+const DEFAULT_VIEW: ViewMode = { kind: "expo" };
 
 export function loadView(): ViewMode {
-  if (typeof window === "undefined") return { kind: "all" };
+  if (typeof window === "undefined") return DEFAULT_VIEW;
   try {
     const raw = window.localStorage.getItem(VIEW_KEY);
-    if (!raw) return { kind: "all" };
+    if (!raw) return DEFAULT_VIEW;
     const v = JSON.parse(raw) as ViewMode;
     if (v.kind === "station" || v.kind === "expo" || v.kind === "all") return v;
-    return { kind: "all" };
+    return DEFAULT_VIEW;
   } catch {
-    return { kind: "all" };
+    return DEFAULT_VIEW;
   }
 }
 
