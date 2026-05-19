@@ -51,6 +51,8 @@ import GhostSection from "./kds/GhostSection";
 import VoidedCollapsed from "./kds/VoidedCollapsed";
 import ViewSwitcher from "./kds/ViewSwitcher";
 import StationProgressBadge from "./kds/StationProgressBadge";
+import StationLanesView from "./kds/StationLanesView";
+import ExpoView from "./kds/ExpoView";
 
 function elapsedMMSS(ts: number, now: number = Date.now()): string {
   const s = Math.max(0, Math.floor((now - ts) / 1000));
@@ -459,11 +461,11 @@ export default function KitchenDisplay() {
           )}
         </div>
 
-        {/* Station status strip — shows on expo or all */}
-        {(view.kind === "expo" || view.kind === "all") && (
+        {/* Station status strip — only on "all" overview now; expo has its own */}
+        {view.kind === "all" && (
           <StationStatusStrip
             orders={orders}
-            activeStation={view.kind === "expo" ? "all" : "all"}
+            activeStation="all"
             onSelectStation={(s) => {
               if (s === "all") setView({ kind: "all" });
               else setView({ kind: "station", station: s });
@@ -471,12 +473,9 @@ export default function KitchenDisplay() {
           />
         )}
 
-        {/* Next banner */}
-        {(view.kind === "station" || view.kind === "expo") && (
-          <NextBanner
-            rec={nextRec}
-            context={viewLabel}
-          />
+        {/* Next banner — only on station view when in active tab. Expo has its own banner. */}
+        {view.kind === "station" && tab === "active" && (
+          <NextBanner rec={nextRec} context={viewLabel} />
         )}
 
         {/* ── Pending confirmation ── */}
@@ -629,8 +628,43 @@ export default function KitchenDisplay() {
           </div>
         </div>
 
+        {/* V3 Lanes — individual chef station view, active only */}
+        {ordersLoaded &&
+          view.kind === "station" &&
+          tab === "active" &&
+          !orderSearch.trim() && (
+            <StationLanesView
+              orders={visibleOrders}
+              station={view.station}
+              checked={checkedItems}
+              lang={lang}
+              onToggleLine={toggleItem}
+              isNextOrderId={nextRec?.order.id ?? null}
+            />
+          )}
+
+        {/* V4 Expo · Air Traffic — overview for managers, waiters, chefs who finish early */}
+        {ordersLoaded &&
+          view.kind === "expo" &&
+          tab === "active" &&
+          !orderSearch.trim() && (
+            <ExpoView
+              orders={orders}
+              checkedItems={checkedItems}
+              lang={lang}
+              onToggleLine={toggleItem}
+              onSelectStation={(s) => setView({ kind: "station", station: s })}
+            />
+          )}
+
+        {/* Existing grid — completed tab, "all" view, or when searching */}
         {(() => {
           if (!ordersLoaded) return null;
+          const useGrid =
+            view.kind === "all" ||
+            tab === "completed" ||
+            orderSearch.trim() !== "";
+          if (!useGrid) return null;
           const tabPool = visibleOrders.filter((o) => {
             if (o.status === "pending") return false;
             return tab === "active" ? o.status !== "ready" : o.status === "ready";

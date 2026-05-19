@@ -347,6 +347,27 @@ export function stationProgress(
   };
 }
 
+// For a station view of a ticket: the OTHER stations that touch this ticket
+// and whether each one has finished. Used by V3 lane "Waiting on …" copy.
+export function otherStationsBlocking(
+  order: Order,
+  station: StationId,
+  checkedItems: Set<string>,
+): { station: StationId; allDone: boolean }[] {
+  const map = new Map<StationId, CartLine[]>();
+  for (const l of order.lines) {
+    const s = stationForLine(l);
+    if (s === station) continue;
+    const arr = map.get(s) ?? [];
+    arr.push(l);
+    map.set(s, arr);
+  }
+  return [...map.entries()].map(([s, lines]) => ({
+    station: s,
+    allDone: lines.every((l) => checkedItems.has(l.id)),
+  }));
+}
+
 // ─── Kitchen load ────────────────────────────────────────────────────────
 
 export type KitchenLoad = {
@@ -438,6 +459,110 @@ export function stationLoad(
   else load = "slammed";
 
   return { load, activeItems, avgAgeSeconds: avgAge };
+}
+
+// ─── Lane partitioning (V3 Lanes) ────────────────────────────────────────
+
+export type Lane = "queue" | "fire" | "bumped" | "pass";
+
+// Returns the lane this ticket sits in for the given station view. Mirrors the
+// V3 design: queue (unfired) → fire (actively cooking at this station) →
+// bumped (this station done, waiting on others) → pass (all stations done).
+export function laneForOrder(
+  order: Order,
+  station: StationId,
+  checkedItems: Set<string>,
+): Lane {
+  const stationLines = linesForStation(order, station);
+  const allLines = order.lines;
+
+  // If the order is already marked ready everywhere, it's at the pass.
+  if (order.status === "ready") return "pass";
+
+  if (stationLines.length === 0) {
+    // This station has nothing on this ticket. Use overall progress.
+    if (allLines.every((l) => checkedItems.has(l.id))) return "pass";
+    return order.status === "cooking" ? "fire" : "queue";
+  }
+
+  const allStationLinesBumped = stationLines.every((l) => checkedItems.has(l.id));
+  const allLinesBumped = allLines.every((l) => checkedItems.has(l.id));
+
+  if (allLinesBumped) return "pass";
+  if (allStationLinesBumped) return "bumped";
+  if (order.status === "cooking") return "fire";
+  return "queue";
+}
+
+// Aggregated item quantities across the kitchen (or filtered to one station).
+export function allDayItems(
+  orders: Order[],
+  station?: StationId,
+): { name: string; qty: number; station: StationId }[] {
+  const map = new Map<string, { name: string; qty: number; station: StationId }>();
+  for (const o of orders) {
+    if (o.status !== "new" && o.status !== "cooking") continue;
+    for (const l of o.lines) {
+      const s = stationForLine(l);
+      if (station && s !== station) continue;
+      const key = `${s}|${l.itemName}`;
+      const prev = map.get(key);
+      if (prev) prev.qty += l.quantity;
+      else map.set(key, { name: l.itemName, qty: l.quantity, station: s });
+    }
+  }
+  return [...map.values()].sort((a, b) => b.qty - a.qty);
+}
+
+// Stations whose current load is elevated above the heuristic baseline.
+export function bottleneckStations(
+  orders: Order[],
+): { station: StationId; activeItems: number; avgAgeSeconds: number; severity: "busy" | "slammed" }[] {
+  const out: ReturnType<typeof bottleneckStations> = [];
+  for (const s of STATIONS) {
+    const info = stationLoad(orders, s.id);
+    if (info.load === "busy" || info.load === "slammed") {
+      out.push({
+        station: s.id,
+        activeItems: info.activeItems,
+        avgAgeSeconds: info.avgAgeSeconds,
+        severity: info.load,
+      });
+    }
+  }
+  return out;
+}
+
+// Most urgent open ticket, used by the Expo "Now" banner.
+export function mostUrgentOrder(orders: Order[]): Order | null {
+  const open = orders.filter((o) => o.status === "new" || o.status === "cooking");
+  if (open.length === 0) return null;
+  return [...open].sort((a, b) => {
+    if (a.priority !== b.priority) return a.priority ? -1 : 1;
+    return secondsUntilPromise(a) - secondsUntilPromise(b);
+  })[0];
+}
+
+// Coarse kitchen throughput sparkline — average ticket age per 5-minute bucket
+// looking backwards 50 minutes, capped at 10. Used by the expo footer.
+export function kitchenPaceBars(orders: Order[], now: number = Date.now()): number[] {
+  const buckets = Array(10).fill(0);
+  const counts = Array(10).fill(0);
+  for (const o of orders) {
+    const ageMin = (now - o.placedAt) / 60_000;
+    if (ageMin < 0 || ageMin > 50) continue;
+    const idx = Math.min(9, Math.floor(ageMin / 5));
+    buckets[idx] += 1;
+    counts[idx] += 1;
+  }
+  // Normalize: scale highest bucket → 10
+  const max = Math.max(1, ...buckets);
+  return buckets.map((b) => Math.max(1, Math.round((b / max) * 10)));
+}
+
+export function ticketsPerHour(orders: Order[], now: number = Date.now()): number {
+  const recent = orders.filter((o) => now - o.placedAt < 60 * 60 * 1000);
+  return recent.length;
 }
 
 // ─── Voided handling ─────────────────────────────────────────────────────
