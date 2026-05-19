@@ -4,7 +4,6 @@ import { removeOrder, updateOrder, type Order } from "@/lib/order-store";
 import {
   STATIONS,
   ageSeconds,
-  hasAllergen,
   orderAllergens,
   secondsUntilPromise,
   stationForLine,
@@ -36,14 +35,14 @@ function ProgressPill({ done, total }: { done: number; total: number }) {
           <span
             key={i}
             className={`block h-1.5 w-3.5 rounded-full ${
-              i < done ? "bg-sage-dark" : "bg-neutral-200"
+              i < done ? "bg-sage-kds-dark" : "bg-neutral-200"
             }`}
           />
         ))}
       </div>
       <span
         className={`text-[10px] font-semibold uppercase tracking-wider tabular-nums ${
-          ready ? "text-sage-dark" : "text-neutral-500"
+          ready ? "text-sage-kds-dark" : "text-neutral-500"
         }`}
       >
         {done}/{total}
@@ -70,29 +69,23 @@ function StatusBadge({
   }
   let bg = "bg-neutral-100";
   let text = "text-neutral-600";
-  let label: string = status;
+  let label: string = "All queued";
 
   if (status === "ready-to-plate") {
-    bg = "bg-sage/40";
-    text = "text-sage-dark";
+    bg = "bg-sage-kds/40";
+    text = "text-sage-kds-dark";
     label = "Ready to plate";
   } else if (status === "partial") {
-    bg = "bg-butter-soft";
-    text = "text-butter-deep";
+    bg = "bg-butter-kds-soft";
+    text = "text-butter-kds-deep";
     label =
       stationsDone.length && stationsActive.length
         ? `${stationsDone.join(" & ")} done · wait ${stationsActive.join(" & ")}`
         : "Partial";
-  } else {
-    if (order.status === "cooking") {
-      bg = "bg-red-50";
-      text = "text-red-700";
-      label = "All cooking";
-    } else {
-      bg = "bg-neutral-100";
-      text = "text-neutral-600";
-      label = "All queued";
-    }
+  } else if (order.status === "cooking") {
+    bg = "bg-red-50";
+    text = "text-red-700";
+    label = "All cooking";
   }
   return (
     <span
@@ -115,7 +108,7 @@ function Timer({ order }: { order: Order }) {
   }
   return (
     <div className="flex items-center gap-1">
-      <span className="block h-1.5 w-1.5 rounded-full bg-butter-deep [animation:pulse-dot_1.4s_ease-in-out_infinite]" />
+      <span className="block h-1.5 w-1.5 rounded-full bg-butter-kds-deep animate-pulse-dot" />
       <span
         className={`text-[16px] font-bold tabular-nums ${past ? "text-red-700" : "text-neutral-900"}`}
       >
@@ -140,7 +133,6 @@ export default function ExpoTicketCard({
   const allergens = orderAllergens(order);
   const allergen = allergens.length > 0;
 
-  // Group lines by station, keeping only stations that touch this ticket
   const byStation = new Map<StationId, CartLine[]>();
   for (const l of order.lines) {
     const s = stationForLine(l);
@@ -152,13 +144,13 @@ export default function ExpoTicketCard({
 
   const leftEdge =
     status === "ready-to-plate"
-      ? "border-l-[5px] border-l-sage-dark"
+      ? "border-l-[5px] border-l-sage-kds-dark"
       : status === "partial"
-        ? "border-l-[5px] border-l-butter"
+        ? "border-l-[5px] border-l-butter-kds"
         : order.status === "cooking"
           ? "border-l-[5px] border-l-red-400"
           : "border-l-[5px] border-l-neutral-200";
-  const ring = allergen ? "ring-2 ring-red-300" : "ring-1 ring-neutral-200";
+  const ring = allergen ? "ring-2 ring-red-300" : "ring-1 ring-kds-cream-deep/70";
 
   const ticketShort =
     order.ticketNumber !== undefined
@@ -167,7 +159,7 @@ export default function ExpoTicketCard({
 
   return (
     <article
-      className={`flex flex-col overflow-hidden rounded-[22px] bg-white shadow-sm ${ring} ${leftEdge}`}
+      className={`flex flex-col overflow-hidden rounded-[22px] bg-white shadow-card ${ring} ${leftEdge}`}
     >
       {/* HEAD */}
       <div className="flex items-center justify-between gap-2 border-b border-neutral-100 px-4 pb-2.5 pt-3">
@@ -201,7 +193,8 @@ export default function ExpoTicketCard({
 
       {allergen && (
         <div className="mx-4 mt-3 inline-flex items-center gap-1.5 rounded-md border border-red-300 bg-red-50 px-2 py-1 text-[11px] font-semibold uppercase tracking-wider text-red-700">
-          <WarnIcon className="h-3 w-3" /> Allergen · {allergens.join(", ")}
+          <WarnIcon className="h-3 w-3" /> Allergen on ticket —{" "}
+          {allergens.join(", ").toLowerCase()}
         </div>
       )}
 
@@ -223,7 +216,7 @@ export default function ExpoTicketCard({
                 return (
                   <div
                     key={line.id}
-                    className="grid cursor-pointer grid-cols-[auto_1fr] items-baseline gap-x-2.5 select-none"
+                    className="grid cursor-pointer select-none grid-cols-[auto_1fr] items-baseline gap-x-2.5"
                     onClick={() => onToggleLine(order.id, line.id)}
                   >
                     <span
@@ -256,7 +249,7 @@ export default function ExpoTicketCard({
           <button
             type="button"
             onClick={() => updateOrder(order.id, { status: "ready" })}
-            className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-full bg-sage-dark text-[13px] font-medium text-cream"
+            className="inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-full bg-sage-kds-dark text-[13px] font-medium text-cream"
           >
             <CheckIcon className="h-4 w-4" /> Send to pass
           </button>
